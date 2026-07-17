@@ -42,3 +42,11 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+
+# SSH keys
+*.pem
+*.key
+*.crt
+id_rsa
+id_rsa.pub
+
