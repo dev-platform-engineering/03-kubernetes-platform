@@ -23,3 +23,8 @@ variable "resource_pool_name" {
   description = "Resourse pool"
   type        = string
 }
+variable "vsphere_standard_switch_name" {
+  description = "Standard vSwitch used for Kubernetes networks"
+  type        = string
+  default     = "vSwitch2"
+}
