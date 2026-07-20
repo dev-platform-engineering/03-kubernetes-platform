@@ -1,0 +1,53 @@
+variable "name" {
+  type = string
+}
+
+variable "resource_pool_id" {
+  type = string
+}
+
+variable "datastore_id" {
+  type = string
+}
+
+variable "template_uuid" {
+  type = string
+}
+
+variable "guest_id" {
+  type = string
+}
+
+variable "firmware" {
+  type = string
+}
+
+variable "scsi_type" {
+  type = string
+}
+
+variable "trunk_network_id" {
+  type = string
+}
+
+variable "template_disk_label" {
+  type = string
+}
+
+variable "template_disk_size" {
+  type = number
+}
+
+variable "template_disk_thin" {
+  type = bool
+}
+
+variable "cpu" {
+  type    = number
+  default = 2
+}
+
+variable "memory" {
+  type    = number
+  default = 2048
+}
