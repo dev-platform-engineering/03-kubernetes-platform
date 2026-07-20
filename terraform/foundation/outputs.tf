@@ -1,9 +1,19 @@
-output "resource_pool_id" {
-  value = vsphere_resource_pool.kubernetes.id
+output "root_resource_pool" {
+  description = "Root resource pool"
+
+  value = {
+    id   = vsphere_resource_pool.root.id
+    name = vsphere_resource_pool.root.name
+  }
 }
 
-output "resource_pool_name" {
-  value = vsphere_resource_pool.kubernetes.name
+output "child_resource_pools" {
+  description = "Child resource pools"
+
+  value = {
+    for pool in vsphere_resource_pool.child :
+    pool.name => pool.id
+  }
 }
 
 output "networks" {

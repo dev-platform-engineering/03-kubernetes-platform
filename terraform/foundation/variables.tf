@@ -20,8 +20,12 @@ variable "esxi_host" {
   type        = string
 }
 variable "resource_pool_name" {
-  description = "Resourse pool"
+  description = "Root resource pool name"
   type        = string
+}
+variable "child_resource_pools" {
+  description = "Child resource pools"
+  type        = list(string)
 }
 variable "vsphere_standard_switch_name" {
   description = "Standard vSwitch used for Kubernetes networks"

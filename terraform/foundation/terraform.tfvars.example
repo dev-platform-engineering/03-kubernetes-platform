@@ -6,4 +6,12 @@ vsphere_password    = "CHANGE_ME"
 
 datacenter          = "Datacenter"
 esxi_host           = "Esxi_Host_Name"
-resource_pool_name  = "RP-Kubernetes"
+resource_pool_name  = "RP-Platform"
+
+child_resource_pools = [
+  "RP-Templates",
+  "RP-Network",
+  "RP-Management",
+  "RP-Kubernetes",
+  "RP-Applications"
+]
