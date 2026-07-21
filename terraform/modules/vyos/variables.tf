@@ -30,6 +30,10 @@ variable "trunk_network_id" {
   type = string
 }
 
+variable "management_network_id" {
+  type = string
+}
+
 variable "template_disk_label" {
   type = string
 }
@@ -50,4 +54,9 @@ variable "cpu" {
 variable "memory" {
   type    = number
   default = 2048
+}
+
+variable "vm_folder" {
+  description = "vCenter VM folder"
+  type        = string
 }

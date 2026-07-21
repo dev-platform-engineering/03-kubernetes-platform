@@ -20,3 +20,16 @@ output "networks" {
   description = "Map of all created standard port group names"
   value       = { for k, v in vsphere_host_port_group.pgs : k => v.name }
 }
+
+output "network_folder" {
+  value       = module.main_folders.folders["network"]
+  description = "absolute path to Platform/Network"
+}
+
+output "kubernetes_folders" {
+  value = {
+    control_plane = module.k8s_subfolders.folders["control_plane"]
+    workers       = module.k8s_subfolders.folders["workers"]
+  }
+  description = "path to Kubernetes"
+}

@@ -1,6 +1,8 @@
 resource "vsphere_virtual_machine" "this" {
 
-  name             = var.name
+  name = var.name
+
+  folder           = var.vm_folder
   resource_pool_id = var.resource_pool_id
   datastore_id     = var.datastore_id
 
@@ -17,6 +19,10 @@ resource "vsphere_virtual_machine" "this" {
     label            = var.template_disk_label
     size             = var.template_disk_size
     thin_provisioned = var.template_disk_thin
+  }
+
+  network_interface {
+    network_id = var.management_network_id
   }
 
   network_interface {

@@ -1,3 +1,11 @@
+data "terraform_remote_state" "foundation" {
+  backend = "local" # read local state
+
+  config = {
+    path = "../01-foundation/terraform.tfstate" #path to state file
+  }
+}
+
 locals {
   routers = {
     vyos01 = { name = "vyos-router-01" }
@@ -12,6 +20,8 @@ module "vyos" {
 
   name = each.value.name
 
+  vm_folder = data.terraform_remote_state.foundation.outputs.network_folder
+
   resource_pool_id = data.vsphere_resource_pool.network.id
   datastore_id     = data.vsphere_datastore.ds.id
 
@@ -25,5 +35,6 @@ module "vyos" {
   firmware  = data.vsphere_virtual_machine.template.firmware
   scsi_type = data.vsphere_virtual_machine.template.scsi_type
 
-  trunk_network_id = data.vsphere_network.trunk.id
+  trunk_network_id      = data.vsphere_network.trunk.id
+  management_network_id = data.vsphere_network.management.id
 }
