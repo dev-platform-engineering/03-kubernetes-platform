@@ -4,6 +4,6 @@
   gather_facts: false
   roles:
     - base
-    - interfaces
-    - nat
-    - firewall
+    # - interfaces
+    # - nat
+    # - firewall
