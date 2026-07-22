@@ -1,0 +1,36 @@
+---
+- name: Configure descriptions on Trunk sub-interfaces (eth1)
+  vyos.vyos.vyos_interfaces:
+    config: "{{ trunk_interfaces }}"
+    state: merged
+  vars:
+    trunk_interfaces: >-
+      {% set result = [] %}
+      {% for vlan in vgt_vlans %}
+      {%   type_unused = result.append({
+             'name': 'eth1.' ~ vlan.id,
+             'description': vlan.name,
+             'enabled': true
+           }) %}
+      {% endfor %}
+      {{ result }}
+
+- name: Assign L3 IPv4 Gateways to Trunk sub-interfaces (eth1)
+  vyos.vyos.vyos_l3_interfaces:
+    config: "{{ trunk_l3_interfaces }}"
+    state: merged
+  vars:
+    trunk_l3_interfaces: >-
+      {% set result = [] %}
+      {% for vlan in vgt_vlans %}
+      {%   type_unused = result.append({
+             'name': 'eth1.' ~ vlan.id,
+             'vif': vlan.id | int,
+             'ipv4': [{'address': vlan.ip}]
+           }) %}
+      {% endfor %}
+      {{ result }}
+
+- name: Commit and save configuration to boot.config
+  vyos.vyos.vyos_config:
+    save: true
