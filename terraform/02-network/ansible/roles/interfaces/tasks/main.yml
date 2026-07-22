@@ -65,9 +65,10 @@
       {% endfor %}
       {{ output | sort | to_yaml }}
 
-- name: "----------------- [ {{ inventory_hostname }} ] -----------------"
+- name: "----------------- [ Interface Configuration Summary ] -----------------"
   ansible.builtin.debug:
-    msg: "Output configuration router interface"
+    msg: "=== Current configuration interfaces router: {{ inventory_hostname }} ==="
+  throttle: 1
 
 - name: Display running L3 interfaces configuration (Line by Line)
   ansible.builtin.debug:
