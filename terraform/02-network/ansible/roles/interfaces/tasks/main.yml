@@ -46,6 +46,7 @@
   vyos.vyos.vyos_l3_interfaces:
     state: gathered
   register: current_l3_interfaces
+
 - name: Build compact interfaces list
   ansible.builtin.set_fact:
     compact_interfaces_list: |
@@ -62,11 +63,11 @@
           {% endfor %}
         {% endif %}
       {% endfor %}
-      {{ output | sort }}
+      {{ output | sort | to_yaml }}
 
 - name: Display running L3 interfaces configuration (Line by Line)
   ansible.builtin.debug:
     msg: "{{ item }}"
-  loop: "{{ compact_interfaces_list }}"
+  loop: "{{ compact_interfaces_list | from_yaml }}"
   loop_control:
     label: "{{ item }}"
