@@ -47,9 +47,9 @@
     state: gathered
   register: current_l3_interfaces
 
-- name: Display running L3 interfaces configuration (Compact)
+- name: Display running L3 interfaces configuration (Compact & Sorted)
   ansible.builtin.debug:
-    msg: >-
+    msg: |
       {% set output = [] %}
       {% for interface in current_l3_interfaces.gathered %}
         {% if interface.vifs is defined %}
@@ -58,7 +58,9 @@
           {% endfor %}
         {% endif %}
         {% if interface.ipv4 is defined %}
-          {% set _ = output.append(interface.name ~ ' -> ' ~ interface.ipv4[0].address) %}
+          {% for ip in interface.ipv4 %}
+            {% set _ = output.append(interface.name ~ ' -> ' ~ ip.address) %}
+          {% endfor %}
         {% endif %}
       {% endfor %}
-      {{ output }}
+      {{ output | sort | join('\n') }}
