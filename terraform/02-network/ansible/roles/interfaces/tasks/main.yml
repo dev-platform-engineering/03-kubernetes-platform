@@ -46,10 +46,9 @@
   vyos.vyos.vyos_l3_interfaces:
     state: gathered
   register: current_l3_interfaces
-
-- name: Display running L3 interfaces configuration (Compact & Sorted)
-  ansible.builtin.debug:
-    msg: |
+- name: Build compact interfaces list
+  ansible.builtin.set_fact:
+    compact_interfaces_list: |
       {% set output = [] %}
       {% for interface in current_l3_interfaces.gathered %}
         {% if interface.vifs is defined %}
@@ -63,4 +62,11 @@
           {% endfor %}
         {% endif %}
       {% endfor %}
-      {{ output | sort | join('\n') | split('\n') }}
+      {{ output | sort }}
+
+- name: Display running L3 interfaces configuration (Line by Line)
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop: "{{ compact_interfaces_list }}"
+  loop_control:
+    label: "{{ item }}"
