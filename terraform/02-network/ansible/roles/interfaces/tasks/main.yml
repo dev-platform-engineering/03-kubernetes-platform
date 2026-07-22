@@ -41,3 +41,12 @@
 - name: Commit and save configuration to boot.config
   vyos.vyos.vyos_config:
     save: true
+
+- name: Gather applied L3 configuration for verification
+  vyos.vyos.vyos_l3_interfaces:
+    state: gathered
+  register: current_l3_interfaces
+
+- name: Display running L3 interfaces configuration
+  ansible.builtin.debug:
+    var: current_l3_interfaces.gathered
