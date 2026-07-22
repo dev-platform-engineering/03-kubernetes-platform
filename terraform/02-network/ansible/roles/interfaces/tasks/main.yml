@@ -4,14 +4,14 @@
     config: "{{ trunk_interfaces }}"
     state: merged
   vars:
-    trunk_interfaces: >-
+    trunk_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
-      {%   type_unused = result.append({
-             'name': 'eth1.' ~ vlan.id,
-             'description': vlan.name,
-             'enabled': true
-           }) %}
+      {% set _ = result.append({
+        'name': 'eth1.' ~ vlan.id,
+        'description': vlan.name,
+        'enabled': true
+      }) %}
       {% endfor %}
       {{ result }}
 
@@ -20,14 +20,18 @@
     config: "{{ trunk_l3_interfaces }}"
     state: merged
   vars:
-    trunk_l3_interfaces: >-
+    trunk_l3_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
-      {%   type_unused = result.append({
-             'name': 'eth1.' ~ vlan.id,
-             'vif': vlan.id | int,
-             'ipv4': [{'address': vlan.ip}]
-           }) %}
+      {% set _ = result.append({
+        'name': 'eth1.' ~ vlan.id,
+        'vif': vlan.id | int,
+        'ipv4': [
+          {
+            'address': vlan.ip
+          }
+        ]
+      }) %}
       {% endfor %}
       {{ result }}
 
