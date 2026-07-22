@@ -3,14 +3,14 @@
   vyos.vyos.vyos_interfaces:
     config:
       - name: eth1
-        vif: "{{ trunk_interfaces }}"
+        vifs: "{{ trunk_interfaces }}"
     state: merged
   vars:
     trunk_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
       {% set _ = result.append({
-        'vif': vlan.id | int,
+        'vlan_id': vlan.id | int,
         'description': vlan.name,
         'enabled': true
       }) %}
@@ -21,14 +21,14 @@
   vyos.vyos.vyos_l3_interfaces:
     config:
       - name: eth1
-        vif: "{{ trunk_l3_interfaces }}"
+        vifs: "{{ trunk_l3_interfaces }}"
     state: merged
   vars:
     trunk_l3_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
       {% set _ = result.append({
-        'vif': vlan.id | int,
+        'vlan_id': vlan.id | int,
         'ipv4': [
           {
             'address': vlan.ip
