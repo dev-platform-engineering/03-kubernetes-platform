@@ -2,7 +2,7 @@
 - name: Ensure the administrative Ansible user exists
   vyos.vyos.vyos_config:
     lines:
-      - "set system login user ansible-vyos authentication plaintext-password '{{ vyos_admin_password }}'"
+      - "set system login user ansible-vyos authentication plaintext-password '{{ vault_vyos_ansible_password }}'"
     match: none
 
 - name: Commit and save base system changes
