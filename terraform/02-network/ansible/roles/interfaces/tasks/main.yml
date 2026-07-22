@@ -50,22 +50,24 @@
 - name: Display running L3 interfaces configuration (Grouped by Router)
   ansible.builtin.debug:
     msg: "{{ item }}"
-  loop: |
-    {% set output = [] %}
-    {% set _ = output.append('=== Current configuration interfaces router: ' ~ inventory_hostname ~ ' ===') %}
-    {% for interface in current_l3_interfaces.gathered %}
-      {% if interface.vifs is defined %}
-        {% for vif in interface.vifs %}
-          {% if vif.ipv4 is defined and vif.ipv4 | length > 0 %}
-            {% set _ = output.append(interface.name ~ '.' ~ vif.vlan_id ~ ' -> ' ~ vif.ipv4[0].address) %}
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-      {% if interface.ipv4 is defined and interface.ipv4 | length > 0 %}
-        {% set _ = output.append(interface.name ~ ' -> ' ~ interface.ipv4[0].address) %}
-      {% endif %}
-    {% endfor %}
-    {{ output | sort | to_yaml }}
+  loop: "{{ loop_data | from_yaml }}"
+  vars:
+    loop_data: |
+      {% set output = [] %}
+      {% set _ = output.append('=== Current configuration interfaces router: ' ~ inventory_hostname ~ ' ===') %}
+      {% for interface in current_l3_interfaces.gathered %}
+        {% if interface.vifs is defined %}
+          {% for vif in interface.vifs %}
+            {% if vif.ipv4 is defined and vif.ipv4 | length > 0 %}
+              {% set _ = output.append(interface.name ~ '.' ~ vif.vlan_id ~ ' -> ' ~ vif.ipv4[0].address) %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        {% if interface.ipv4 is defined and interface.ipv4 | length > 0 %}
+          {% set _ = output.append(interface.name ~ ' -> ' ~ interface.ipv4[0].address) %}
+        {% endif %}
+      {% endfor %}
+      {{ output | sort }}
   loop_control:
     label: "{{ item }}"
   throttle: 1
