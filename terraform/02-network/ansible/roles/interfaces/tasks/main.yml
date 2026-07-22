@@ -47,33 +47,25 @@
     state: gathered
   register: current_l3_interfaces
 
-- name: Build compact interfaces list
-  ansible.builtin.set_fact:
-    compact_interfaces_list: |
-      {% set output = [] %}
-      {% for interface in current_l3_interfaces.gathered %}
-        {% if interface.vifs is defined %}
-          {% for vif in interface.vifs %}
-            {% set _ = output.append(interface.name ~ '.' ~ vif.vlan_id ~ ' -> ' ~ vif.ipv4[0].address) %}
-          {% endfor %}
-        {% endif %}
-        {% if interface.ipv4 is defined %}
-          {% for ip in interface.ipv4 %}
-            {% set _ = output.append(interface.name ~ ' -> ' ~ ip.address) %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-      {{ output | sort | to_yaml }}
-
-- name: "----------------- [ Interface Configuration Summary ] -----------------"
-  ansible.builtin.debug:
-    msg: "=== Current configuration interfaces router: {{ inventory_hostname }} ==="
-  throttle: 1
-
-- name: Display running L3 interfaces configuration (Line by Line)
+- name: Display running L3 interfaces configuration (Grouped by Router)
   ansible.builtin.debug:
     msg: "{{ item }}"
-  loop: "{{ compact_interfaces_list | from_yaml }}"
+  loop: |
+    {% set output = [] %}
+    {% set _ = output.append('=== Current configuration interfaces router: ' ~ inventory_hostname ~ ' ===') %}
+    {% for interface in current_l3_interfaces.gathered %}
+      {% if interface.vifs is defined %}
+        {% for vif in interface.vifs %}
+          {% set _ = output.append(interface.name ~ '.' ~ vif.vlan_id ~ ' -> ' ~ vif.ipv4.address) %}
+        {% endfor %}
+      {% endif %}
+      {% if interface.ipv4 is defined %}
+        {% for ip in interface.ipv4 %}
+          {% set _ = output.append(interface.name ~ ' -> ' ~ ip.address) %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+    {{ output | sort(attribute=none) | to_yaml }}
   loop_control:
     label: "{{ item }}"
   throttle: 1
