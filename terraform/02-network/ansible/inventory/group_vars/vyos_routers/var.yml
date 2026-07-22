@@ -33,4 +33,7 @@ vgt_vlans:
     name: "Transit"
     ip: "10.50.99.1/24" # for HA routers. every ip routers (.2 и .3), а .1  VIP
 
-vyos_admin_password: "{{ vault_vyos_ansible_password }}"
+ansible_user: ansible-vyos
+ansible_password: "{{ vault_vyos_ansible_password }}"
+ansible_connection: network_cli
+ansible_network_os: vyos.vyos.vyos
