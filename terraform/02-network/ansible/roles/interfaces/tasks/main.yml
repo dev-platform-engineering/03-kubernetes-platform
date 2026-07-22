@@ -63,4 +63,4 @@
           {% endfor %}
         {% endif %}
       {% endfor %}
-      {{ output | sort | join('\n') }}
+      {{ output | sort | join('\n') | split('\n') }}
