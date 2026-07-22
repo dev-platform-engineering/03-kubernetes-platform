@@ -1,14 +1,16 @@
 ---
 - name: Configure descriptions on Trunk sub-interfaces (eth1)
   vyos.vyos.vyos_interfaces:
-    config: "{{ trunk_interfaces }}"
+    config:
+      - name: eth1
+        vif: "{{ trunk_interfaces }}"
     state: merged
   vars:
     trunk_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
       {% set _ = result.append({
-        'name': 'eth1.' ~ vlan.id,
+        'vif': vlan.id | int,
         'description': vlan.name,
         'enabled': true
       }) %}
@@ -17,14 +19,15 @@
 
 - name: Assign L3 IPv4 Gateways to Trunk sub-interfaces (eth1)
   vyos.vyos.vyos_l3_interfaces:
-    config: "{{ trunk_l3_interfaces }}"
+    config:
+      - name: eth1
+        vif: "{{ trunk_l3_interfaces }}"
     state: merged
   vars:
     trunk_l3_interfaces: |
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
       {% set _ = result.append({
-        'name': 'eth1.' ~ vlan.id,
         'vif': vlan.id | int,
         'ipv4': [
           {
