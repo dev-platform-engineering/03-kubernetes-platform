@@ -1,6 +1,6 @@
 - name: Configure VRRP
   vyos.vyos.vyos_config:
-    intended_config: |
+    lines: |
       {% for item in vgt_vlans %}
       set high-availability vrrp group VLAN{{ item.id }} interface eth1.{{ item.id }}
       set high-availability vrrp group VLAN{{ item.id }} vrid {{ item.id }}
