@@ -25,7 +25,7 @@
 
 - name: Wait for VRRP preempt-delay to converge
   ansible.builtin.pause:
-    seconds: 10
+    seconds: 25
 
 - name: Verify VRRP status
   vyos.vyos.vyos_command:
