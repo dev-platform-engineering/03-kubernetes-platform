@@ -1,4 +1,4 @@
-- name: Configure VRRP
+- name: Configure Production VRRP
   vyos.vyos.vyos_config:
     lines: |
       {% for item in vgt_vlans %}
@@ -7,7 +7,15 @@
       set high-availability vrrp group VLAN{{ item.id }} priority {{ router_priority }}
       set high-availability vrrp group VLAN{{ item.id }} address {{ item.subnet }}.254/24
       set high-availability vrrp group VLAN{{ item.id }} hello-source-address {{ item.subnet }}.{{ ip_suffix }}
-      set high-availability vrrp group VLAN{{ item.id }} preempt
+
+      {# Master router behavior (higher priority) #}
+      {% if router_priority | int > 100 %}
+      set high-availability vrrp group VLAN{{ item.id }} preempt-delay 60
+      {# Backup router behavior (lower priority) #}
+      {% else %}
+      set high-availability vrrp group VLAN{{ item.id }} no-preempt
+      {% endif %}
+
       {% endfor %}
     match: none
 
