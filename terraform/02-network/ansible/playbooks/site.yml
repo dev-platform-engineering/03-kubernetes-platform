@@ -6,5 +6,6 @@
     - base
     - interfaces
     - vrrp
+    - bgp
     # - nat
     # - firewall

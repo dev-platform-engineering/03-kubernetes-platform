@@ -1,0 +1,10 @@
+---
+- name: Show BGP Summary
+  vyos.vyos.vyos_command:
+    commands:
+      - show ip bgp summary
+  register: bgp_summary
+
+- name: Display BGP Summary
+  debug:
+    var: bgp_summary.stdout_lines

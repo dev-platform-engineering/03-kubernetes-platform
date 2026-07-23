@@ -1,0 +1,16 @@
+---
+- name: Enter configuration mode
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp system-as {{ bgp.local_as }}"
+
+      - "set protocols bgp parameters router-id {{ bgp.router_ids[inventory_hostname] }}"
+
+- name: Configure iBGP neighbors
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp neighbor {{ item.ip }} remote-as {{ item.remote_as }}"
+
+    save: false
+
+  loop: "{{ bgp.neighbors[inventory_hostname] }}"

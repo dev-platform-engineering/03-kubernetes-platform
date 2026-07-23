@@ -38,6 +38,14 @@
       {% endfor %}
       {{ result }}
 
+- name: Configure loopback interface
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: lo
+        ipv4:
+          - address: "{{ loopback_ip }}/32"
+    state: replaced
+
 - name: Commit and save configuration to boot.config
   vyos.vyos.vyos_config:
     save: true
