@@ -11,8 +11,6 @@
       {% endfor %}
     match: none
 
-  loop: "{{ vgt_vlans }}"
-
 - name: Save configuration
   vyos.vyos.vyos_config:
     save: true
