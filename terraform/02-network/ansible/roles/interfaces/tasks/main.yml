@@ -22,7 +22,7 @@
     config:
       - name: eth1
         vifs: "{{ trunk_l3_interfaces }}"
-    state: merged
+    state: replaced
   vars:
     trunk_l3_interfaces: |
       {% set result = [] %}
