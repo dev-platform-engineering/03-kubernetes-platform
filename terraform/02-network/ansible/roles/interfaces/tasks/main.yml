@@ -17,7 +17,7 @@
       {% endfor %}
       {{ result }}
 
-- name: Assign L3 IPv4 Gateways to Trunk sub-interfaces (eth1)
+- name: Configure VLAN gateway addresses
   vyos.vyos.vyos_l3_interfaces:
     config:
       - name: eth1
@@ -28,10 +28,10 @@
       {% set result = [] %}
       {% for vlan in vgt_vlans %}
       {% set _ = result.append({
-        'vlan_id': vlan.id | int,
+        'vlan_id': vlan.id,
         'ipv4': [
           {
-            'address': vlan.ip
+            'address': vlan.subnet ~ '.' ~ ip_suffix ~ '/24'
           }
         ]
       }) %}
