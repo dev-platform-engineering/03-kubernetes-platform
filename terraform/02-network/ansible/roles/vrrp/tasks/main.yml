@@ -1,11 +1,10 @@
----
 - name: Configure VRRP
   vyos.vyos.vyos_config:
     lines:
       - "set high-availability vrrp group VLAN{{ item.id }} interface eth1.{{ item.id }}"
       - "set high-availability vrrp group VLAN{{ item.id }} vrid {{ item.id }}"
       - "set high-availability vrrp group VLAN{{ item.id }} priority {{ router_priority }}"
-      - "set high-availability vrrp group VLAN{{ item.id }} virtual-address {{ item.subnet }}.254/24"
+      - "set high-availability vrrp group VLAN{{ item.id }} address {{ item.subnet }}.254/24"
       - "set high-availability vrrp group VLAN{{ item.id }} hello-source-address {{ item.subnet }}.{{ ip_suffix }}"
       - "set high-availability vrrp group VLAN{{ item.id }} preempt"
 
