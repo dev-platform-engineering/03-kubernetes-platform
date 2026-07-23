@@ -7,39 +7,39 @@ mgmt_interface:
 vgt_vlans:
   - id: 20
     name: Infrastructure
-    subnet: "10.50.20.0/24"
+    subnet: "10.50.20"
 
   - id: 30
     name: Control-Plane
-    subnet: "10.50.30.0/24"
+    subnet: "10.50.30"
 
   - id: 40
     name: etcd
-    subnet: "10.50.40.0/24"
+    subnet: "10.50.40"
 
   - id: 50
     name: Workers
-    subnet: "10.50.50.0/24"
+    subnet: "10.50.50"
 
   - id: 60
     name: Services
-    subnet: "10.50.60.0/24"
+    subnet: "10.50.60"
 
   - id: 70
     name: Monitoring
-    subnet: "10.50.70.0/24"
+    subnet: "10.50.70"
 
   - id: 80
     name: Databases
-    subnet: "10.50.80.0/24"
+    subnet: "10.50.80"
 
   - id: 90
     name: Storage
-    subnet: "10.50.90.0/24"
+    subnet: "10.50.90"
 
   - id: 99
     name: Transit
-    subnet: "10.50.99.0/24"
+    subnet: "10.50.99"
 
 ansible_user: ansible-vyos
 ansible_password: "{{ vault_vyos_ansible_password }}"
