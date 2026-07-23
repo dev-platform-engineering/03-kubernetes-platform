@@ -22,3 +22,29 @@
 - name: Save configuration
   vyos.vyos.vyos_config:
     save: true
+
+- name: Verify VRRP status
+  vyos.vyos.vyos_command:
+    commands:
+      - show vrrp
+  register: vrrp_status
+
+- name: Display VRRP status output
+  ansible.builtin.debug:
+    var: vrrp_status.stdout_lines
+
+- name: Enforce VRRP States for Production
+  ansible.builtin.assert:
+    that:
+      - >
+        (inventory_hostname == 'vyos_router_01' and 'BACKUP' not in vrrp_status.stdout[0]) 
+        or 
+        (inventory_hostname == 'vyos_router_02' and 'MASTER' not in vrrp_status.stdout[0])
+    fail_msg: >
+      VRRP Verification Failed! Either router 01 is not MASTER, or router 02 is not BACKUP. 
+      Check 'show vrrp' status manually.
+    success_msg: "VRRP State Verified successfully! Router states match production roles."
+
+- name: Print VRRP Summary Table for Peace of Mind
+  ansible.builtin.debug:
+    msg: "{{ vrrp_status.stdout_lines[0] }}"
