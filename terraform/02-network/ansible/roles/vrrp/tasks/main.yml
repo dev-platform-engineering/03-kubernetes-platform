@@ -10,7 +10,7 @@
 
       {# Master router behavior (higher priority) #}
       {% if router_priority | int > 100 %}
-      set high-availability vrrp group VLAN{{ item.id }} preempt-delay 60
+      set high-availability vrrp group VLAN{{ item.id }} preempt-delay 30
       {# Backup router behavior (lower priority) #}
       {% else %}
       set high-availability vrrp group VLAN{{ item.id }} no-preempt
@@ -22,6 +22,10 @@
 - name: Save configuration
   vyos.vyos.vyos_config:
     save: true
+
+- name: Wait for VRRP preempt-delay to converge
+  ansible.builtin.pause:
+    seconds: 25
 
 - name: Verify VRRP status
   vyos.vyos.vyos_command:
