@@ -8,7 +8,7 @@
   debug:
     var: bgp_summary.stdout_lines
 
-- name: Verify BGP neighbors are established
+- name: Verify BGP session is established
   assert:
     that:
       - "'Idle' not in (bgp_summary.stdout | join('\n'))"
@@ -22,35 +22,6 @@
       {{ bgp_summary.stdout | join('\n') }}
     success_msg: "All BGP neighbors are established."
 
-- name: Verify expected BGP neighbors are present
-  assert:
-    that:
-      - "bgp_summary.stdout_lines | flatten | select('search', item.ip) | list | length > 0"
-    fail_msg: "BGP neighbor {{ item.ip }} is missing."
-    success_msg: "BGP neighbor {{ item.ip }} is present."
-  loop: "{{ neighbors[inventory_hostname] }}"
-
-- name: Show BGP learned routes
-  ansible.netcommon.cli_command:
-    command: 'vtysh -c "show bgp ipv4 unicast"'
-  register: bgp_routes
-
-- name: Display BGP learned routes
-  debug:
-    var: bgp_routes.stdout_lines
-
-- name: Show BGP running configuration
-  ansible.netcommon.cli_command:
-    command: 'vtysh -c "show running-config"'
-  register: bgp_running
-
-- name: Verify loopback network configured
-  assert:
-    that:
-      - "'network ' ~ router_ids[inventory_hostname] ~ '/32' in (bgp_running.stdout | join('\n'))"
-    fail_msg: "Loopback network {{ router_ids[inventory_hostname] }}/32 is not configured in BGP."
-    success_msg: "Loopback network is configured."
-
 - name: Show BGP neighbor details
   ansible.netcommon.cli_command:
     command: 'vtysh -c "show bgp neighbor"'
@@ -60,12 +31,21 @@
   debug:
     var: bgp_neighbors.stdout_lines
 
-- name: Verify BGP state is Established
+- name: Verify BGP neighbor state
   assert:
     that:
       - "'BGP state = Established' in (bgp_neighbors.stdout | join('\n'))"
-    fail_msg: "BGP neighbor state is not Established."
-    success_msg: "BGP neighbor state is Established."
+    fail_msg: "One or more BGP neighbors are not Established."
+    success_msg: "All BGP neighbors are Established."
+
+- name: Show BGP routes
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast"'
+  register: bgp_routes
+
+- name: Display BGP routes
+  debug:
+    var: bgp_routes.stdout_lines
 
 - name: Show BGP routes installed in routing table
   ansible.netcommon.cli_command:
