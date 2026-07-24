@@ -1,7 +1,7 @@
 - name: Configure DHCP pools
   vyos.vyos.vyos_config:
     lines: |
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 gateway {{ item.gateway | default(item.subnet ~ '.254') }}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 default-router {{ item.gateway | default(item.subnet ~ '.254') }}
       set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 lease {{ item.dhcp.lease | default(86400) }}
       set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 start {{ item.subnet }}.{{ item.dhcp.range.start }}
       set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 stop {{ item.subnet }}.{{ item.dhcp.range.stop }}
