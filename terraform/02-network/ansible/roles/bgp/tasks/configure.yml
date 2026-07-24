@@ -2,7 +2,7 @@
 - name: Enter configuration mode
   vyos.vyos.vyos_config:
     lines:
-      - "set protocols bgp system-as {{ bgp.local_as }}"
+      - "set protocols bgp system-as {{ bgp_local_as }}"
 
       - "set protocols bgp parameters router-id {{ bgp.router_ids[inventory_hostname] }}"
 
