@@ -25,7 +25,7 @@
 - name: Verify expected BGP neighbors are present
   assert:
     that:
-      - "item.ip in (bgp_summary.stdout | join('\n'))"
+      - "bgp_summary.stdout_lines | flatten | select('search', item.ip) | list | length > 0"
     fail_msg: "BGP neighbor {{ item.ip }} is missing."
     success_msg: "BGP neighbor {{ item.ip }} is present."
   loop: "{{ neighbors[inventory_hostname] }}"
