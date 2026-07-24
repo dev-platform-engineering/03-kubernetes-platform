@@ -1,0 +1,27 @@
+#use verify.yml only for operational health checks after the infrastructure is deployed.
+#ansible-playbook -i inventory/hosts.ini --ask-vault-pass playbooks/verify.yml
+---
+- name: Verify VyOS Infrastructure
+  hosts: vyos_routers
+  gather_facts: false
+
+  tasks:
+    - name: Show interfaces
+      vyos.vyos.vyos_command:
+        commands:
+          - show interfaces
+
+    - name: Show VRRP
+      vyos.vyos.vyos_command:
+        commands:
+          - show vrrp
+
+    - name: Show BGP
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip bgp summary
+
+    - name: Show routing table
+      vyos.vyos.vyos_command:
+        commands:
+          - show ip route
