@@ -1,0 +1,9 @@
+---
+- name: Configure DHCP
+  import_tasks: configure.yml
+
+- name: Commit configuration
+  import_tasks: commit.yml
+
+- name: Verify DHCP
+  import_tasks: verify.yml

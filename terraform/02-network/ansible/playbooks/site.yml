@@ -7,5 +7,6 @@
     - interfaces
     - vrrp
     - bgp
+    - dhcp
     # - nat
     # - firewall

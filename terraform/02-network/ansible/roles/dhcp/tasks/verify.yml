@@ -1,0 +1,11 @@
+---
+- name: Show DHCP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match dhcp-server
+
+  register: dhcp_verify
+
+- name: Display DHCP configuration
+  ansible.builtin.debug:
+    var: dhcp_verify.stdout_lines

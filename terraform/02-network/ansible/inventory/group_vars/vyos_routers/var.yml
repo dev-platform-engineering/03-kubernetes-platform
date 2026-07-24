@@ -14,6 +14,22 @@ vgt_vlans:
     name: Infrastructure
     subnet: "10.50.20"
 
+    router_ips:
+      primary: 10.50.20.1
+      secondary: 10.50.20.2
+
+    gateway: 10.50.20.254
+
+    dhcp:
+      enabled: true
+      range:
+        start: 100
+        stop: 199
+
+    # dns_servers:
+    #  - "10.50.10.11"
+    #  - "10.50.10.12"
+
   - id: 30
     name: Control-Plane
     subnet: "10.50.30"
