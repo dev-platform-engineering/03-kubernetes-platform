@@ -15,9 +15,8 @@
 
   loop: "{{ neighbors[inventory_hostname] }}"
 
-- name: Advertise BGP networks
+- name: Advertise router loopback
   vyos.vyos.vyos_config:
     lines:
-      - "set protocols bgp address-family ipv4-unicast network {{ item }}"
+      - "set protocols bgp address-family ipv4-unicast network {{ router_ids[inventory_hostname] }}/32"
     save: false
-  loop: "{{ bgp_networks }}"

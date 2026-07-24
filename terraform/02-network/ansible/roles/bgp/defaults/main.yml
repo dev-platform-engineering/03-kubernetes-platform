@@ -20,8 +20,6 @@ neighbors:
     - ip: 10.50.99.1
       remote_as: 65000
 
-bgp_networks: []
-
 bgp_loopback:
   enabled: true
   interface: lo
