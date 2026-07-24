@@ -1,13 +1,21 @@
----
 - name: Configure DHCP pools
   vyos.vyos.vyos_config:
-    lines:
-      - "set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.network }} default-router '{{ item.gateway }}'"
-      - "set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.network }} lease '{{ item.dhcp.lease }}'"
-      - "set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.network }} range 0 start '{{ item.subnet }}.{{ item.dhcp.range.start }}'"
-      - "set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.network }} range 0 stop '{{ item.subnet }}.{{ item.dhcp.range.stop }}'"
+    lines: |
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 default-router '{{ item.gateway | default(item.subnet ~ '.254') }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 lease '{{ item.dhcp.lease | default(86400) }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 start '{{ item.subnet }}.{{ item.dhcp.range.start }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 stop '{{ item.subnet }}.{{ item.dhcp.range.stop }}'
+      {% if item.dns_servers is defined %}
+      {% if item.dns_servers is string %}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server '{{ item.dns_servers }}'
+      {% else %}
+      {% for dns in item.dns_servers %}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server '{{ dns }}'
+      {% endfor %}
+      {% endif %}
+      {% endif %}
 
   loop: "{{ vgt_vlans }}"
   when:
     - item.dhcp is defined
-    - item.dhcp.enabled
+    - item.dhcp.enabled | bool

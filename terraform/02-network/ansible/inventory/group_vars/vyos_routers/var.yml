@@ -13,12 +13,12 @@ vgt_vlans:
   - id: 20
     name: Infrastructure
     subnet: "10.50.20"
+    network: "10.50.20.0/24"
+    gateway: 10.50.20.254
 
     router_ips:
       primary: 10.50.20.1
       secondary: 10.50.20.2
-
-    gateway: 10.50.20.254
 
     dhcp:
       enabled: true
