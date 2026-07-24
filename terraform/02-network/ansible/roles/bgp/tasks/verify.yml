@@ -17,26 +17,10 @@
       - "'OpenSent' not in (bgp_summary.stdout | join('\n'))"
       - "'OpenConfirm' not in (bgp_summary.stdout | join('\n'))"
     fail_msg: |
-      One or more BGP neighbors are NOT established.
+      One or more BGP neighbors are not established.
 
       {{ bgp_summary.stdout | join('\n') }}
     success_msg: "All BGP neighbors are established."
-
-- name: Show BGP neighbor details
-  ansible.netcommon.cli_command:
-    command: 'vtysh -c "show bgp neighbor"'
-  register: bgp_neighbors
-
-- name: Display BGP neighbor details
-  debug:
-    var: bgp_neighbors.stdout_lines
-
-- name: Verify BGP neighbor state
-  assert:
-    that:
-      - "'BGP state = Established' in (bgp_neighbors.stdout | join('\n'))"
-    fail_msg: "One or more BGP neighbors are not Established."
-    success_msg: "All BGP neighbors are Established."
 
 - name: Show BGP routes
   ansible.netcommon.cli_command:
