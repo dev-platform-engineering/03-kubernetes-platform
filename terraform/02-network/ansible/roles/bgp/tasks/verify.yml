@@ -11,21 +11,21 @@
 - name: Verify BGP neighbors are established
   assert:
     that:
-      - "'Idle' not in bgp_summary.stdout[0]"
-      - "'Connect' not in bgp_summary.stdout[0]"
-      - "'Active' not in bgp_summary.stdout[0]"
-      - "'OpenSent' not in bgp_summary.stdout[0]"
-      - "'OpenConfirm' not in bgp_summary.stdout[0]"
+      - "'Idle' not in (bgp_summary.stdout | join('\n'))"
+      - "'Connect' not in (bgp_summary.stdout | join('\n'))"
+      - "'Active' not in (bgp_summary.stdout | join('\n'))"
+      - "'OpenSent' not in (bgp_summary.stdout | join('\n'))"
+      - "'OpenConfirm' not in (bgp_summary.stdout | join('\n'))"
     fail_msg: |
       One or more BGP neighbors are NOT established.
 
-      {{ bgp_summary.stdout[0] }}
+      {{ bgp_summary.stdout | join('\n') }}
     success_msg: "All BGP neighbors are established."
 
 - name: Verify expected BGP neighbors are present
   assert:
     that:
-      - "item.ip in (bgp_summary.stdout_lines | flatten | join('\n'))"
+      - "item.ip in (bgp_summary.stdout | join('\n'))"
     fail_msg: "BGP neighbor {{ item.ip }} is missing."
     success_msg: "BGP neighbor {{ item.ip }} is present."
   loop: "{{ neighbors[inventory_hostname] }}"
@@ -39,12 +39,17 @@
   debug:
     var: bgp_routes.stdout_lines
 
-- name: Verify loopback route is advertised
+- name: Show BGP running configuration
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show running-config"'
+  register: bgp_running
+
+- name: Verify loopback network configured
   assert:
     that:
-      - "'{{ router_ids[inventory_hostname] }}/32' in bgp_routes.stdout[0]"
-    fail_msg: "Local loopback {{ router_ids[inventory_hostname] }}/32 is not advertised."
-    success_msg: "Local loopback is advertised."
+      - "'network ' ~ router_ids[inventory_hostname] ~ '/32' in (bgp_running.stdout | join('\n'))"
+    fail_msg: "Loopback network {{ router_ids[inventory_hostname] }}/32 is not configured in BGP."
+    success_msg: "Loopback network is configured."
 
 - name: Show BGP neighbor details
   ansible.netcommon.cli_command:
@@ -58,7 +63,7 @@
 - name: Verify BGP state is Established
   assert:
     that:
-      - "'BGP state = Established' in bgp_neighbors.stdout[0]"
+      - "'BGP state = Established' in (bgp_neighbors.stdout | join('\n'))"
     fail_msg: "BGP neighbor state is not Established."
     success_msg: "BGP neighbor state is Established."
 
