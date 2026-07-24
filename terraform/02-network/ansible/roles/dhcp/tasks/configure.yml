@@ -1,16 +1,16 @@
 - name: Configure DHCP pools
   vyos.vyos.vyos_config:
     lines: |
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 default-router '{{ item.gateway | default(item.subnet ~ '.254') }}'
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 lease '{{ item.dhcp.lease | default(86400) }}'
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 start '{{ item.subnet }}.{{ item.dhcp.range.start }}'
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 stop '{{ item.subnet }}.{{ item.dhcp.range.stop }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 gateway {{ item.gateway | default(item.subnet ~ '.254') }}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 lease {{ item.dhcp.lease | default(86400) }}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 start {{ item.subnet }}.{{ item.dhcp.range.start }}
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 range 0 stop {{ item.subnet }}.{{ item.dhcp.range.stop }}
       {% if item.dns_servers is defined %}
       {% if item.dns_servers is string %}
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server '{{ item.dns_servers }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server {{ item.dns_servers }}
       {% else %}
       {% for dns in item.dns_servers %}
-      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server '{{ dns }}'
+      set service dhcp-server shared-network-name VLAN{{ item.id }} subnet {{ item.subnet }}.0/24 dns-server {{ dns }}
       {% endfor %}
       {% endif %}
       {% endif %}
