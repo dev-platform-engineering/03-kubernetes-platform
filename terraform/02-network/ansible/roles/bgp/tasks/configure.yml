@@ -4,7 +4,7 @@
     lines:
       - "set protocols bgp system-as {{ bgp_local_as }}"
 
-      - "set protocols bgp parameters router-id {{ bgp.router_ids[inventory_hostname] }}"
+      - "set protocols bgp parameters router-id {{ router_ids[inventory_hostname] }}"
 
 - name: Configure iBGP neighbors
   vyos.vyos.vyos_config:
@@ -13,4 +13,4 @@
 
     save: false
 
-  loop: "{{ bgp.neighbors[inventory_hostname] }}"
+  loop: "{{ neighbors[inventory_hostname] }}"
