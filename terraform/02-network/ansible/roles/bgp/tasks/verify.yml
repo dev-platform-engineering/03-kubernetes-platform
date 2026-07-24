@@ -1,10 +1,72 @@
 ---
-- name: Show BGP Summary
-  vyos.vyos.vyos_command:
-    commands:
-      - show ip bgp summary
+- name: Show BGP IPv4 summary
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast summary"'
   register: bgp_summary
 
-- name: Display BGP Summary
+- name: Display BGP IPv4 summary
   debug:
     var: bgp_summary.stdout_lines
+
+- name: Verify BGP neighbors are established
+  assert:
+    that:
+      - "'Idle' not in bgp_summary.stdout[0]"
+      - "'Connect' not in bgp_summary.stdout[0]"
+      - "'Active' not in bgp_summary.stdout[0]"
+      - "'OpenSent' not in bgp_summary.stdout[0]"
+      - "'OpenConfirm' not in bgp_summary.stdout[0]"
+    fail_msg: |
+      One or more BGP neighbors are NOT established.
+
+      {{ bgp_summary.stdout[0] }}
+    success_msg: "All BGP neighbors are established."
+
+- name: Verify expected BGP neighbors are present
+  assert:
+    that:
+      - "item.ip in bgp_summary.stdout[0]"
+    fail_msg: "BGP neighbor {{ item.ip }} is missing."
+    success_msg: "BGP neighbor {{ item.ip }} is present."
+  loop: "{{ neighbors[inventory_hostname] }}"
+
+- name: Show BGP learned routes
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast"'
+  register: bgp_routes
+
+- name: Display BGP learned routes
+  debug:
+    var: bgp_routes.stdout_lines
+
+- name: Verify loopback route is advertised
+  assert:
+    that:
+      - "'{{ router_ids[inventory_hostname] }}/32' in bgp_routes.stdout[0]"
+    fail_msg: "Local loopback {{ router_ids[inventory_hostname] }}/32 is not advertised."
+    success_msg: "Local loopback is advertised."
+
+- name: Show BGP neighbor details
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp neighbor"'
+  register: bgp_neighbors
+
+- name: Display BGP neighbor details
+  debug:
+    var: bgp_neighbors.stdout_lines
+
+- name: Verify BGP state is Established
+  assert:
+    that:
+      - "'BGP state = Established' in bgp_neighbors.stdout[0]"
+    fail_msg: "BGP neighbor state is not Established."
+    success_msg: "BGP neighbor state is Established."
+
+- name: Show BGP routes installed in routing table
+  ansible.netcommon.cli_command:
+    command: "show ip route bgp"
+  register: bgp_rib
+
+- name: Display BGP routing table
+  debug:
+    var: bgp_rib.stdout_lines
