@@ -14,3 +14,10 @@
     save: false
 
   loop: "{{ neighbors[inventory_hostname] }}"
+
+- name: Advertise BGP networks
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp address-family ipv4-unicast network {{ item }}"
+    save: false
+  loop: "{{ bgp_networks }}"
