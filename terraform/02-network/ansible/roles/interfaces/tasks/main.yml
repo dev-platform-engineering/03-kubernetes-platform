@@ -1,4 +1,16 @@
 ---
+- name: Configure physical interface descriptions
+  vyos.vyos.vyos_interfaces:
+    config:
+      - name: eth0
+        description: Management
+        enabled: true
+
+      - name: eth1
+        description: Trunk
+        enabled: true
+    state: merged
+
 - name: Configure descriptions on Trunk sub-interfaces (eth1)
   vyos.vyos.vyos_interfaces:
     config:
@@ -54,6 +66,19 @@
   vyos.vyos.vyos_l3_interfaces:
     state: gathered
   register: current_l3_interfaces
+
+- name: Verify loopback interface
+  vyos.vyos.vyos_command:
+    commands:
+      - "show interfaces loopback lo"
+  register: loopback_status
+
+- name: Fail if loopback is missing
+  ansible.builtin.assert:
+    that:
+      - loopback_ip in loopback_status.stdout[0]
+    fail_msg: "Loopback {{ loopback_ip }} is not configured."
+    success_msg: "Loopback {{ loopback_ip }} verified."
 
 - name: Display running L3 interfaces configuration (Grouped by Router)
   ansible.builtin.debug:
