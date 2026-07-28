@@ -14,7 +14,7 @@
 - name: Verify DNS resolution
   vyos.vyos.vyos_command:
     commands:
-      - "run dig @{{ external_dns.vrrp.vip }} google.com +short"
+      - "run dig @{{ external_dns.addresses.vip }} google.com +short"
   register: dns_lookup
   ignore_errors: true
 

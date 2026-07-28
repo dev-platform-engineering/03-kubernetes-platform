@@ -7,13 +7,9 @@
           - address: >-
               {{
                 (
-                  external_dns.router_ips.primary
+                  external_dns.addresses.primary
                   if ip_suffix | int == 1
-                  else external_dns.router_ips.secondary
+                  else external_dns.addresses.secondary
                 ) ~ '/24'
               }}
     state: merged
-
-- name: Save configuration
-  vyos.vyos.vyos_config:
-    save: true

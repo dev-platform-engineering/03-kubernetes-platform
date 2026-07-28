@@ -2,19 +2,14 @@
 - name: Configure DNS forwarding
   vyos.vyos.vyos_config:
     lines: |
-      set service dns forwarding listen-address {{ external_dns.vrrp.vip }}
-      set service dns forwarding cache-size {{ external_dns.cache_size }}
+      set service dns forwarding listen-address {{ external_dns.addresses.vip }}
+      set service dns forwarding cache-size {{ external_dns.forwarding.cache_size }}
 
-      {% for subnet in external_dns.allow_from %}
+      {% for subnet in external_dns.forwarding.allow_from %}
       set service dns forwarding allow-from {{ subnet }}
       {% endfor %}
 
-      {% for dns in external_dns.forwarders %}
+      {% for dns in external_dns.forwarding.upstream_servers %}
       set service dns forwarding name-server {{ dns }}
       {% endfor %}
-
     match: none
-
-- name: Save configuration
-  vyos.vyos.vyos_config:
-    save: true

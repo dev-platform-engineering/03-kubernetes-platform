@@ -88,6 +88,7 @@ external_dns:
 
   vrrp:
     vrid: 160
+    priority: "{{ router_priority }}"
 
   forwarding:
     upstream_servers:
