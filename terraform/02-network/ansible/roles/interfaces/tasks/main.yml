@@ -9,6 +9,10 @@
       - name: eth1
         description: Trunk
         enabled: true
+
+      - name: "{{ external_services.interface }}"
+        description: External Services
+        enabled: true
     state: merged
 
 - name: Configure descriptions on Trunk sub-interfaces (eth1)
@@ -49,6 +53,21 @@
       }) %}
       {% endfor %}
       {{ result }}
+
+- name: Configure External Services interface
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: "{{ external_services.interface }}"
+        ipv4:
+          - address: >-
+              {{
+                (inventory_hostname == 'vyos_router_01')
+                | ternary(
+                    external_services.router_ips.primary,
+                    external_services.router_ips.secondary
+                  )
+              }}/24
+    state: replaced
 
 - name: Configure loopback interface
   vyos.vyos.vyos_l3_interfaces:
