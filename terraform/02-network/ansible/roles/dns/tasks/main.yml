@@ -1,0 +1,5 @@
+---
+- import_tasks: interface.yml
+- import_tasks: vrrp.yml
+- import_tasks: forwarding.yml
+- import_tasks: verify.yml

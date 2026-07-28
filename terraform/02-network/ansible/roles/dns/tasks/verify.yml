@@ -1,0 +1,27 @@
+---
+- name: Verify DNS VRRP
+  vyos.vyos.vyos_command:
+    commands:
+      - show vrrp
+  register: dns_vrrp
+
+- name: Verify DNS Forwarding
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match dns
+  register: dns_config
+
+- name: Verify DNS resolution
+  vyos.vyos.vyos_command:
+    commands:
+      - "run dig @{{ external_dns.vrrp.vip }} google.com +short"
+  register: dns_lookup
+  ignore_errors: true
+
+- name: Display DNS Configuration
+  debug:
+    var: dns_config.stdout_lines
+
+- name: Display DNS Lookup
+  debug:
+    var: dns_lookup.stdout_lines

@@ -1,0 +1,21 @@
+---
+- name: Configure External DNS VRRP
+  vyos.vyos.vyos_config:
+    lines:
+      - "set high-availability vrrp group ExternalDNS interface {{ external_dns.interface }}"
+      - "set high-availability vrrp group ExternalDNS vrid {{ external_dns.vrrp.vrid }}"
+      - "set high-availability vrrp group ExternalDNS priority {{ router_priority }}"
+      - "set high-availability vrrp group ExternalDNS address {{ external_dns.vrrp.vip }}/24"
+
+      - >-
+        {% if router_priority | int > 100 %}
+        set high-availability vrrp group ExternalDNS preempt-delay 30
+        {% else %}
+        set high-availability vrrp group ExternalDNS no-preempt
+        {% endif %}
+
+    match: none
+
+- name: Save configuration
+  vyos.vyos.vyos_config:
+    save: true
