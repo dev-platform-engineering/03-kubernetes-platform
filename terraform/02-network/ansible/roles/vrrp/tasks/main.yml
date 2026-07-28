@@ -22,15 +22,15 @@
 - name: Configure External Services VRRP
   vyos.vyos.vyos_config:
     lines: |
-      set high-availability vrrp group EXTERNAL interface {{ external_services.interface }}
-      set high-availability vrrp group EXTERNAL vrid {{ external_services.vrrp.vrid }}
-      set high-availability vrrp group EXTERNAL priority {{ router_priority }}
-      set high-availability vrrp group EXTERNAL address {{ external_services.vrrp.vip }}/24
+      set high-availability vrrp group ExternalServices interface {{ external_services.interface }}
+      set high-availability vrrp group ExternalServices vrid {{ external_services.vrrp.vrid }}
+      set high-availability vrrp group ExternalServices priority {{ router_priority }}
+      set high-availability vrrp group ExternalServices address {{ external_services.vrrp.vip }}/24
 
       {% if router_priority | int > 100 %}
-      set high-availability vrrp group EXTERNAL preempt-delay 30
+      set high-availability vrrp group ExternalServices preempt-delay 30
       {% else %}
-      set high-availability vrrp group EXTERNAL no-preempt
+      set high-availability vrrp group ExternalServices no-preempt
       {% endif %}
 
 - name: Save configuration
