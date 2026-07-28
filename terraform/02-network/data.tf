@@ -32,3 +32,7 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
+data "vsphere_network" "external_services" {
+  name          = "PG-S13-ExternalService"
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
