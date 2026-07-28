@@ -60,3 +60,9 @@ variable "vm_folder" {
   description = "vCenter VM folder"
   type        = string
 }
+
+variable "external_network_id" {
+  description = "Optional external network"
+  type        = string
+  default     = null
+}

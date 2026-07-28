@@ -29,6 +29,15 @@ resource "vsphere_virtual_machine" "this" {
     network_id = var.trunk_network_id
   }
 
+  dynamic "network_interface" {
+    for_each = var.external_network_id != null ? [1] : []
+
+    content {
+      network_id   = var.external_network_id
+      adapter_type = "vmxnet3"
+    }
+  }
+
   clone {
     template_uuid = var.template_uuid
   }
