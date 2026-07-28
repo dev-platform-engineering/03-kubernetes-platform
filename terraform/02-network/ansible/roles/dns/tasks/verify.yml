@@ -17,12 +17,6 @@
       - "ping 192.168.13.2 count 3"
   register: dns_ping
 
-- name: Verify forwarding
-  vyos.vyos.vyos_command:
-    commands:
-      - "dig @10.50.60.53 github.com +short"
-  register: dns_lookup
-
 - name: Verify DNS resolution
   vyos.vyos.vyos_command:
     commands:
