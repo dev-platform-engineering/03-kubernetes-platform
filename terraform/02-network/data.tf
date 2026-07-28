@@ -17,6 +17,11 @@ data "vsphere_resource_pool" "network" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
+data "vsphere_virtual_machine" "template" {
+  name          = var.vyos_template
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
 data "vsphere_network" "management" {
   name          = var.management_portgroup
   datacenter_id = data.vsphere_datacenter.dc.id
@@ -24,11 +29,6 @@ data "vsphere_network" "management" {
 
 data "vsphere_network" "trunk" {
   name          = var.trunk_portgroup
-  datacenter_id = data.vsphere_datacenter.dc.id
-}
-
-data "vsphere_virtual_machine" "template" {
-  name          = var.vyos_template
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 

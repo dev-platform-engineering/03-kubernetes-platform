@@ -35,8 +35,20 @@ module "vyos" {
   firmware  = data.vsphere_virtual_machine.template.firmware
   scsi_type = data.vsphere_virtual_machine.template.scsi_type
 
-  management_network_id = data.vsphere_network.management.id
-  trunk_network_id      = data.vsphere_network.trunk.id
+  network_interfaces = [
+    {
+      network_id = data.vsphere_network.management.id
+    },
+    {
+      network_id = data.vsphere_network.trunk.id
+    },
+    {
+      network_id = data.vsphere_network.external_services.id
+    }
+  ]
 
-  external_network_id = data.vsphere_network.external_services.id
+  # management_network_id = data.vsphere_network.management.id
+  # trunk_network_id      = data.vsphere_network.trunk.id
+
+  # external_network_id = data.vsphere_network.external_services.id
 }

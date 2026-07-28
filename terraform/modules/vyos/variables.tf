@@ -61,8 +61,11 @@ variable "vm_folder" {
   type        = string
 }
 
-variable "external_network_id" {
-  description = "Optional external network"
-  type        = string
-  default     = null
+variable "network_interfaces" {
+  description = "List of network interfaces"
+
+  type = list(object({
+    network_id   = string
+    adapter_type = optional(string, "vmxnet3")
+  }))
 }
