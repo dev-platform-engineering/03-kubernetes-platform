@@ -1,15 +1,15 @@
 ---
-- name: Configure External DNS service IP
-  vyos.vyos.vyos_l3_interfaces:
-    config:
-      - name: "{{ external_dns.interface }}"
-        ipv4:
-          - address: >-
-              {{
-                (
-                  external_dns.addresses.primary
-                  if ip_suffix | int == 1
-                  else external_dns.addresses.secondary
-                ) ~ '/24'
-              }}
-    state: merged
+- name: Configure External DNS service address
+  vyos.vyos.vyos_config:
+    lines:
+      - >-
+        set interfaces ethernet {{ external_dns.interface }}
+        vif {{ external_dns.vlan_id }}
+        address
+        {{
+          external_dns.addresses.primary
+          if ip_suffix | int == 1
+          else external_dns.addresses.secondary
+        }}/24
+
+    match: none

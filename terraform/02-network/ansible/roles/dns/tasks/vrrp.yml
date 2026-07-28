@@ -2,7 +2,7 @@
 - name: Configure External DNS VRRP
   vyos.vyos.vyos_config:
     lines:
-      - "set high-availability vrrp group ExternalDNS interface {{ external_dns.interface }}"
+      - "set high-availability vrrp group ExternalDNS interface {{ external_dns.interface }}.{{ external_dns.vlan_id }}"
       - "set high-availability vrrp group ExternalDNS vrid {{ external_dns.vrrp.vrid }}"
       - "set high-availability vrrp group ExternalDNS priority {{ router_priority }}"
       - "set high-availability vrrp group ExternalDNS address {{ external_dns.addresses.vip }}/24"

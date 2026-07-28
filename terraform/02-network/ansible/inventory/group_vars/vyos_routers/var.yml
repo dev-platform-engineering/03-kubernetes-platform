@@ -79,7 +79,10 @@ external_services:
     vrid: 113
 
 external_dns:
-  interface: eth1.60
+  interface: eth1
+  vlan_id: 60
+
+  group: ExternalDNS
 
   addresses:
     primary: 10.50.60.51
@@ -88,7 +91,6 @@ external_dns:
 
   vrrp:
     vrid: 160
-    priority: "{{ router_priority }}"
 
   forwarding:
     upstream_servers:
