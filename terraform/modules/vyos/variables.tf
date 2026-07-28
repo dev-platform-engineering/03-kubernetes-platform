@@ -26,14 +26,6 @@ variable "scsi_type" {
   type = string
 }
 
-variable "trunk_network_id" {
-  type = string
-}
-
-variable "management_network_id" {
-  type = string
-}
-
 variable "template_disk_label" {
   type = string
 }
@@ -69,3 +61,4 @@ variable "network_interfaces" {
     adapter_type = optional(string, "vmxnet3")
   }))
 }
+

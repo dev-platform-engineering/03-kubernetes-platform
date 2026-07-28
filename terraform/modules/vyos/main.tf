@@ -21,20 +21,12 @@ resource "vsphere_virtual_machine" "this" {
     thin_provisioned = var.template_disk_thin
   }
 
-  network_interface {
-    network_id = var.management_network_id
-  }
-
-  network_interface {
-    network_id = var.trunk_network_id
-  }
-
   dynamic "network_interface" {
-    for_each = var.external_network_id != null ? [1] : []
+    for_each = var.network_interfaces
 
     content {
-      network_id   = var.external_network_id
-      adapter_type = "vmxnet3"
+      network_id   = network_interface.value.network_id
+      adapter_type = network_interface.value.adapter_type
     }
   }
 

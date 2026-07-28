@@ -46,9 +46,4 @@ module "vyos" {
       network_id = data.vsphere_network.external_services.id
     }
   ]
-
-  # management_network_id = data.vsphere_network.management.id
-  # trunk_network_id      = data.vsphere_network.trunk.id
-
-  # external_network_id = data.vsphere_network.external_services.id
 }
