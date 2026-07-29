@@ -1,4 +1,10 @@
 ---
+- name: Gather VRRP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "high-availability vrrp group {{ external_ntp.group }}"
+  register: ntp_vrrp_config
+
 - name: Configure External NTP VRRP
   vyos.vyos.vyos_config:
     lines:
@@ -12,3 +18,4 @@
         {% else %}
         set high-availability vrrp group {{ external_ntp.group }} no-preempt
         {% endif %}
+  when: external_ntp.addresses.vip not in ntp_vrrp_config.stdout[0]
