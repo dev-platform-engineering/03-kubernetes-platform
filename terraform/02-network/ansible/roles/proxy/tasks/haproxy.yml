@@ -13,24 +13,22 @@
 - name: Configure HAProxy Service and Backend
   vyos.vyos.vyos_config:
     lines:
-      # Backend Configuration
+      # Backend
       - "set load-balancing haproxy backend proxy-backend mode tcp"
       - "set load-balancing haproxy backend proxy-backend balance round-robin"
       - "set load-balancing haproxy backend proxy-backend server proxy01 address {{ external_proxy.forwarding.upstream_server }}"
       - "set load-balancing haproxy backend proxy-backend server proxy01 port {{ external_proxy.forwarding.upstream_port }}"
       - "set load-balancing haproxy backend proxy-backend server proxy01 check"
 
-      # Service Configuration
+      # Service
       - "set load-balancing haproxy service proxy-service mode tcp"
       - "set load-balancing haproxy service proxy-service listen-address {{ external_proxy.addresses.vip }}"
-      - "set load-balancing haproxy service proxy-service port {{ external_proxy.forwarding.upstream_port }}"
+      - "set load-balancing haproxy service proxy-service port {{ external_proxy.forwarding.listen_port }}"
       - "set load-balancing haproxy service proxy-service backend proxy-backend"
   register: proxy_service
 
-- name: Configure Outbound NAT Masquerade on Service Interface
+- name: Configure System Conntrack Bypass for Upstream Proxy
   vyos.vyos.vyos_config:
     lines:
-      - "set nat source rule 100 outbound-interface name '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
-      - "set nat source rule 100 destination address '{{ external_proxy.forwarding.upstream_server }}'"
-      - "set nat source rule 100 translation address 'masquerade'"
-  register: proxy_nat
+      - "set system conntrack ignore ipv4 rule 10 destination address '{{ external_proxy.forwarding.upstream_server }}'"
+      - "set system conntrack ignore ipv4 rule 11 source address '{{ external_proxy.forwarding.upstream_server }}'"

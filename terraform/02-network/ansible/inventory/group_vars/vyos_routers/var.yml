@@ -125,20 +125,16 @@ external_ntp:
 external_proxy:
   interface: eth1
   vlan_id: 60
-
   group: ExternalProxy
-
   addresses:
     primary: 10.50.60.57
     secondary: 10.50.60.58
     vip: 10.50.60.59
-
   vrrp:
     vrid: 162
-
   forwarding:
+    listen_port: 5555 # new port for client curls
     upstream_server: 192.168.13.101
-    upstream_port: 55555
-
+    upstream_port: 55555 # upstream proxy port
     allow_from:
       - 10.50.0.0/16
