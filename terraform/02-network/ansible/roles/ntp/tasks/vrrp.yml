@@ -6,17 +6,19 @@
   register: ntp_vrrp_config
 
 - name: Configure External NTP VRRP
+  vars:
+    preempt_cmd: >-
+      {{
+        'set high-availability vrrp group ' ~ external_ntp.group ~ ' preempt-delay 30'
+        if router_priority | int > 100
+        else
+        'set high-availability vrrp group ' ~ external_ntp.group ~ ' no-preempt'
+      }}
   vyos.vyos.vyos_config:
     lines:
       - "set high-availability vrrp group {{ external_ntp.group }} interface {{ external_ntp.interface }}.{{ external_ntp.vlan_id }}"
       - "set high-availability vrrp group {{ external_ntp.group }} vrid {{ external_ntp.vrrp.vrid }}"
       - "set high-availability vrrp group {{ external_ntp.group }} priority {{ router_priority }}"
-      - "set high-availability vrrp group {{ external_ntp.group }} address '{{ external_ntp.addresses.vip }}/24'"
-      - >-
-        {% if router_priority | int > 100 %}
-        set high-availability vrrp group {{ external_ntp.group }} preempt-delay 30
-        {% else %}
-        set high-availability vrrp group {{ external_ntp.group }} no-preempt
-        {% endif %}
-  when: external_ntp.addresses.vip not in ntp_vrrp_config.stdout[0]
-  register: ntp_vrrp
+      - "set high-availability vrrp group {{ external_ntp.group }} address {{ external_ntp.addresses.vip }}/24"
+      - "{{ preempt_cmd }}"
+  when: external_ntp.addresses.vip not in (ntp_vrrp_config.stdout | first)
