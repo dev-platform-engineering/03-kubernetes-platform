@@ -23,8 +23,8 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      # 3. FIX: Асинхронный фоновый пинок HAProxy (знак & в конце запускает службу в фоне, предотвращая зависание трафика)
-      - 'set high-availability vrrp group {{ external_proxy.group }} transition-script master ''/bin/sh -c "/bin/systemctl restart haproxy &"'''
+      # 3. FIX: Background execution string without using single or double inner quotes
+      - "set high-availability vrrp group {{ external_proxy.group }} transition-script master '/usr/bin/systemctl restart haproxy &'"
 
       # 4. Synchronous Anchor Sync-Group Object
       - "set high-availability vrrp sync-group ClusterSync member {{ external_proxy.group }}"
