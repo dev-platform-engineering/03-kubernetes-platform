@@ -2,7 +2,7 @@
 - name: Gather HAProxy configuration
   vyos.vyos.vyos_command:
     commands:
-      - show configuration commands | match "load-balancing haproxy"
+      - 'show configuration commands | match "load-balancing haproxy"'
   register: proxy_config
 
 - name: Allow HAProxy to bind to VIP on backup node
@@ -10,20 +10,28 @@
     lines:
       - "set system sysctl parameter net.ipv4.ip_nonlocal_bind value 1"
 
-- name: Configure HAProxy
+- name: Configure HAProxy Service and Backend
   vyos.vyos.vyos_config:
     lines:
-      # Backend
+      # Backend Configuration
       - "set load-balancing haproxy backend proxy-backend mode tcp"
       - "set load-balancing haproxy backend proxy-backend balance round-robin"
       - "set load-balancing haproxy backend proxy-backend server proxy01 address {{ external_proxy.forwarding.upstream_server }}"
       - "set load-balancing haproxy backend proxy-backend server proxy01 port {{ external_proxy.forwarding.upstream_port }}"
       - "set load-balancing haproxy backend proxy-backend server proxy01 check"
 
-      # Service
+      # Service Configuration
       - "set load-balancing haproxy service proxy-service mode tcp"
       - "set load-balancing haproxy service proxy-service listen-address {{ external_proxy.addresses.vip }}"
       - "set load-balancing haproxy service proxy-service port {{ external_proxy.forwarding.upstream_port }}"
       - "set load-balancing haproxy service proxy-service backend proxy-backend"
-
+      - "set load-balancing haproxy service proxy-service transparent"
   register: proxy_service
+
+- name: Configure Outbound NAT Masquerade on Service Interface
+  vyos.vyos.vyos_config:
+    lines:
+      - "set nat source rule 100 outbound-interface name '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
+      - "set nat source rule 100 destination address '{{ external_proxy.forwarding.upstream_server }}'"
+      - "set nat source rule 100 translation address 'masquerade'"
+  register: proxy_nat
