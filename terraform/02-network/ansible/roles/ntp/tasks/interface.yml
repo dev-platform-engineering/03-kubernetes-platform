@@ -12,12 +12,3 @@
           else external_ntp.addresses.secondary
         }}/24'
   register: ntp_interface
-
-- name: Remove default VyOS NTP servers
-  vyos.vyos.vyos_config:
-    lines:
-      - delete service ntp server time1.vyos.net
-      - delete service ntp server time2.vyos.net
-      - delete service ntp server time3.vyos.net
-    match: line
-  register: remove_default_servers

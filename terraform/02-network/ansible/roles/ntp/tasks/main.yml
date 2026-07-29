@@ -1,6 +1,7 @@
 ---
 - import_tasks: interface.yml
-- import_tasks: vrrp.yml
 - import_tasks: forwarding.yml
+- import_tasks: remove_defaults.yml
+- import_tasks: vrrp.yml
 - import_tasks: commit.yml
 - import_tasks: verify.yml
