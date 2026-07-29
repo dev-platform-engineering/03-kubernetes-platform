@@ -1,25 +1,20 @@
 ---
-- name: Configure External NTP upstream servers
+- name: Gather NTP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "service ntp"
+  register: ntp_service_config
+
+- name: Configure External NTP service
   vyos.vyos.vyos_config:
-    parents:
-      - service ntp
     lines: |
       {% for server in external_ntp.forwarding.upstream_servers %}
-      server {{ server }}
+      set service ntp server {{ server }}
       {% endfor %}
 
-- name: Configure External NTP listen address
-  vyos.vyos.vyos_config:
-    parents:
-      - service ntp
-    lines:
-      - "listen-address '{{ external_ntp.addresses.vip }}'"
+      set service ntp listen-address {{ external_ntp.addresses.vip }}
 
-- name: Configure External NTP allowed clients
-  vyos.vyos.vyos_config:
-    parents:
-      - service ntp
-    lines: |
       {% for subnet in external_ntp.forwarding.allow_from %}
-      allow-client address '{{ subnet }}'
+      set service ntp allow-client address {{ subnet }}
       {% endfor %}
+  when: external_ntp.addresses.vip not in ntp_service_config.stdout[0]
