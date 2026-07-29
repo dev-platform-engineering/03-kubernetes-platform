@@ -43,12 +43,3 @@
     (proxy_vrrp_config.stdout | length > 0) and
     (external_proxy.addresses.vip not in (proxy_vrrp_config.stdout | first))
   register: proxy_vrrp
-
-- name: Configure Conntrack Synchronization between VyOS nodes
-  vyos.vyos.vyos_config:
-    lines:
-      - "set service conntrack-sync interface '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
-
-      - "set service conntrack-sync mcast-group '225.0.0.50'"
-      - "set service conntrack-sync sync-queue-size '8192'"
-  register: proxy_conntrack
