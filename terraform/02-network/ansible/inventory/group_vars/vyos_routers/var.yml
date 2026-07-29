@@ -124,6 +124,7 @@ external_ntp:
 
 external_proxy:
   interface: eth1
+  upstream_interface: eth2
   vlan_id: 60
   group: ExternalProxy
   addresses:

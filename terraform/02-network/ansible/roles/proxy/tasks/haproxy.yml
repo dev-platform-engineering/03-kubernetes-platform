@@ -13,12 +13,11 @@
 - name: Configure HAProxy Service and Backend
   vyos.vyos.vyos_config:
     lines:
-      # Backend
+      # Backend (Without check directives to prevent routing collision blocks)
       - "set load-balancing haproxy backend proxy-backend mode tcp"
       - "set load-balancing haproxy backend proxy-backend balance round-robin"
       - "set load-balancing haproxy backend proxy-backend server proxy01 address {{ external_proxy.forwarding.upstream_server }}"
       - "set load-balancing haproxy backend proxy-backend server proxy01 port {{ external_proxy.forwarding.upstream_port }}"
-      - "set load-balancing haproxy backend proxy-backend server proxy01 check"
 
       # Service
       - "set load-balancing haproxy service proxy-service mode tcp"
@@ -27,8 +26,12 @@
       - "set load-balancing haproxy service proxy-service backend proxy-backend"
   register: proxy_service
 
-- name: Configure System Conntrack Bypass for Upstream Proxy
+- name: Configure Outbound NAT Masquerade on Upstream Interface
   vyos.vyos.vyos_config:
     lines:
-      - "set system conntrack ignore ipv4 rule 10 destination address '{{ external_proxy.forwarding.upstream_server }}'"
-      - "set system conntrack ignore ipv4 rule 11 source address '{{ external_proxy.forwarding.upstream_server }}'"
+      # Dynamically maps masquerading rule to the external gateway interface
+      - "set nat source rule 100 outbound-interface name '{{ external_proxy.upstream_interface }}'"
+      - "set nat source rule 100 source address '{{ external_proxy.forwarding.allow_from | first }}'"
+      - "set nat source rule 100 destination address '{{ external_proxy.forwarding.upstream_server }}'"
+      - "set nat source rule 100 translation address 'masquerade'"
+  register: proxy_nat
