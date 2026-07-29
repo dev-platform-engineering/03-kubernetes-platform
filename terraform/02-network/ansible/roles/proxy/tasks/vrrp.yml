@@ -5,11 +5,9 @@
       - 'show configuration commands | match "high-availability vrrp group {{ external_proxy.group }}"'
   register: proxy_vrrp_config
 
-- name: Configure Global VRRP Parameters
+- name: Configure Global VRRP GARP Parameters
   vyos.vyos.vyos_config:
     lines:
-      # Force virtual MAC usage so clients/switches don't drop traffic during MAC changes
-      - "set high-availability vrrp global-parameters rfc3768-compatibility"
       - "set high-availability vrrp global-parameters garp master-delay 1"
       - "set high-availability vrrp global-parameters garp master-repeat 5"
 
@@ -31,11 +29,14 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      # Clean up previous track and deprecated garp lines if they are lingering
+      # Correct group-level syntax for RFC3768 Compatibility
+      - "set high-availability vrrp group {{ external_proxy.group }} rfc3768-compatibility"
+
+      # Clean up older, problematic parameters
       - "delete high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
       - "delete high-availability vrrp group {{ external_proxy.group }} garp"
 
-      # Valid VyOS 2026.03 health check syntax
+      # Valid VyOS 2026.03 health-check script
       - "set high-availability vrrp group {{ external_proxy.group }} health-check script '/bin/ping -c 2 -W 1 {{ external_proxy.forwarding.upstream_server }}'"
       - "set high-availability vrrp group {{ external_proxy.group }} health-check interval 2"
       - "set high-availability vrrp group {{ external_proxy.group }} health-check failure-count 2"
