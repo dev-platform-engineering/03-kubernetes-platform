@@ -13,3 +13,11 @@
         }}/24
 
     match: none
+
+- name: Remove default VyOS NTP servers
+  vyos.vyos.vyos_config:
+    lines:
+      - delete service ntp server time1.vyos.net
+      - delete service ntp server time2.vyos.net
+      - delete service ntp server time3.vyos.net
+    match: none
