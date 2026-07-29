@@ -21,7 +21,7 @@
 - name: Verify NTP listen address
   ansible.builtin.assert:
     that:
-      - "'set service ntp listen-address {{ external_ntp.addresses.vip }}' in ntp_config.stdout[0]"
+      - "'set service ntp listen-address ' ~ external_ntp.addresses.vip in ntp_config.stdout[0]"
     success_msg: "NTP VIP is configured correctly."
     fail_msg: "NTP VIP is not configured."
 
