@@ -21,4 +21,8 @@
       - "set high-availability vrrp group {{ external_ntp.group }} priority {{ router_priority }}"
       - "set high-availability vrrp group {{ external_ntp.group }} address {{ external_ntp.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
-  when: external_ntp.addresses.vip not in (ntp_vrrp_config.stdout | first)
+  when: >
+    ('address ' ~ external_ntp.addresses.vip ~ '/24') not in (ntp_vrrp_config.stdout | first)
+    or
+    ('vrid ' ~ external_ntp.vrrp.vrid|string) not in (ntp_vrrp_config.stdout | first)
+  register: ntp_vrrp
