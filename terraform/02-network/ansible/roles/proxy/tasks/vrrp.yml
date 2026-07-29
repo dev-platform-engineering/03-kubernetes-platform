@@ -29,13 +29,10 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      # Physical infrastructure failure tracking (Fires instantly on switch down)
       - "set high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
 
-      # Trigger explicit service restart on backup nodes during failover
       - "set high-availability vrrp group {{ external_proxy.group }} transition-script master '/bin/systemctl restart haproxy'"
 
-      # FIX: Assign membership to ClusterSync instead of dropping it (Required for conntrack-sync)
       - "set high-availability vrrp sync-group ClusterSync member {{ external_proxy.group }}"
 
   when: >
@@ -43,3 +40,12 @@
     (proxy_vrrp_config.stdout | length > 0) and
     (external_proxy.addresses.vip not in (proxy_vrrp_config.stdout | first))
   register: proxy_vrrp
+
+- name: Configure Conntrack Synchronization between VyOS nodes
+  vyos.vyos.vyos_config:
+    lines:
+      # Safe to configure now because ClusterSync exists in the running config
+      - "set service conntrack-sync interface '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
+      - "set service conntrack-sync mcast-group '225.0.0.50'"
+      - "set service conntrack-sync sync-queue-size '8192'"
+  register: proxy_conntrack

@@ -35,12 +35,3 @@
       - "set nat source rule 100 destination address '{{ external_proxy.forwarding.upstream_server }}'"
       - "set nat source rule 100 translation address 'masquerade'"
   register: proxy_nat
-
-- name: Configure Conntrack Synchronization between VyOS nodes
-  vyos.vyos.vyos_config:
-    lines:
-      - "set service conntrack-sync interface '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
-
-      - "set service conntrack-sync mcast-group '225.0.0.50'"
-      - "set service conntrack-sync sync-queue-size '8192'"
-  register: proxy_conntrack
