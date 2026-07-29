@@ -100,3 +100,45 @@ external_dns:
       - 10.50.0.0/16
 
     cache_size: 1000
+
+external_ntp:
+  interface: eth1
+  vlan_id: 60
+
+  group: ExternalNTP
+
+  addresses:
+    primary: 10.50.60.54
+    secondary: 10.50.60.55
+    vip: 10.50.60.56
+
+  vrrp:
+    vrid: 161
+
+  forwarding:
+    upstream_servers:
+      - 192.168.13.101
+
+    allow_from:
+      - 10.50.0.0/16
+
+external_proxy:
+  interface: eth1
+  vlan_id: 60
+
+  group: ExternalProxy
+
+  addresses:
+    primary: 10.50.60.57
+    secondary: 10.50.60.58
+    vip: 10.50.60.59
+
+  vrrp:
+    vrid: 162
+
+  forwarding:
+    upstream_server: 192.168.13.101
+    upstream_port: 55555
+
+    allow_from:
+      - 10.50.0.0/16

@@ -1,0 +1,15 @@
+---
+- name: Configure External NTP service address
+  vyos.vyos.vyos_config:
+    lines:
+      - >-
+        set interfaces ethernet {{ external_ntp.interface }}
+        vif {{ external_ntp.vlan_id }}
+        address
+        {{
+          external_ntp.addresses.primary
+          if ip_suffix | int == 1
+          else external_ntp.addresses.secondary
+        }}/24
+
+    match: none

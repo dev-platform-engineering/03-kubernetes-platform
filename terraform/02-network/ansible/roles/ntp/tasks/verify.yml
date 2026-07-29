@@ -1,0 +1,27 @@
+---
+- name: Verify NTP VRRP
+  vyos.vyos.vyos_command:
+    commands:
+      - show vrrp
+  register: ntp_vrrp
+
+- name: Verify NTP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "service ntp"
+  register: ntp_config
+
+- name: Verify NTP associations
+  vyos.vyos.vyos_command:
+    commands:
+      - run ntpq -pn
+  register: ntp_peers
+  ignore_errors: true
+
+- name: Display NTP configuration
+  ansible.builtin.debug:
+    var: ntp_config.stdout_lines
+
+- name: Display NTP peers
+  ansible.builtin.debug:
+    var: ntp_peers.stdout_lines
