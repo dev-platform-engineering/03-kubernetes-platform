@@ -28,9 +28,10 @@
 - name: Verify allowed client networks
   ansible.builtin.assert:
     that:
-      - "'set service ntp allow-client address 10.50.0.0/16' in ntp_config.stdout[0]"
-    success_msg: "Allowed client network configured."
-    fail_msg: "Allowed client network is missing."
+      - item in ntp_config.stdout[0]
+    success_msg: "Allowed client network {{ item }} configured."
+    fail_msg: "Allowed client network {{ item }} is missing."
+  loop: "{{ external_ntp.forwarding.allow_from }}"
 
 - name: Display NTP configuration
   ansible.builtin.debug:
