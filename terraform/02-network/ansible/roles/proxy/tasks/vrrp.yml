@@ -23,8 +23,8 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      - "set high-availability vrrp group {{ external_proxy.group }} health-check script 'ping -c 2 -W 1 {{ external_proxy.forwarding.upstream_server }}'"
-      - "set high-availability vrrp group {{ external_proxy.group }} health-check interval 2"
+      # monitor interface
+      - "set high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
   when: >
     proxy_vrrp_config.stdout is defined and
     (proxy_vrrp_config.stdout | length > 0) and
