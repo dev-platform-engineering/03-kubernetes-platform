@@ -5,7 +5,7 @@
       - "set high-availability vrrp global-parameters garp master-delay 1"
       - "set high-availability vrrp global-parameters garp master-repeat 5"
 
-- name: Configure External Proxy VRRP Group and Conntrack State Mirroring
+- name: Configure External Proxy VRRP Group and Conntrack Mirroring
   vars:
     preempt_cmd: >-
       {{
@@ -16,7 +16,7 @@
       }}
   vyos.vyos.vyos_config:
     lines:
-      # 1. VRRP Group Geometry Configuration
+      # 1. VRRP Group Configuration
       - "set high-availability vrrp group {{ external_proxy.group }} interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
       - "set high-availability vrrp group {{ external_proxy.group }} vrid {{ external_proxy.vrrp.vrid }}"
       - "set high-availability vrrp group {{ external_proxy.group }} priority {{ router_priority }}"
@@ -30,8 +30,11 @@
       # 3. Synchronous Anchor Sync-Group Object
       - "set high-availability vrrp sync-group ClusterSync member {{ external_proxy.group }}"
 
-      # 4. Merged Conntrack Replication Tree (Bundled inside the same transaction)
+      # 4. Corrected Conntrack Replication Tree (with explicit VRRP mechanics binding)
       - "set service conntrack-sync interface '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
       - "set service conntrack-sync mcast-group '225.0.0.50'"
       - "set service conntrack-sync sync-queue-size '8192'"
+
+      # FIX: The mandatory missing parameter connecting conntrack to your VRRP sync-group
+      - "set service conntrack-sync failover-mechanism vrrp sync-group ClusterSync"
   register: proxy_vrrp
