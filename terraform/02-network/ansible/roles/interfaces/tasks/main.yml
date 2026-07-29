@@ -54,6 +54,17 @@
       {% endfor %}
       {{ result }}
 
+- name: Configure Management VRRP on eth0
+  vyos.vyos.vyos_config:
+    lines:
+      - "set high-availability vrrp group Management interface eth0"
+      - "set high-availability vrrp group Management vrid 10"
+      - "set high-availability vrrp group Management priority {{ router_priority }}"
+      - "set high-availability vrrp group Management address 10.50.10.254/24"
+      - "set high-availability vrrp group Management hello-source-address 10.50.10.1{{ ip_suffix }}"
+      - "{{ (router_priority | int > 100) | ternary('set high-availability vrrp group Management preempt-delay 30', 'set high-availability vrrp group Management no-preempt') }}"
+      - "set high-availability vrrp sync-group ClusterSync member Management"
+
 - name: Configure External Services interface
   vyos.vyos.vyos_l3_interfaces:
     config:
