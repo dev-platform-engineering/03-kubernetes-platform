@@ -3,7 +3,8 @@
   vyos.vyos.vyos_config:
     save: true
   when:
-    - ntp_interface.changed
-      or ntp_vrrp.changed
-      or ntp_service.changed
-      or remove_default_servers.changed
+    - >
+      (ntp_interface.changed | default(false)) or
+      (ntp_service.changed | default(false)) or
+      (remove_default_servers.changed | default(false)) or
+      (ntp_vrrp.changed | default(false))
