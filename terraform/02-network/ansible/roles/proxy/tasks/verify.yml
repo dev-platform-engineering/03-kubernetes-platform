@@ -33,8 +33,9 @@
 
 - name: Validate Firewall Mirroring Sync-Group Parameter
   ansible.builtin.assert:
+    # FIX: Cleanly joins stdout to parse the raw multi-line string configuration output
     that:
-      - conntrack_verify.stdout[0] is search("failover-mechanism vrrp sync-group ClusterSync")
+      - conntrack_verify.stdout | join(' ') is search("failover-mechanism vrrp sync-group ClusterSync")
     success_msg: "Stateful firewall connection replication engine is anchored correctly."
     fail_msg: "Mandatory VRRP link anchor for conntrack-sync is missing."
 
