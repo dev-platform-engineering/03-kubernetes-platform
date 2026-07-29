@@ -4,15 +4,27 @@
     lines:
       - >-
         set interfaces ethernet {{ external_ntp.interface }}
-        vif {{ external_ntp.vlan_id }}
+        vif '{{ external_ntp.vlan_id }}'
         address
-        {{
+        '{{
           external_ntp.addresses.primary
           if ip_suffix | int == 1
           else external_ntp.addresses.secondary
-        }}/24
+        }}/24'
+# - name: Configure External NTP service address
+#   vyos.vyos.vyos_config:
+#     lines:
+#       - >-
+#         set interfaces ethernet {{ external_ntp.interface }}
+#         vif {{ external_ntp.vlan_id }}
+#         address
+#         {{
+#           external_ntp.addresses.primary
+#           if ip_suffix | int == 1
+#           else external_ntp.addresses.secondary
+#         }}/24
 
-    match: none
+#     match: none
 
 - name: Remove default VyOS NTP servers
   vyos.vyos.vyos_config:
@@ -20,4 +32,4 @@
       - delete service ntp server time1.vyos.net
       - delete service ntp server time2.vyos.net
       - delete service ntp server time3.vyos.net
-    match: none
+    match: line
