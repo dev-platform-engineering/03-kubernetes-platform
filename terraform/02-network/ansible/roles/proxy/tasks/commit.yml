@@ -7,3 +7,4 @@
     (proxy_service is defined and proxy_service.changed) or
     (proxy_vrrp is defined and proxy_vrrp.changed) or
     (proxy_nat is defined and proxy_nat.changed)
+    (proxy_conntrack is defined and proxy_conntrack.changed)
