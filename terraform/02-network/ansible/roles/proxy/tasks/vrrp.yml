@@ -23,18 +23,15 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      # 2. Resiliency Mechanics & Hooks
-      - "set high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
-      - "set high-availability vrrp group {{ external_proxy.group }} transition-script master '/bin/systemctl restart haproxy'"
+      # 3. FIX: Асинхронный фоновый пинок HAProxy (знак & в конце запускает службу в фоне, предотвращая зависание трафика)
+      - 'set high-availability vrrp group {{ external_proxy.group }} transition-script master ''/bin/sh -c "/bin/systemctl restart haproxy &"'''
 
-      # 3. Synchronous Anchor Sync-Group Object
+      # 4. Synchronous Anchor Sync-Group Object
       - "set high-availability vrrp sync-group ClusterSync member {{ external_proxy.group }}"
 
-      # 4. Corrected Conntrack Replication Tree (with explicit VRRP mechanics binding)
+      # 5. Conntrack Replication Tree
       - "set service conntrack-sync interface '{{ external_proxy.interface }}.{{ external_proxy.vlan_id }}'"
       - "set service conntrack-sync mcast-group '225.0.0.50'"
       - "set service conntrack-sync sync-queue-size '8192'"
-
-      # FIX: The mandatory missing parameter connecting conntrack to your VRRP sync-group
       - "set service conntrack-sync failover-mechanism vrrp sync-group ClusterSync"
   register: proxy_vrrp
