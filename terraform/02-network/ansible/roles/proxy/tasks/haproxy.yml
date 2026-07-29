@@ -5,6 +5,11 @@
       - show configuration commands | match "load-balancing haproxy"
   register: proxy_config
 
+- name: Allow HAProxy to bind to VIP on backup node
+  vyos.vyos.vyos_config:
+    lines:
+      - "set system sysctl parameter net.ipv4.ip_nonlocal_bind value 1"
+
 - name: Configure HAProxy
   vyos.vyos.vyos_config:
     lines:

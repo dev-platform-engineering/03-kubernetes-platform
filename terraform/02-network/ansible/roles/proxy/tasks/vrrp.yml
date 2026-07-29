@@ -1,10 +1,3 @@
----
-- name: Gather Proxy VRRP configuration
-  vyos.vyos.vyos_command:
-    commands:
-      - show configuration commands | match "high-availability vrrp group {{ external_proxy.group }}"
-  register: proxy_vrrp_config
-
 - name: Configure External Proxy VRRP
   vars:
     preempt_cmd: >-
@@ -22,6 +15,11 @@
       - "set high-availability vrrp group {{ external_proxy.group }} priority {{ router_priority }}"
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
+
+      # Новые строки для отслеживания сети в VyOS 1.4/1.5+:
+      - "set high-availability vrrp group {{ external_proxy.group }} health-check ping target {{ external_proxy.forwarding.upstream_server }}"
+      - "set high-availability vrrp group {{ external_proxy.group }} health-check ping interval 2"
+      - "set high-availability vrrp group {{ external_proxy.group }} health-check ping count 3"
   when: >
     external_proxy.addresses.vip
     not in (proxy_vrrp_config.stdout | first)
