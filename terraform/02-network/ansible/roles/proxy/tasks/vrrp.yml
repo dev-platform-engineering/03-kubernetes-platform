@@ -23,6 +23,10 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
+      # Aggressive Gratuitous ARP settings to clear client/switch ARP caches instantly
+      - "set high-availability vrrp group {{ external_proxy.group }} garp master-delay 1"
+      - "set high-availability vrrp group {{ external_proxy.group }} garp rfc3587 receiver"
+
       # Clean up the previous track configuration if present
       - "delete high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
 
