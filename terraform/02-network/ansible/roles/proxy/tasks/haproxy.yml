@@ -1,0 +1,31 @@
+---
+- name: Gather HAProxy configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "load-balancing haproxy"
+  register: proxy_config
+
+- name: Configure HAProxy backend
+  vyos.vyos.vyos_config:
+    lines:
+      - "set load-balancing haproxy backend proxy-backend mode tcp"
+      - "set load-balancing haproxy backend proxy-backend balance round-robin"
+      - "set load-balancing haproxy backend proxy-backend server proxy01 address '{{ external_proxy.forwarding.upstream_server }}'"
+      - "set load-balancing haproxy backend proxy-backend server proxy01 port '{{ external_proxy.forwarding.upstream_port }}'"
+      - "set load-balancing haproxy backend proxy-backend server proxy01 check"
+  when: >
+    external_proxy.forwarding.upstream_server
+    not in (proxy_config.stdout | first)
+  register: proxy_backend
+
+- name: Configure HAProxy frontend
+  vyos.vyos.vyos_config:
+    lines:
+      - "set load-balancing haproxy service proxy-service mode tcp"
+      - "set load-balancing haproxy service proxy-service listen-address '{{ external_proxy.addresses.vip }}'"
+      - "set load-balancing haproxy service proxy-service port '{{ external_proxy.forwarding.upstream_port }}'"
+      - "set load-balancing haproxy service proxy-service backend proxy-backend"
+  when: >
+    external_proxy.addresses.vip
+    not in (proxy_config.stdout | first)
+  register: proxy_frontend

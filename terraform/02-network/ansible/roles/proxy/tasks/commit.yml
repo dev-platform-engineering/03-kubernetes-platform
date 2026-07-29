@@ -1,0 +1,9 @@
+---
+- name: Save configuration
+  vyos.vyos.vyos_config:
+    save: true
+  when: >
+    proxy_interface.changed | default(false)
+    or proxy_backend.changed | default(false)
+    or proxy_frontend.changed | default(false)
+    or proxy_vrrp.changed | default(false)

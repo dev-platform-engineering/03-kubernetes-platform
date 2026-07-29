@@ -1,0 +1,7 @@
+---
+- name: Configure Proxy Inet
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - proxy

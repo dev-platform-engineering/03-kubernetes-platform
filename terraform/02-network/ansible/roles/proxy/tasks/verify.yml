@@ -1,0 +1,30 @@
+---
+- name: Verify Proxy VRRP
+  vyos.vyos.vyos_command:
+    commands:
+      - show vrrp
+  register: proxy_vrrp_state
+
+- name: Verify HAProxy configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "load-balancing haproxy"
+  register: proxy_verify
+
+- name: Verify backend server
+  ansible.builtin.assert:
+    that:
+      - proxy_verify.stdout[0] is search(external_proxy.forwarding.upstream_server)
+    success_msg: Backend proxy configured correctly.
+    fail_msg: Backend proxy missing.
+
+- name: Verify proxy VIP
+  ansible.builtin.assert:
+    that:
+      - proxy_verify.stdout[0] is search(external_proxy.addresses.vip)
+    success_msg: Proxy VIP configured correctly.
+    fail_msg: Proxy VIP missing.
+
+- name: Display HAProxy configuration
+  ansible.builtin.debug:
+    var: proxy_verify.stdout_lines

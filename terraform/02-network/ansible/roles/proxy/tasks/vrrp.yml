@@ -1,0 +1,28 @@
+---
+- name: Gather Proxy VRRP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "high-availability vrrp group {{ external_proxy.group }}"
+  register: proxy_vrrp_config
+
+- name: Configure External Proxy VRRP
+  vars:
+    preempt_cmd: >-
+      {{
+        'set high-availability vrrp group ' ~ external_proxy.group ~ ' preempt-delay 30'
+        if router_priority | int > 100
+        else
+        'set high-availability vrrp group ' ~ external_proxy.group ~ ' no-preempt'
+      }}
+
+  vyos.vyos.vyos_config:
+    lines:
+      - "set high-availability vrrp group {{ external_proxy.group }} interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
+      - "set high-availability vrrp group {{ external_proxy.group }} vrid {{ external_proxy.vrrp.vrid }}"
+      - "set high-availability vrrp group {{ external_proxy.group }} priority {{ router_priority }}"
+      - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
+      - "{{ preempt_cmd }}"
+  when: >
+    external_proxy.addresses.vip
+    not in (proxy_vrrp_config.stdout | first)
+  register: proxy_vrrp
