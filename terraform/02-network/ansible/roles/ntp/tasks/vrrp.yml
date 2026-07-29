@@ -19,3 +19,4 @@
         set high-availability vrrp group {{ external_ntp.group }} no-preempt
         {% endif %}
   when: external_ntp.addresses.vip not in ntp_vrrp_config.stdout[0]
+  register: ntp_vrrp

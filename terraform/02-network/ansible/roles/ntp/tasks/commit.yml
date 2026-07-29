@@ -2,3 +2,8 @@
 - name: Save configuration
   vyos.vyos.vyos_config:
     save: true
+  when:
+    - ntp_interface.changed
+      or ntp_vrrp.changed
+      or ntp_service.changed
+      or remove_default_servers.changed

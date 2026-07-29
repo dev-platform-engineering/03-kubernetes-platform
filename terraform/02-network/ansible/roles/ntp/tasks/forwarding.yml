@@ -18,3 +18,4 @@
       set service ntp allow-client address {{ subnet }}
       {% endfor %}
   when: external_ntp.addresses.vip not in ntp_service_config.stdout[0]
+  register: ntp_service
