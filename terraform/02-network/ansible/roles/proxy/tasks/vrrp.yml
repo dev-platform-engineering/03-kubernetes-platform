@@ -11,7 +11,7 @@
       - "set high-availability vrrp global-parameters garp master-delay 1"
       - "set high-availability vrrp global-parameters garp master-repeat 5"
 
-- name: Configure External Proxy VRRP
+- name: Configure External Proxy VRRP Group
   vars:
     preempt_cmd: >-
       {{
@@ -29,16 +29,19 @@
       - "set high-availability vrrp group {{ external_proxy.group }} address {{ external_proxy.addresses.vip }}/24"
       - "{{ preempt_cmd }}"
 
-      # REMOVED rfc3768-compatibility to accommodate hypervisor restrictions
+      # Удаляем индивидуальные проверки и несовместимые параметры
+      - "delete high-availability vrrp group {{ external_proxy.group }} health-check"
       - "delete high-availability vrrp group {{ external_proxy.group }} rfc3768-compatibility"
+      - "delete high-availability vrrp group {{ external_proxy.group }} track interface {{ external_proxy.interface }}.{{ external_proxy.vlan_id }}"
+      - "delete high-availability vrrp group {{ external_proxy.group }} garp"
 
-      # Sync Group Logic: Forces cluster tracking uniformity
+      # Назначение группы синхронизации
       - "set high-availability vrrp sync-group ClusterSync member {{ external_proxy.group }}"
 
-      # Valid VyOS 2026.03 health-check script
-      - "set high-availability vrrp group {{ external_proxy.group }} health-check script '/bin/ping -c 2 -W 1 {{ external_proxy.forwarding.upstream_server }}'"
-      - "set high-availability vrrp group {{ external_proxy.group }} health-check interval 2"
-      - "set high-availability vrrp group {{ external_proxy.group }} health-check failure-count 2"
+      # Перенос health-check на уровень sync-group (Синтаксис VyOS 2026)
+      - "set high-availability vrrp sync-group ClusterSync health-check script '/bin/ping -c 2 -W 1 {{ external_proxy.forwarding.upstream_server }}'"
+      - "set high-availability vrrp sync-group ClusterSync health-check interval 2"
+      - "set high-availability vrrp sync-group ClusterSync health-check failure-count 2"
   when: >
     proxy_vrrp_config.stdout is defined and
     (proxy_vrrp_config.stdout | length > 0) and
