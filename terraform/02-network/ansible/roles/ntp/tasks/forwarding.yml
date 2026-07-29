@@ -1,21 +1,25 @@
 ---
-- name: Gather VRRP configuration
-  vyos.vyos.vyos_command:
-    commands:
-      - show configuration commands | match "high-availability vrrp group {{ external_ntp.group }}"
-  register: ntp_vrrp_config
-
-- name: Configure External NTP VRRP
+- name: Configure External NTP upstream servers
   vyos.vyos.vyos_config:
+    parents:
+      - service ntp
+    lines: |
+      {% for server in external_ntp.forwarding.upstream_servers %}
+      server {{ server }}
+      {% endfor %}
+
+- name: Configure External NTP listen address
+  vyos.vyos.vyos_config:
+    parents:
+      - service ntp
     lines:
-      - "set high-availability vrrp group {{ external_ntp.group }} interface {{ external_ntp.interface }}.{{ external_ntp.vlan_id }}"
-      - "set high-availability vrrp group {{ external_ntp.group }} vrid {{ external_ntp.vrrp.vrid }}"
-      - "set high-availability vrrp group {{ external_ntp.group }} priority {{ router_priority }}"
-      - "set high-availability vrrp group {{ external_ntp.group }} address '{{ external_ntp.addresses.vip }}/24'"
-      - >-
-        {% if router_priority | int > 100 %}
-        set high-availability vrrp group {{ external_ntp.group }} preempt-delay 30
-        {% else %}
-        set high-availability vrrp group {{ external_ntp.group }} no-preempt
-        {% endif %}
-  when: external_ntp.addresses.vip not in ntp_vrrp_config.stdout[0]
+      - "listen-address '{{ external_ntp.addresses.vip }}'"
+
+- name: Configure External NTP allowed clients
+  vyos.vyos.vyos_config:
+    parents:
+      - service ntp
+    lines: |
+      {% for subnet in external_ntp.forwarding.allow_from %}
+      allow-client address '{{ subnet }}'
+      {% endfor %}
