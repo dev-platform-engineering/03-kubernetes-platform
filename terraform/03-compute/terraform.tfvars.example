@@ -1,0 +1,5 @@
+#You need to add file ../founmdation/terraform.tfvars
+#with you data
+vsphere_server      = "vcenter.example.local"
+vsphere_user        = "administrator@vsphere.local"
+vsphere_password    = "CHANGE_ME"
