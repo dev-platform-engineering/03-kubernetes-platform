@@ -1,7 +1,7 @@
 ---
-- name: Configure VRRP
+- name: Configure DHCP
   hosts: vyos_routers
   gather_facts: false
 
   roles:
-    - vrrp
+    - vyos/dhcp

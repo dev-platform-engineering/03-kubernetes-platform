@@ -1,7 +1,7 @@
 ---
-- name: Configure DHCP
+- name: Configure DNS
   hosts: vyos_routers
   gather_facts: false
 
   roles:
-    - dhcp
+    - vyos/dns

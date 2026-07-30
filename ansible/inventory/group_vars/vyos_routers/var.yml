@@ -28,8 +28,8 @@ vgt_vlans:
         start: 100
         stop: 199
 
-    # dns_servers:
-    #  - "10.50.10.11"
+    dns_servers:
+      - "10.50.60.53"
     #  - "10.50.10.12"
 
   - id: 30

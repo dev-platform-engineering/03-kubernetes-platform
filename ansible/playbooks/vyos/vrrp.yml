@@ -1,7 +1,7 @@
 ---
-- name: Configure Proxy Inet
+- name: Configure VRRP
   hosts: vyos_routers
   gather_facts: false
 
   roles:
-    - proxy
+    - vyos/vrrp

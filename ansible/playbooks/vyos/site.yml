@@ -3,13 +3,13 @@
   hosts: vyos_routers
   gather_facts: false
   roles:
-    - base
-    - interfaces
-    - vrrp
-    - bgp
-    - dhcp
-    - dns
-    - ntp
-    - proxy
+    - vyos/base
+    - vyos/interfaces
+    - vyos/vrrp
+    - vyos/bgp
+    - vyos/dhcp
+    - vyos/dns
+    - vyos/ntp
+    - vyos/proxy
     # - nat
     # - firewall

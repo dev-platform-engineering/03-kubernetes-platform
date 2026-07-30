@@ -1,7 +1,7 @@
 ---
-- name: Configure Interfaces
+- name: Configure Base System
   hosts: vyos_routers
   gather_facts: false
 
   roles:
-    - interfaces
+    - vyos/base

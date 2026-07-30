@@ -1,7 +1,7 @@
 ---
-- name: Configure DNS
+- name: Configure Interfaces
   hosts: vyos_routers
   gather_facts: false
 
   roles:
-    - dns
+    - vyos/interfaces
