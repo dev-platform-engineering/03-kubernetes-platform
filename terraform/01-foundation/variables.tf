@@ -32,3 +32,8 @@ variable "vsphere_standard_switch_name" {
   type        = string
   default     = "vSwitch2"
 }
+
+variable "datastores" {
+  description = "Map of logical datastore names to vSphere datastore names"
+  type        = map(string)
+}

@@ -1,3 +1,13 @@
+output "datacenter_id" {
+  description = "vSphere Datacenter ID"
+  value       = data.vsphere_datacenter.dc.id
+}
+
+output "esxi_host_id" {
+  description = "ESXi Host ID"
+  value       = data.vsphere_host.esxi_host.id
+}
+
 output "root_resource_pool" {
   description = "Root resource pool"
 
@@ -16,9 +26,36 @@ output "child_resource_pools" {
   }
 }
 
+output "datastores" {
+  description = "Available datastores"
+
+  value = {
+    for key, ds in data.vsphere_datastore.this :
+    key => ds.id
+  }
+}
+
+output "network_ids" {
+  description = "Standard Port Group IDs"
+
+  value = {
+    for key, pg in vsphere_host_port_group.pgs :
+    key => pg.id
+  }
+}
+
 output "networks" {
-  description = "Map of all created standard port group names"
+  description = "Port group names (legacy)"
   value       = { for k, v in vsphere_host_port_group.pgs : k => v.name }
+}
+
+output "folders" {
+  description = "VM folder paths"
+
+  value = merge(
+    module.main_folders.folders,
+    module.k8s_subfolders.folders
+  )
 }
 
 output "network_folder" {
