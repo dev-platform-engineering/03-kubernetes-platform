@@ -1,0 +1,3 @@
+locals {
+  etcd_vms = {}
+}

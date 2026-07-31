@@ -13,3 +13,13 @@ data "vsphere_datastore" "this" {
   name          = each.value
   datacenter_id = data.vsphere_datacenter.dc.id
 }
+
+data "vsphere_virtual_machine" "templates" {
+  for_each = {
+    for vm in local.repository_vms :
+    vm.template_name => vm
+  }
+
+  name          = each.key
+  datacenter_id = module.foundation.datacenter_id
+}
