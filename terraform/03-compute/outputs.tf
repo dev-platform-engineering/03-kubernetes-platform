@@ -1,8 +1,13 @@
-output "datastores" {
-  description = "Map of datastore IDs"
+output "linux_vms" {
+  description = "Created Linux VMs"
 
   value = {
-    for key, ds in data.vsphere_datastore.this :
-    key => ds.id
+    for k, vm in module.linux_vm :
+    k => {
+      id   = vm.id
+      name = vm.name
+      uuid = vm.uuid
+      moid = vm.moid
+    }
   }
 }

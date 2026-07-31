@@ -8,12 +8,14 @@ locals {
       memory = 4096
 
       resource_pool = "RP-Management"
-      folder        = "Platform"
+      folder        = "infrastructure"
       datastore     = "system_R1"
+      disk_size     = 100
 
-      network = "PG-Management"
+      network = "management"
 
       ip      = "10.50.60.60"
+      netmask = 24
       gateway = "10.50.60.254"
 
       dns = [

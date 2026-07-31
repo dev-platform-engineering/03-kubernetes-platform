@@ -1,11 +1,12 @@
-variable "datastores" {
-  type        = map(string)
-  description = "Mapping of internal datastore identifiers to enterprise storage names"
+variable "vsphere_server" {
+  type = string
 }
 
-data "vsphere_datastore" "all" {
-  for_each = var.datastores
+variable "vsphere_user" {
+  type = string
+}
 
-  name          = each.value
-  datacenter_id = data.vsphere_datacenter.dc.id
+variable "vsphere_password" {
+  type      = string
+  sensitive = true
 }
