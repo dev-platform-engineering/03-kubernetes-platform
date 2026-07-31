@@ -3,9 +3,10 @@ module "main_folders" {
   datacenter_id = data.vsphere_datacenter.dc.id
 
   folders = {
-    templates  = { path = "Templates", type = "vm" }
-    network    = { path = "Network", type = "vm" }
-    kubernetes = { path = "Kubernetes", type = "vm" }
+    templates      = { path = "Templates", type = "vm" }
+    network        = { path = "Network", type = "vm" }
+    infrastructure = { path = "Infrastructure", type = "vm" }
+    kubernetes     = { path = "Kubernetes", type = "vm" }
   }
 }
 

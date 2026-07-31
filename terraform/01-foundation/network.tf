@@ -35,8 +35,8 @@ locals {
       vrrp = true
     }
 
-    edge = {
-      name = "PG-V60-Edge"
+    services = {
+      name = "PG-V60-Services"
       vlan = 60
       cidr = "10.50.60.0/24"
       vrrp = true

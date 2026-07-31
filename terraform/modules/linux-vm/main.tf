@@ -13,7 +13,7 @@ resource "vsphere_virtual_machine" "this" {
   firmware  = var.firmware
   scsi_type = var.scsi_type
 
-  wait_for_guest_net_timeout = 10
+  wait_for_guest_net_timeout = var.wait_for_guest_net_timeout
 
   disk {
     label            = var.disk_label
@@ -36,13 +36,23 @@ resource "vsphere_virtual_machine" "this" {
     customize {
 
       linux_options {
-        host_name = var.hostname
-        domain    = var.domain
+        host_name = var.name
+        domain    = "local"
       }
 
-      network_interface {
-        ipv4_address = var.ipv4_address
-        ipv4_netmask = var.ipv4_netmask
+      # network_interface {
+      #   ipv4_address = var.ipv4_address
+      #   ipv4_netmask = var.ipv4_netmask
+      # }
+      dynamic "network_interface" {
+        for_each = var.network_interfaces
+
+        content {
+          # Передаем IP и маску только для первого интерфейса.
+          # Если интерфейсов несколько, для остальных можно настроить DHCP или передать список IP.
+          ipv4_address = network_interface.key == 0 ? var.ipv4_address : null
+          ipv4_netmask = network_interface.key == 0 ? var.ipv4_netmask : null
+        }
       }
 
       ipv4_gateway    = var.ipv4_gateway

@@ -12,7 +12,7 @@ locals {
       datastore     = "system_R1"
       disk_size     = 100
 
-      network = "management"
+      network = "services"
 
       ip      = "10.50.60.60"
       netmask = 24

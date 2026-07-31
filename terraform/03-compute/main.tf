@@ -39,9 +39,15 @@ module "linux_vm" {
 
   disk_size = each.value.disk_size
 
+  # network_interfaces = [
+  #   {
+  #     network_id   = data.terraform_remote_state.foundation.outputs.network_ids[each.value.network]
+  #     adapter_type = "vmxnet3"
+  #   }
+  # ]
   network_interfaces = [
     {
-      network_id   = data.terraform_remote_state.foundation.outputs.network_ids["management"]
+      network_id   = data.vsphere_network.networks[each.value.network].id
       adapter_type = "vmxnet3"
     }
   ]
