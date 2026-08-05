@@ -1,0 +1,18 @@
+---
+- name: Gather configured NTP servers
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "service ntp server"
+  register: ntp_servers
+
+- name: Remove default VyOS NTP servers
+  vyos.vyos.vyos_config:
+    lines:
+      - delete service ntp server time1.vyos.net
+      - delete service ntp server time2.vyos.net
+      - delete service ntp server time3.vyos.net
+  when: >
+    'time1.vyos.net' in ntp_servers.stdout[0] or
+    'time2.vyos.net' in ntp_servers.stdout[0] or
+    'time3.vyos.net' in ntp_servers.stdout[0]
+  register: remove_default_servers

@@ -1,0 +1,20 @@
+---
+- name: Configure upstream NTP servers
+  vyos.vyos.vyos_config:
+    lines:
+      - "set service ntp server {{ item }}"
+  loop: "{{ external_ntp.forwarding.upstream_servers }}"
+  register: ntp_servers
+
+- name: Configure NTP listen address
+  vyos.vyos.vyos_config:
+    lines:
+      - "set service ntp listen-address {{ external_ntp.addresses.vip }}"
+  register: ntp_listen
+
+- name: Configure allowed client networks
+  vyos.vyos.vyos_config:
+    lines:
+      - "set service ntp allow-client address {{ item }}"
+  loop: "{{ external_ntp.forwarding.allow_from }}"
+  register: ntp_allow

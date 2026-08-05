@@ -1,0 +1,41 @@
+---
+- name: Show BGP IPv4 summary
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast summary"'
+  register: bgp_summary
+
+- name: Display BGP IPv4 summary
+  debug:
+    var: bgp_summary.stdout_lines
+
+- name: Verify BGP session is established
+  assert:
+    that:
+      - "'Idle' not in (bgp_summary.stdout | join('\n'))"
+      - "'Connect' not in (bgp_summary.stdout | join('\n'))"
+      - "'Active' not in (bgp_summary.stdout | join('\n'))"
+      - "'OpenSent' not in (bgp_summary.stdout | join('\n'))"
+      - "'OpenConfirm' not in (bgp_summary.stdout | join('\n'))"
+    fail_msg: |
+      One or more BGP neighbors are not established.
+
+      {{ bgp_summary.stdout | join('\n') }}
+    success_msg: "All BGP neighbors are established."
+
+- name: Show BGP routes
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast"'
+  register: bgp_routes
+
+- name: Display BGP routes
+  debug:
+    var: bgp_routes.stdout_lines
+
+- name: Show BGP routes installed in routing table
+  ansible.netcommon.cli_command:
+    command: "show ip route bgp"
+  register: bgp_rib
+
+- name: Display BGP routing table
+  debug:
+    var: bgp_rib.stdout_lines

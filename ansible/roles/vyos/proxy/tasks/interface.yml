@@ -1,0 +1,14 @@
+---
+- name: Configure External Proxy service address
+  vyos.vyos.vyos_config:
+    lines:
+      - >-
+        set interfaces ethernet {{ external_proxy.interface }}
+        vif '{{ external_proxy.vlan_id }}'
+        address
+        '{{
+          external_proxy.addresses.primary
+          if ip_suffix | int == 1
+          else external_proxy.addresses.secondary
+        }}/24'
+  register: proxy_interface

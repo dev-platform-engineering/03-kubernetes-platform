@@ -1,0 +1,12 @@
+---
+- name: Save configuration
+  vyos.vyos.vyos_config:
+    save: true
+  when:
+    - >
+      (ntp_interface.changed | default(false)) or
+      (ntp_servers.changed | default(false)) or
+      (ntp_listen.changed | default(false)) or
+      (ntp_allow.changed | default(false)) or
+      (remove_default_servers.changed | default(false)) or
+      (ntp_vrrp.changed | default(false))

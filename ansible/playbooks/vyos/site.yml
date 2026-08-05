@@ -1,0 +1,15 @@
+---
+- name: Deploy and Configure VyOS Infrastructure Cluster
+  hosts: vyos_routers
+  gather_facts: false
+  roles:
+    - vyos/base
+    - vyos/interfaces
+    - vyos/vrrp
+    - vyos/bgp
+    - vyos/dhcp
+    - vyos/dns
+    - vyos/ntp
+    - vyos/proxy
+    # - nat
+    # - firewall

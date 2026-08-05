@@ -1,0 +1,136 @@
+---
+- name: Configure physical interface descriptions
+  vyos.vyos.vyos_interfaces:
+    config:
+      - name: eth0
+        description: Management
+        enabled: true
+
+      - name: eth1
+        description: Trunk
+        enabled: true
+
+      - name: "{{ external_services.interface }}"
+        description: External Services
+        enabled: true
+    state: merged
+
+- name: Configure descriptions on Trunk sub-interfaces (eth1)
+  vyos.vyos.vyos_interfaces:
+    config:
+      - name: eth1
+        vifs: "{{ trunk_interfaces }}"
+    state: merged
+  vars:
+    trunk_interfaces: |
+      {% set result = [] %}
+      {% for vlan in vgt_vlans %}
+      {% set _ = result.append({
+        'vlan_id': vlan.id | int,
+        'description': vlan.name,
+        'enabled': true
+      }) %}
+      {% endfor %}
+      {{ result }}
+
+- name: Configure VLAN gateway addresses
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: eth1
+        vifs: "{{ trunk_l3_interfaces }}"
+    state: replaced
+  vars:
+    trunk_l3_interfaces: |
+      {% set result = [] %}
+      {% for vlan in vgt_vlans %}
+      {% set _ = result.append({
+        'vlan_id': vlan.id,
+        'ipv4': [
+          {
+            'address': vlan.subnet ~ '.' ~ ip_suffix ~ '/24'
+          }
+        ]
+      }) %}
+      {% endfor %}
+      {{ result }}
+
+- name: Configure Management VRRP on eth0
+  vyos.vyos.vyos_config:
+    lines:
+      - "set high-availability vrrp group Management interface eth0"
+      - "set high-availability vrrp group Management vrid 10"
+      - "set high-availability vrrp group Management priority {{ router_priority }}"
+      - "set high-availability vrrp group Management address 10.50.10.254/24"
+      - "set high-availability vrrp group Management hello-source-address 10.50.10.1{{ ip_suffix }}"
+      - "{{ (router_priority | int > 100) | ternary('set high-availability vrrp group Management preempt-delay 30', 'set high-availability vrrp group Management no-preempt') }}"
+      - "set high-availability vrrp sync-group ClusterSync member Management"
+
+- name: Configure External Services interface
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: "{{ external_services.interface }}"
+        ipv4:
+          - address: >-
+              {{
+                (inventory_hostname == 'vyos_router_01')
+                | ternary(
+                    external_services.router_ips.primary,
+                    external_services.router_ips.secondary
+                  )
+              }}/24
+    state: replaced
+
+- name: Configure loopback interface
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: lo
+        ipv4:
+          - address: "{{ loopback_ip }}/32"
+    state: replaced
+
+- name: Commit and save configuration to boot.config
+  vyos.vyos.vyos_config:
+    save: true
+
+- name: Gather applied L3 configuration for verification
+  vyos.vyos.vyos_l3_interfaces:
+    state: gathered
+  register: current_l3_interfaces
+
+- name: Verify loopback interface
+  vyos.vyos.vyos_command:
+    commands:
+      - "show interfaces loopback lo"
+  register: loopback_status
+
+- name: Fail if loopback is missing
+  ansible.builtin.assert:
+    that:
+      - loopback_ip in loopback_status.stdout[0]
+    fail_msg: "Loopback {{ loopback_ip }} is not configured."
+    success_msg: "Loopback {{ loopback_ip }} verified."
+
+- name: Display running L3 interfaces configuration (Grouped by Router)
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop: "{{ loop_data | from_yaml }}"
+  vars:
+    loop_data: |
+      {% set output = [] %}
+      {% set _ = output.append('=== Current configuration interfaces router: ' ~ inventory_hostname ~ ' ===') %}
+      {% for interface in current_l3_interfaces.gathered %}
+        {% if interface.vifs is defined %}
+          {% for vif in interface.vifs %}
+            {% if vif.ipv4 is defined and vif.ipv4 | length > 0 %}
+              {% set _ = output.append(interface.name ~ '.' ~ vif.vlan_id ~ ' -> ' ~ vif.ipv4[0].address) %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        {% if interface.ipv4 is defined and interface.ipv4 | length > 0 %}
+          {% set _ = output.append(interface.name ~ ' -> ' ~ interface.ipv4[0].address) %}
+        {% endif %}
+      {% endfor %}
+      {{ output | sort }}
+  loop_control:
+    label: "{{ item }}"
+  throttle: 1

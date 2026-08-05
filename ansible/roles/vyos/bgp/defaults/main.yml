@@ -1,0 +1,30 @@
+---
+# ==========================================================
+# BGP Defaults
+# ==========================================================
+
+bgp_enabled: true
+
+bgp_local_as: 65000
+
+router_ids:
+  vyos_router_01: 10.255.255.1
+  vyos_router_02: 10.255.255.2
+
+neighbors:
+  vyos_router_01:
+    - ip: 10.50.99.2
+      remote_as: 65000
+
+  vyos_router_02:
+    - ip: 10.50.99.1
+      remote_as: 65000
+
+bgp_loopback:
+  enabled: true
+  interface: lo
+  prefix_length: 32
+
+bgp_commit: true
+
+bgp_verify: true

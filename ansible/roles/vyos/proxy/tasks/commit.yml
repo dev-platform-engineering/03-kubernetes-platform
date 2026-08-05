@@ -1,0 +1,10 @@
+---
+- name: Save configuration
+  vyos.vyos.vyos_config:
+    save: true
+  when: >
+    (proxy_interface is defined and proxy_interface.changed) or
+    (proxy_service is defined and proxy_service.changed) or
+    (proxy_vrrp is defined and proxy_vrrp.changed) or
+    (proxy_nat is defined and proxy_nat.changed) or
+    (proxy_conntrack is defined and proxy_conntrack.changed)

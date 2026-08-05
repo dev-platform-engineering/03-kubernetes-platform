@@ -1,0 +1,9 @@
+---
+- name: Configure BGP
+  import_tasks: configure.yml
+
+- name: Commit configuration
+  import_tasks: commit.yml
+
+- name: Verify BGP
+  import_tasks: verify.yml

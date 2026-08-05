@@ -1,0 +1,43 @@
+---
+- name: Verify Proxy VRRP Status
+  vyos.vyos.vyos_command:
+    commands:
+      - "show vrrp"
+  register: proxy_vrrp_state
+
+- name: Verify HAProxy Engine Configuration Commands
+  vyos.vyos.vyos_command:
+    commands:
+      - 'show configuration commands | match "load-balancing haproxy"'
+  register: proxy_verify
+
+- name: Validate Backend Target Allocation
+  ansible.builtin.assert:
+    that:
+      - proxy_verify.stdout[0] is search(external_proxy.forwarding.upstream_server)
+    success_msg: "Backend proxy targeted and configured correctly."
+    fail_msg: "Backend upstream server destination parameter is missing."
+
+- name: Validate Active Cluster Proxy VIP Binding
+  ansible.builtin.assert:
+    that:
+      - proxy_verify.stdout[0] is search(external_proxy.addresses.vip)
+    success_msg: "Proxy cluster VIP tracking is active."
+    fail_msg: "Proxy cluster VIP binding target is missing."
+
+- name: Verify Live Firewall Connection Sync Properties
+  vyos.vyos.vyos_command:
+    commands:
+      - 'show configuration commands | match "service conntrack-sync"'
+  register: conntrack_verify
+
+- name: Validate Firewall Mirroring Sync-Group Parameter
+  ansible.builtin.assert:
+    that:
+      - conntrack_verify.stdout | join(' ') is search("failover-mechanism vrrp sync-group ['\"]?ClusterSync['\"]?")
+    success_msg: "Stateful firewall connection replication engine is anchored correctly."
+    fail_msg: "Mandatory VRRP link anchor for conntrack-sync is missing."
+
+- name: Display Compiled HAProxy Configuration State
+  ansible.builtin.debug:
+    var: proxy_verify.stdout_lines

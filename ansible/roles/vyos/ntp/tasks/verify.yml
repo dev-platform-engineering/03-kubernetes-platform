@@ -1,0 +1,42 @@
+---
+- name: Verify NTP VRRP
+  vyos.vyos.vyos_command:
+    commands:
+      - show vrrp
+  register: ntp_vrrp
+
+- name: Verify NTP configuration
+  vyos.vyos.vyos_command:
+    commands:
+      - show configuration commands | match "service ntp"
+  register: ntp_config
+
+- name: Verify NTP upstream server
+  ansible.builtin.assert:
+    that:
+      - "'set service ntp server 192.168.13.101' in ntp_config.stdout[0]"
+    success_msg: "NTP upstream server configured correctly."
+    fail_msg: "Expected upstream server 192.168.13.101 is missing."
+
+- name: Verify NTP listen address
+  ansible.builtin.assert:
+    that:
+      - external_ntp.addresses.vip in ntp_config.stdout[0]
+    success_msg: "NTP VIP is configured correctly."
+    fail_msg: "NTP VIP is not configured."
+
+- name: Verify allowed client networks
+  ansible.builtin.assert:
+    that:
+      - item in ntp_config.stdout[0]
+    success_msg: "Allowed client network {{ item }} configured."
+    fail_msg: "Allowed client network {{ item }} is missing."
+  loop: "{{ external_ntp.forwarding.allow_from }}"
+
+- name: Display NTP configuration
+  ansible.builtin.debug:
+    var: ntp_config.stdout_lines
+
+- name: Display VRRP status
+  ansible.builtin.debug:
+    var: ntp_vrrp.stdout_lines

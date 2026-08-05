@@ -1,0 +1,28 @@
+---
+- name: Configure global BGP settings
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp system-as {{ bgp_local_as }}"
+
+      - "set protocols bgp parameters router-id {{ router_ids[inventory_hostname] }}"
+    save: false
+
+- name: Configure iBGP neighbors
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp neighbor {{ item.ip }} remote-as {{ item.remote_as }}"
+    save: false
+  loop: "{{ neighbors[inventory_hostname] }}"
+
+- name: Enable IPv4 Unicast for iBGP neighbors
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp neighbor {{ item.ip }} address-family ipv4-unicast"
+    save: false
+  loop: "{{ neighbors[inventory_hostname] }}"
+
+- name: Advertise router loopback
+  vyos.vyos.vyos_config:
+    lines:
+      - "set protocols bgp address-family ipv4-unicast network {{ router_ids[inventory_hostname] }}/32"
+    save: false
