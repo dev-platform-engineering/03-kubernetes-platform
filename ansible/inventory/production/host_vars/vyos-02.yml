@@ -1,0 +1,6 @@
+router_role: "secondary"
+
+ip_suffix: 2
+router_priority: 100
+bgp_as: 65000
+loopback_ip: 10.255.255.2

@@ -1,0 +1,4 @@
+ansible_user: ansible-vyos
+ansible_password: "{{ vault_vyos_ansible_password }}"
+ansible_connection: network_cli
+ansible_network_os: vyos.vyos.vyos

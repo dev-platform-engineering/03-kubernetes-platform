@@ -1,0 +1,74 @@
+# Existing interface structures...
+mgmt_interface:
+  name: "eth0"
+  ip: "10.50.10.1/24"
+  description: "Management"
+
+vgt_vlans:
+  - id: 20
+    name: Infrastructure
+    subnet: "10.50.20"
+    network: "10.50.20.0/24"
+
+    vrrp:
+      vip: 10.50.20.254
+
+    router_ips:
+      primary: 10.50.20.1
+      secondary: 10.50.20.2
+
+    dhcp:
+      enabled: true
+      range:
+        start: 100
+        stop: 199
+
+    dns_servers:
+      - "10.50.60.53"
+    #  - "10.50.10.12"
+
+  - id: 30
+    name: Control-Plane
+    subnet: "10.50.30"
+
+  - id: 40
+    name: etcd
+    subnet: "10.50.40"
+
+  - id: 50
+    name: Workers
+    subnet: "10.50.50"
+
+  - id: 60
+    name: Services
+    subnet: "10.50.60"
+
+  - id: 70
+    name: Monitoring
+    subnet: "10.50.70"
+
+  - id: 80
+    name: Databases
+    subnet: "10.50.80"
+
+  - id: 90
+    name: Storage
+    subnet: "10.50.90"
+
+  - id: 99
+    name: Transit
+    subnet: "10.50.99"
+
+external_services:
+  interface: eth2
+  network: "192.168.13"
+
+  router_ips:
+    primary: 192.168.13.11
+    secondary: 192.168.13.12
+
+  gateway: 192.168.13.1
+
+  vrrp:
+    vip: 192.168.13.10
+    vrid: 113
