@@ -1,17 +1,15 @@
 ---
-- name: Configure full BGP routing architecture
+- name: Generate full BGP configuration buffer
   vyos.vyos.vyos_config:
     lines: |
       set protocols bgp system-as {{ bgp_as }}
       set protocols bgp parameters router-id {{ loopback_ip }}
-
-      {% for host in groups['vyos_routers'] %}
-      {% if host != inventory_hostname %}
+      {%- for host in groups['vyos_routers'] %}
+      {%- if host != inventory_hostname %}
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} remote-as {{ hostvars[host]['bgp_as'] }}
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} description "iBGP link to {{ host }}"
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} address-family ipv4-unicast
-      {% endif %}
-      {% endfor %}
-
+      {%- endif %}
+      {%- endfor %}
       set protocols bgp address-family ipv4-unicast network {{ loopback_ip }}/32
     save: false
