@@ -1,0 +1,141 @@
+ansible_user: ansible-vyos
+ansible_password: "{{ vault_vyos_ansible_password }}"
+ansible_connection: network_cli
+ansible_network_os: vyos.vyos.vyos
+
+# Existing interface structures...
+mgmt_interface:
+  name: "eth0"
+  ip: "10.50.10.1/24"
+  description: "Management"
+
+vgt_vlans:
+  - id: 20
+    name: Infrastructure
+    subnet: "10.50.20"
+    network: "10.50.20.0/24"
+
+    vrrp:
+      vip: 10.50.20.254
+
+    router_ips:
+      primary: 10.50.20.1
+      secondary: 10.50.20.2
+
+    dhcp:
+      enabled: true
+      range:
+        start: 100
+        stop: 199
+
+    dns_servers:
+      - "10.50.60.53"
+    #  - "10.50.10.12"
+
+  - id: 30
+    name: Control-Plane
+    subnet: "10.50.30"
+
+  - id: 40
+    name: etcd
+    subnet: "10.50.40"
+
+  - id: 50
+    name: Workers
+    subnet: "10.50.50"
+
+  - id: 60
+    name: Services
+    subnet: "10.50.60"
+
+  - id: 70
+    name: Monitoring
+    subnet: "10.50.70"
+
+  - id: 80
+    name: Databases
+    subnet: "10.50.80"
+
+  - id: 90
+    name: Storage
+    subnet: "10.50.90"
+
+  - id: 99
+    name: Transit
+    subnet: "10.50.99"
+
+external_services:
+  interface: eth2
+  network: "192.168.13"
+
+  router_ips:
+    primary: 192.168.13.11
+    secondary: 192.168.13.12
+
+  gateway: 192.168.13.1
+
+  vrrp:
+    vip: 192.168.13.10
+    vrid: 113
+
+external_dns:
+  interface: eth1
+  vlan_id: 60
+
+  group: ExternalDNS
+
+  addresses:
+    primary: 10.50.60.51
+    secondary: 10.50.60.52
+    vip: 10.50.60.53
+
+  vrrp:
+    vrid: 160
+
+  forwarding:
+    upstream_servers:
+      - 192.168.13.2
+
+    allow_from:
+      - 10.50.0.0/16
+
+    cache_size: 1000
+
+external_ntp:
+  interface: eth1
+  vlan_id: 60
+
+  group: ExternalNTP
+
+  addresses:
+    primary: 10.50.60.54
+    secondary: 10.50.60.55
+    vip: 10.50.60.56
+
+  vrrp:
+    vrid: 161
+
+  forwarding:
+    upstream_servers:
+      - 192.168.13.101
+
+    allow_from:
+      - 10.50.0.0/16
+
+external_proxy:
+  interface: eth1
+  upstream_interface: eth2
+  vlan_id: 60
+  group: ExternalProxy
+  addresses:
+    primary: 10.50.60.57
+    secondary: 10.50.60.58
+    vip: 10.50.60.59
+  vrrp:
+    vrid: 162
+  forwarding:
+    listen_port: 5555 # new port for client curls
+    upstream_server: 192.168.13.101
+    upstream_port: 55555 # upstream proxy port
+    allow_from:
+      - 10.50.0.0/16
