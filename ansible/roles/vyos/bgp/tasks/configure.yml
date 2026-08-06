@@ -1,34 +1,17 @@
 ---
-- name: Configure global BGP settings
-  vyos.vyos.vyos_config:
-    lines:
-      - "set protocols bgp system-as {{ bgp_as }}"
-      - "set protocols bgp parameters router-id {{ loopback_ip }}"
-    save: false
-
-- name: Configure iBGP neighbors
+- name: Configure full BGP routing architecture
   vyos.vyos.vyos_config:
     lines: |
-      {% for host in groups['vyos_routers'] %}
-      {% if host != inventory_hostname %}
-      - "set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} remote-as {{ hostvars[host]['bgp_as'] }}"
-      - "set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} address-family ipv4-unicast"
-      {% endif %}
-      {% endfor %}
-    save: false
+      set protocols bgp system-as {{ bgp_as }}
+      set protocols bgp parameters router-id {{ loopback_ip }}
 
-- name: Enable IPv4 Unicast for iBGP neighbors
-  vyos.vyos.vyos_config:
-    lines: |
       {% for host in groups['vyos_routers'] %}
       {% if host != inventory_hostname %}
+      set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} remote-as {{ hostvars[host]['bgp_as'] }}
+      set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} description "iBGP link to {{ host }}"
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} address-family ipv4-unicast
       {% endif %}
       {% endfor %}
-    save: false
 
-- name: Advertise router loopback
-  vyos.vyos.vyos_config:
-    lines:
-      - "set protocols bgp address-family ipv4-unicast network {{ loopback_ip }}/32"
+      set protocols bgp address-family ipv4-unicast network {{ loopback_ip }}/32
     save: false
