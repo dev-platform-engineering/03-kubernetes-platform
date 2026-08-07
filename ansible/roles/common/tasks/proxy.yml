@@ -1,6 +1,6 @@
 ---
 - name: Configure proxy environment
-  ansible.builtin.include_tasks: environment.yml
+  ansible.builtin.include_tasks: proxy-environment.yml
 
 - name: Configure APT proxy
   ansible.builtin.include_tasks: proxy-debian.yml
