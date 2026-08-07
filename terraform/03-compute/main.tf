@@ -34,8 +34,8 @@ module "linux_vm" {
   ipv4_netmask = each.value.netmask
   ipv4_gateway = each.value.gateway
 
-  dns_servers        = each.value.dns
-  dns_search_domains = []
+  #dns_servers        = each.value.dns
+  #dns_search_domains = []
 
   disk_size = each.value.disk_size
 

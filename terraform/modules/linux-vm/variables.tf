@@ -28,7 +28,7 @@ variable "memory" {
 
 variable "domain" {
   type    = string
-  default = "k8s.internal"
+  default = "platform.internal"
 }
 
 variable "ipv4_address" {
