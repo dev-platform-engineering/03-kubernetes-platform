@@ -1,21 +1,15 @@
+---
 - name: Get active NetworkManager connection
   ansible.builtin.command:
     cmd: nmcli -t -f NAME,DEVICE connection show --active
   register: nm_active
   changed_when: false
 
-- name: Check resolv.conf
-  ansible.builtin.stat:
-    path: /etc/resolv.conf
-  register: resolv_conf
-
-- name: Remove old resolv.conf from template
+- name: Remove cloud-init NetworkManager DNS override
   ansible.builtin.file:
-    path: /etc/resolv.conf
+    path: /etc/NetworkManager/conf.d/99-cloud-init.conf
     state: absent
-  when:
-    - resolv_conf.stat.exists
-    - not resolv_conf.stat.islnk | default(false)
+  notify: Restart NetworkManager
 
 - name: Configure NetworkManager DNS management
   ansible.builtin.copy:
@@ -28,6 +22,34 @@
       dns=default
   notify: Restart NetworkManager
 
+- name: Check DNS migration marker
+  ansible.builtin.stat:
+    path: /etc/.dns_fixed
+  register: dns_fixed
+
+- name: Check resolv.conf
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+  register: resolv_conf
+
+- name: Remove old resolv.conf
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    state: absent
+  when:
+    - not dns_fixed.stat.exists
+    - resolv_conf.stat.exists
+    - not resolv_conf.stat.islnk | default(false)
+  notify: Restart NetworkManager
+
+- name: Create DNS migration marker
+  ansible.builtin.file:
+    path: /etc/.dns_fixed
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Configure DNS
   community.general.nmcli:
     conn_name: "{{ nm_active.stdout.split(':')[0] }}"
@@ -35,10 +57,4 @@
     dns4_search: "{{ dns_search }}"
     dns4_ignore_auto: true
     state: present
-  notify: Restart NetworkManager
-
-- name: Remove cloud-init NetworkManager DNS override
-  ansible.builtin.file:
-    path: /etc/NetworkManager/conf.d/99-cloud-init.conf
-    state: absent
   notify: Restart NetworkManager
