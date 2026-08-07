@@ -1,0 +1,7 @@
+export HTTP_PROXY={{ inet_proxy.http_proxy }}
+export HTTPS_PROXY={{ inet_proxy.https_proxy }}
+export NO_PROXY={{ inet_proxy.no_proxy | join(',') }}
+
+export http_proxy={{ inet_proxy.http_proxy }}
+export https_proxy={{ inet_proxy.https_proxy }}
+export no_proxy={{ inet_proxy.no_proxy | join(',') }}

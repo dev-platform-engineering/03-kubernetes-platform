@@ -1,0 +1,11 @@
+---
+- name: Configure proxy environment
+  ansible.builtin.include_tasks: environment.yml
+
+- name: Configure APT proxy
+  ansible.builtin.include_tasks: proxy-debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Configure DNF proxy
+  ansible.builtin.include_tasks: proxy-redhat.yml
+  when: ansible_os_family == "RedHat"

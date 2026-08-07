@@ -1,0 +1,8 @@
+---
+- name: Configure Repository Server
+  hosts: repo
+
+  roles:
+    - common
+    #- repo
+    #- monitoring
