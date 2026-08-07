@@ -4,18 +4,18 @@
   register: nm_active
   changed_when: false
 
-- name: Check if resolv.conf is a symlink
+- name: Check resolv.conf
   ansible.builtin.stat:
     path: /etc/resolv.conf
   register: resolv_conf
 
-- name: Remove incorrect resolv.conf
+- name: Remove old resolv.conf from template
   ansible.builtin.file:
     path: /etc/resolv.conf
     state: absent
   when:
     - resolv_conf.stat.exists
-    - not resolv_conf.stat.islnk
+    - not resolv_conf.stat.islnk | default(false)
 
 - name: Configure NetworkManager DNS management
   ansible.builtin.copy:
