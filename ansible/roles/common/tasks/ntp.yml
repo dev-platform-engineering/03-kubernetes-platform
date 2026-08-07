@@ -1,0 +1,10 @@
+- name: Install chrony
+  package:
+    name: "{{ ntp_package }}"
+    state: present
+
+- name: Enable chronyd
+  service:
+    name: "{{ ntp_service }}"
+    enabled: true
+    state: started

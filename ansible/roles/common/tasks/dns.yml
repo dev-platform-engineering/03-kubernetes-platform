@@ -1,0 +1,8 @@
+---
+- name: Configure DNS on Debian
+  ansible.builtin.include_tasks: dns_debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Configure DNS on RedHat
+  ansible.builtin.include_tasks: dns_redhat.yml
+  when: ansible_os_family == "RedHat"

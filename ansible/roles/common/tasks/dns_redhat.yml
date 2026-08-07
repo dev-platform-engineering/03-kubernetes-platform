@@ -1,0 +1,7 @@
+- name: Configure DNS
+  community.general.nmcli:
+    conn_name: "{{ ansible_default_ipv4.interface }}"
+    type: ethernet
+    dns4: "{{ dns_servers }}"
+    dns4_search: "{{ dns_search }}"
+    state: present

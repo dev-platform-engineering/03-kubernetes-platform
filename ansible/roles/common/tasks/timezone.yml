@@ -1,0 +1,4 @@
+---
+- name: Configure timezone
+  ansible.builtin.timezone:
+    name: "{{ timezone }}"

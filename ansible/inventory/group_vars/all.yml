@@ -4,6 +4,11 @@ domain_global_infra: "infra.{{ domain_root }}"
 
 timezone: Europe/Kyiv
 
+dns_domain: platform.internal
+
+dns_search:
+  - platform.internal
+
 dns_servers:
   - 10.50.60.53
 

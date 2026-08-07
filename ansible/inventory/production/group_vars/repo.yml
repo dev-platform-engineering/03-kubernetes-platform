@@ -1,0 +1,3 @@
+dns_search:
+  - infra.platform.internal
+  - platform.internal

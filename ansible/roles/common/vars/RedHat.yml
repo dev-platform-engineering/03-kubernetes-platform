@@ -1,0 +1,16 @@
+ntp_package: chrony
+ntp_service: chronyd
+
+common_packages:
+  - vim
+  - curl
+  - wget
+  - bash-completion
+  - tar
+  - unzip
+  - bind-utils
+  - net-tools
+  - lsof
+  - tcpdump
+  - rsync
+  - jq

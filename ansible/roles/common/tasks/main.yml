@@ -1,0 +1,17 @@
+- name: Load OS variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Configure hostname
+  include_tasks: hostname.yml
+
+- name: Configure timezone
+  include_tasks: timezone.yml
+
+- name: Configure DNS
+  include_tasks: dns.yml
+
+- name: Configure NTP
+  include_tasks: ntp.yml
+
+- name: Install common packages
+  include_tasks: packages.yml
