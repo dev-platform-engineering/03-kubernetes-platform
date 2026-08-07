@@ -13,8 +13,9 @@
   ansible.builtin.file:
     path: /etc/resolv.conf
     state: absent
-  when: not resolv_conf.stat.islnk
-  notify: Restart NetworkManager
+  when:
+    - resolv_conf.stat.exists
+    - not resolv_conf.stat.islnk
 
 - name: Configure NetworkManager DNS management
   ansible.builtin.copy:
