@@ -1,3 +1,9 @@
+- name: Get active NetworkManager connection
+  ansible.builtin.command:
+    cmd: nmcli -t -f NAME,DEVICE connection show --active
+  register: nm_active
+  changed_when: false
+
 - name: Check if resolv.conf is a symlink
   ansible.builtin.stat:
     path: /etc/resolv.conf
@@ -20,12 +26,6 @@
       [main]
       dns=default
   notify: Restart NetworkManager
-
-- name: Get active NetworkManager connection
-  ansible.builtin.command:
-    cmd: nmcli -t -f NAME,DEVICE connection show --active
-  register: nm_active
-  changed_when: false
 
 - name: Configure DNS
   community.general.nmcli:
