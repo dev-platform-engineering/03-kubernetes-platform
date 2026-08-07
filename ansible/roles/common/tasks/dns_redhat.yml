@@ -1,9 +1,3 @@
-- name: Get active NetworkManager connection
-  ansible.builtin.command:
-    cmd: nmcli -t -f NAME,DEVICE connection show --active
-  register: nm_active
-  changed_when: false
-
 - name: Check if resolv.conf is a symlink
   ansible.builtin.stat:
     path: /etc/resolv.conf
@@ -16,6 +10,23 @@
   when: not resolv_conf.stat.islnk
   notify: Restart NetworkManager
 
+- name: Configure NetworkManager DNS management
+  ansible.builtin.copy:
+    dest: /etc/NetworkManager/conf.d/90-dns.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [main]
+      dns=default
+  notify: Restart NetworkManager
+
+- name: Get active NetworkManager connection
+  ansible.builtin.command:
+    cmd: nmcli -t -f NAME,DEVICE connection show --active
+  register: nm_active
+  changed_when: false
+
 - name: Configure DNS
   community.general.nmcli:
     conn_name: "{{ nm_active.stdout.split(':')[0] }}"
@@ -23,3 +34,10 @@
     dns4_search: "{{ dns_search }}"
     dns4_ignore_auto: true
     state: present
+  notify: Restart NetworkManager
+
+- name: Remove cloud-init NetworkManager DNS override
+  ansible.builtin.file:
+    path: /etc/NetworkManager/conf.d/99-cloud-init.conf
+    state: absent
+  notify: Restart NetworkManager
