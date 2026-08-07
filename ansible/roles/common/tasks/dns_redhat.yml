@@ -1,7 +1,13 @@
+- name: Get active NetworkManager connection
+  ansible.builtin.command:
+    cmd: nmcli -t -f NAME,DEVICE connection show --active
+  register: nm_active
+  changed_when: false
+
 - name: Configure DNS
   community.general.nmcli:
-    conn_name: "{{ ansible_default_ipv4.interface }}"
-    type: ethernet
+    conn_name: "{{ nm_active.stdout.split(':')[0] }}"
     dns4: "{{ dns_servers }}"
     dns4_search: "{{ dns_search }}"
+    dns4_ignore_auto: true
     state: present
