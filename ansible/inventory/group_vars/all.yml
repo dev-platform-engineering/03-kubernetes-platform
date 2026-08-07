@@ -1,3 +1,6 @@
+ansible_authorized_keys:
+  - "{{ lookup('file', 'files/keys/linux-team.pub') }}"
+
 domain_root: "platform.internal"
 # global service
 domain_global_infra: "infra.{{ domain_root }}"

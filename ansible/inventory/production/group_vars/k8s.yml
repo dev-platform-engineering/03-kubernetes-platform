@@ -1,0 +1,3 @@
+ansible_authorized_keys:
+  - "{{ lookup('file', 'files/keys/linux-team.pub') }}"
+  - "{{ lookup('file', 'files/keys/k8s-team.pub') }}"
