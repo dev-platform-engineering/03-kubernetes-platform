@@ -36,6 +36,7 @@
   ansible.builtin.file:
     path: /etc/resolv.conf
     state: absent
+  register: resolv_conf_removed
   when:
     - not dns_fixed.stat.exists
     - resolv_conf.stat.exists
