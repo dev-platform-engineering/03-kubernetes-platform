@@ -1,7 +1,6 @@
 ---
 - name: Configure Repository Server
-  hosts: repo
-
+  hosts: repositories
   roles:
     - common
     #- repo
