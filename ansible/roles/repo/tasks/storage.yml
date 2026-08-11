@@ -1,8 +1,0 @@
----
-- name: Create Pulp storage directory
-  ansible.builtin.file:
-    path: "{{ repo_storage_path }}"
-    state: directory
-    owner: pulp
-    group: pulp
-    mode: "0750"

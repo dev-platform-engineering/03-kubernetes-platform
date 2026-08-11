@@ -2,10 +2,6 @@
 - name: Configure repository server
   when: repo_enabled | bool
   block:
-    - name: Configure repository storage
-      ansible.builtin.include_tasks:
-        file: storage.yml
-
     - name: Configure Pulp
       ansible.builtin.include_tasks:
         file: pulp.yml
