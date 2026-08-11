@@ -14,3 +14,35 @@
       - 202
     validate_certs: false
   register: repo_rocky_repository
+
+- name: Create Rocky Linux RPM remote
+  ansible.builtin.uri:
+    url: "{{ repo_pulp_api_url }}/remotes/rpm/rpm/"
+    method: POST
+    user: "{{ repo_pulp_api_user }}"
+    password: "{{ repo_pulp_api_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      name: "{{ repo_rocky_name }}"
+      url: "{{ repo_rocky_remote_url }}"
+    status_code:
+      - 201
+      - 202
+    validate_certs: false
+  register: repo_rocky_remote
+
+- name: Sync Rocky Linux repository
+  ansible.builtin.uri:
+    url: "{{ repo_rocky_remote.json.pulp_href }}sync/"
+    method: POST
+    user: "{{ repo_pulp_api_user }}"
+    password: "{{ repo_pulp_api_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      repository: "{{ repo_rocky_repository.json.pulp_href }}"
+    status_code:
+      - 202
+    validate_certs: false
+  register: repo_rocky_sync
