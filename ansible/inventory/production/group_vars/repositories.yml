@@ -4,17 +4,11 @@ dns_search:
 
 proxy_enabled: true
 
-repo_enabled: true
-
 repo_fqdn: repo-01.infra.platform.internal
 
 repo_storage_path: /srv/pulp
 
-repo_pulp:
-  enabled: true
+repo_enabled: true
 
-repo_rocky:
-  enabled: true
-
-repo_debian:
-  enabled: true
+repo_rocky_enabled: true
+repo_debian_enabled: true

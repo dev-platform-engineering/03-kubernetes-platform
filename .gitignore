@@ -50,3 +50,8 @@ terraform.rc
 id_rsa
 id_rsa.pub
 
+# Ignore all vault files anywhere in the inventory
+*vault.yml
+*vault.yaml
+*.vault
+
