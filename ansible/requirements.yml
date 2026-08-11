@@ -1,0 +1,7 @@
+---
+collections:
+  - name: ansible.posix
+  - name: community.general
+  - name: pulp.pulp_installer
+
+  #ansible-galaxy collection install -r requirements.yml

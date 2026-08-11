@@ -3,5 +3,5 @@
   hosts: repositories
   roles:
     - common
-    #- repo
+    - repo
     #- monitoring
