@@ -18,6 +18,30 @@
   ansible.builtin.assert:
     that:
       - repo_pulp_python.stat.exists
+      - repo_pulp_python.stat.executable
     fail_msg: >-
-      Pulp virtualenv was not found at
+      Pulp virtualenv was not found or is not executable at
       /usr/local/lib/pulp/bin/python.
+
+- name: Check typing_extensions in Pulp virtualenv
+  ansible.builtin.command:
+    cmd: /usr/local/lib/pulp/bin/python -m pip show typing_extensions
+  register: repo_pulp_typing_extensions
+  changed_when: false
+  failed_when: false
+
+- name: Install typing_extensions in Pulp virtualenv
+  ansible.builtin.command:
+    cmd: /usr/local/lib/pulp/bin/python -m pip install typing_extensions
+  environment:
+    http_proxy: "{{ inet_proxy.http_proxy }}"
+    https_proxy: "{{ inet_proxy.https_proxy }}"
+    no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
+  when: repo_pulp_typing_extensions.rc != 0
+
+- name: Verify Pulp Python dependencies
+  ansible.builtin.command:
+    cmd: /usr/local/lib/pulp/bin/python -m pip check
+  register: repo_pulp_pip_check
+  changed_when: false
+  failed_when: repo_pulp_pip_check.rc != 0
