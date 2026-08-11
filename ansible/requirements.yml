@@ -4,4 +4,7 @@ collections:
   - name: community.general
   - name: pulp.pulp_installer
 
+roles:
+  - name: geerlingguy.postgresql
+
   #ansible-galaxy collection install -r requirements.yml
