@@ -1,0 +1,15 @@
+---
+- name: Create Rocky Linux RPM repository
+  ansible.builtin.uri:
+    url: "{{ repo_pulp_api_url }}/repositories/rpm/rpm/"
+    method: POST
+    body_format: json
+    body:
+      name: "{{ repo_rocky_name }}"
+    status_code:
+      - 201
+      - 202
+    headers:
+      Content-Type: application/json
+    validate_certs: false
+  register: repo_rocky_repository

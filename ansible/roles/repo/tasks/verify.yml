@@ -1,0 +1,30 @@
+---
+- name: Check Pulp API
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}/pulp/api/v3/status/"
+    method: GET
+    validate_certs: false
+    status_code: 200
+    return_content: true
+  register: repo_pulp_status
+  changed_when: false
+
+- name: Verify Pulp API response
+  ansible.builtin.assert:
+    that:
+      - repo_pulp_status.status == 200
+      - repo_pulp_status.json.database_connection.connected | bool
+      - repo_pulp_status.json.redis_connection.connected | bool
+      - repo_pulp_status.json.online_workers | length > 0
+      - repo_pulp_status.json.online_content_apps | length > 0
+    fail_msg: "Pulp health check failed."
+
+- name: Display Pulp status
+  ansible.builtin.debug:
+    msg:
+      - "Pulp API: OK"
+      - "Database: {{ repo_pulp_status.json.database_connection.connected }}"
+      - "Redis: {{ repo_pulp_status.json.redis_connection.connected }}"
+      - "Workers: {{ repo_pulp_status.json.online_workers | length }}"
+      - "Content apps: {{ repo_pulp_status.json.online_content_apps | length }}"
+      - "Content origin: {{ repo_pulp_status.json.content_settings.content_origin }}"
