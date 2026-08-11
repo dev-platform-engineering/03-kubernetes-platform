@@ -18,6 +18,23 @@ repo_rocky_name: "rocky-9"
 
 repo_debian_enabled: true
 repo_debian_name: "debian-12"
+repo_debian_distribution: "bookworm"
+repo_debian_remote_url: "https://deb.debian.org/debian/"
+repo_debian_components:
+  - main
+  - contrib
+  - non-free
+  - non-free-firmware
+
+repo_debian_security_enabled: true
+repo_debian_security_name: "debian-12-security"
+repo_debian_security_remote_url: "https://security.debian.org/debian-security/"
+repo_debian_security_distribution: "bookworm-security"
+repo_debian_security_components:
+  - main
+  - contrib
+  - non-free
+  - non-free-firmware
 
 pulp_default_admin_password: "{{ vault_pulp_admin_password }}"
 

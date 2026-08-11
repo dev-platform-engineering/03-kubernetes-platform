@@ -1,15 +1,9 @@
 ---
-- name: Create Rocky Linux RPM repository
-  ansible.builtin.uri:
-    url: "{{ repo_pulp_api_url }}/repositories/rpm/rpm/"
-    method: POST
-    body_format: json
-    body:
-      name: "{{ repo_rocky_name }}"
-    status_code:
-      - 201
-      - 202
-    headers:
-      Content-Type: application/json
-    validate_certs: false
-  register: repo_rocky_repository
+- name: Configure Rocky Linux repository
+  ansible.builtin.include_tasks:
+    file: rocky.yml
+  when: repo_rocky_enabled | bool
+# - name: Configure Debian repositories
+#   ansible.builtin.include_tasks:
+#     file: debian.yml
+#   when: repo_debian_enabled | bool
