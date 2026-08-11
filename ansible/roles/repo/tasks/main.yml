@@ -1,10 +1,11 @@
 ---
-- name: Configure Rocky Linux repository
-  ansible.builtin.include_tasks:
-    file: rocky.yml
-  when: ansible_os_family == "RedHat"
+- name: Configure repository server
+  when: repo_enabled | bool
+  block:
+    - name: Configure repository storage
+      ansible.builtin.include_tasks:
+        file: storage.yml
 
-- name: Configure Debian repository
-  ansible.builtin.include_tasks:
-    file: debian.yml
-  when: ansible_os_family == "Debian"
+    - name: Configure Pulp
+      ansible.builtin.include_tasks:
+        file: pulp.yml

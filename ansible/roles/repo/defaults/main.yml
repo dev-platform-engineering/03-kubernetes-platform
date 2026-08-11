@@ -1,0 +1,10 @@
+---
+repo_enabled: false
+
+repo_fqdn: "{{ inventory_hostname }}"
+
+repo_storage_path: /srv/pulp
+
+repo_pulp_content_origin: "https://{{ repo_fqdn }}"
+
+repo_workers: 1
