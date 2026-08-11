@@ -4,12 +4,17 @@ dns_search:
 
 proxy_enabled: true
 
-repo_fqdn: repo-01.infra.platform.internal
-
-repo_storage_path: /srv/pulp
-pulp_install_epel: false
-
 repo_enabled: true
 
+repo_fqdn: repo-01.infra.platform.internal
+repo_storage_path: /srv/pulp
+
+pulp_install_epel: false
+
+repo_pulp_api_url: "https://{{ repo_fqdn }}/pulp/api/v3"
+
 repo_rocky_enabled: true
+repo_rocky_name: "rocky-9"
+
 repo_debian_enabled: true
+repo_debian_name: "debian-12"
