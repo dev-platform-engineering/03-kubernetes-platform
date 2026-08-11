@@ -11,7 +11,10 @@ repo_storage_path: /srv/pulp
 
 pulp_install_epel: false
 
+# Pulp API
 repo_pulp_api_url: "https://{{ repo_fqdn }}/pulp/api/v3"
+repo_pulp_api_user: "admin"
+repo_pulp_api_password: "{{ vault_pulp_admin_password }}"
 
 repo_rocky_enabled: true
 repo_rocky_name: "rocky-9"
