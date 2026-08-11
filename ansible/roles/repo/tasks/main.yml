@@ -13,11 +13,3 @@
         http_proxy: "{{ inet_proxy.http_proxy }}"
         https_proxy: "{{ inet_proxy.https_proxy }}"
         no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
-
-    # - name: Configure repository storage
-    #   ansible.builtin.include_tasks:
-    #     file: storage.yml
-
-    - name: Configure software repositories
-      ansible.builtin.include_tasks:
-        file: repositories.yml
