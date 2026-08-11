@@ -1,0 +1,23 @@
+---
+- name: Install repository host prerequisites
+  ansible.builtin.dnf:
+    name:
+      - git
+      - curl
+      - tar
+      - gzip
+      - policycoreutils-python-utils
+    state: present
+
+- name: Ensure Pulp virtualenv exists
+  ansible.builtin.stat:
+    path: /usr/local/lib/pulp/bin/python
+  register: repo_pulp_python
+
+- name: Fail if Pulp virtualenv is missing
+  ansible.builtin.assert:
+    that:
+      - repo_pulp_python.stat.exists
+    fail_msg: >-
+      Pulp virtualenv was not found at
+      /usr/local/lib/pulp/bin/python.
