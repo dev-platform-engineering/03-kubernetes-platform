@@ -18,3 +18,9 @@ repo_rocky_name: "rocky-9"
 
 repo_debian_enabled: true
 repo_debian_name: "debian-12"
+
+pulp_default_admin_password: "{{ vault_pulp_admin_password }}"
+
+pulp_settings:
+  secret_key: "{{ vault_pulp_secret_key }}"
+  content_origin: "https://{{ repo_fqdn }}"
