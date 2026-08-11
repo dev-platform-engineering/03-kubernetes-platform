@@ -50,7 +50,8 @@ terraform.rc
 id_rsa
 id_rsa.pub
 
-roles/geerlingguy.postgresql/
+ansible/roles/*/
+#ansible/roles/geerlingguy.postgresql/
 # Ignore all vault files anywhere in the inventory
 # *vault.yml
 # *vault.yaml
