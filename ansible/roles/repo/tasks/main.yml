@@ -11,7 +11,7 @@
       ansible.builtin.include_tasks:
         file: pulp.yml
         apply:
-          become: true
+          #become: true
           environment:
             http_proxy: "{{ inet_proxy.http_proxy }}"
             https_proxy: "{{ inet_proxy.https_proxy }}"
@@ -25,7 +25,7 @@
       ansible.builtin.include_tasks:
         file: repositories.yml
         apply:
-          become: true
+          #become: true
           environment:
             http_proxy: "{{ inet_proxy.http_proxy }}"
             https_proxy: "{{ inet_proxy.https_proxy }}"
