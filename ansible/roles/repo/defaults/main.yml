@@ -8,7 +8,7 @@ repo_nexus_image: "sonatype/nexus3:{{ repo_nexus_version }}"
 
 repo_nexus_user: "nexus"
 
-repo_nexus_data_path: "/srv/nexus"
+repo_nexus_data_path: "/opt/nexus"
 repo_nexus_container_name: "nexus"
 
 repo_nexus_bind_address: "127.0.0.1"
