@@ -60,6 +60,23 @@
     fail_msg: >-
       Docker is installed but not running on {{ inventory_hostname }}.
 
+- name: Create Docker systemd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure Docker proxy
+  ansible.builtin.template:
+    src: docker-http-proxy.conf.j2
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Docker
+
 - name: Create Nexus data directory
   ansible.builtin.file:
     path: "{{ repo_nexus_data_path }}"
