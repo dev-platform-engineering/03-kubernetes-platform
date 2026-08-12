@@ -1,6 +1,7 @@
 ---
 - name: Configure repository server
   when: repo_enabled | bool
+  become: true
   block:
     - name: Run repository prerequisites
       ansible.builtin.include_tasks:
@@ -22,3 +23,8 @@
     - name: Configure repositories
       ansible.builtin.include_tasks:
         file: repositories.yml
+      apply:
+        environment:
+          http_proxy: "{{ inet_proxy.http_proxy }}"
+          https_proxy: "{{ inet_proxy.https_proxy }}"
+          no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"

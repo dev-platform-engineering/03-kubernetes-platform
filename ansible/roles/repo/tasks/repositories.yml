@@ -1,6 +1,5 @@
 ---
 - name: Configure Rocky Linux repository
-  become: true
   ansible.builtin.include_tasks:
     file: rocky.yml
   when: repo_rocky_enabled | bool
