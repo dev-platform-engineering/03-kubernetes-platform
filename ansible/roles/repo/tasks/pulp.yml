@@ -16,9 +16,9 @@
   vars:
     pulp_install_plugins:
       pulp-rpm:
-        version: "3.19.11"
+        version: "3.27.13"
       pulp-deb:
-        version: "2.20.2"
+        version: "3.9.0"
 
     pulp_media_root: "{{ repo_storage_path }}/media"
 
