@@ -7,9 +7,6 @@
       - gzip
       - policycoreutils-python-utils
       - python3.11
-      - python3-psycopg2
-      #- python3.11-pip
-      #- python3.11-devel
     state: present
 # - name: Ensure Pulp virtualenv exists
 #   ansible.builtin.pip:
