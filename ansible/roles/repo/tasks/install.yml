@@ -1,0 +1,21 @@
+---
+- name: Pull Nexus Repository image
+  community.docker.docker_image:
+    name: "{{ repo_nexus_image }}"
+    source: pull
+
+- name: Start Nexus Repository container
+  community.docker.docker_container:
+    name: "{{ repo_nexus_container_name }}"
+    image: "{{ repo_nexus_image }}"
+    state: started
+    restart_policy: unless-stopped
+
+    ports:
+      - "{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}:8081"
+
+    volumes:
+      - "{{ repo_nexus_data_path }}:/nexus-data"
+
+    ulimits:
+      - "nofile:65536:65536"

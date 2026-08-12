@@ -1,10 +1,66 @@
 ---
 repo_enabled: false
 
-repo_fqdn: "{{ inventory_hostname }}"
+# Nexus
+repo_nexus_enabled: true
+repo_nexus_version: "3.93.1"
+repo_nexus_image: "sonatype/nexus3:{{ repo_nexus_version }}"
 
-repo_storage_path: /srv/pulp
+repo_nexus_user: "nexus"
 
-repo_pulp_content_origin: "https://{{ repo_fqdn }}"
+repo_nexus_data_path: "/srv/nexus"
+repo_nexus_container_name: "nexus"
 
-repo_workers: 1
+repo_nexus_bind_address: "127.0.0.1"
+repo_nexus_port: 8081
+
+# Nexus API
+repo_nexus_api_url: "http://{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}"
+
+repo_nexus_admin_user: "admin"
+repo_nexus_admin_password: "{{ vault_nexus_admin_password }}"
+
+# Nexus outbound proxy
+repo_nexus_proxy_enabled: "{{ proxy_enabled | default(false) | bool }}"
+repo_nexus_proxy_host: "10.50.60.59"
+repo_nexus_proxy_port: 5555
+
+repo_nexus_proxy_no_proxy:
+  - "localhost"
+  - "127.0.0.1"
+  - "{{ repo_fqdn }}"
+  - ".platform.internal"
+
+# Repository configuration
+
+repo_nexus_rocky_enabled: true
+
+repo_nexus_rocky_baseos:
+  name: "rocky-9-baseos"
+  url: "https://dl.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/"
+
+repo_nexus_rocky_appstream:
+  name: "rocky-9-appstream"
+  url: "https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os/"
+
+repo_nexus_epel_enabled: true
+
+repo_nexus_epel:
+  name: "epel-9"
+  url: "https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/"
+
+repo_nexus_debian_enabled: true
+
+repo_nexus_debian:
+  name: "debian-12"
+  url: "https://deb.debian.org/debian"
+  distribution: ""
+  flat: false
+  enforce_distribution: false
+
+repo_nexus_debian_security:
+  name: "debian-12-security"
+  url: "https://deb.debian.org/debian-security"
+  distribution: "bookworm-security"
+  flat: false
+  enforce_distribution: true

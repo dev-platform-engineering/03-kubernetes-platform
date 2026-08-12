@@ -7,44 +7,5 @@ proxy_enabled: true
 repo_enabled: true
 
 repo_fqdn: repo-01.infra.platform.internal
-repo_storage_path: /srv/pulp
 
-pulp_install_epel: false
-pulp_python_interpreter: "/usr/bin/python3.11"
-
-# Pulp API
-repo_pulp_base_url: "https://{{ repo_fqdn }}"
-repo_pulp_api_url: "{{ repo_pulp_base_url }}/pulp/api/v3"
-
-repo_pulp_api_user: "admin"
-repo_pulp_api_password: "{{ vault_pulp_admin_password }}"
-
-repo_rocky_enabled: true
-repo_rocky_name: "rocky-9"
-repo_rocky_remote_url: "https://dl.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/"
-
-repo_debian_enabled: true
-repo_debian_name: "debian-12"
-repo_debian_distribution: "bookworm"
-repo_debian_remote_url: "https://deb.debian.org/debian/"
-repo_debian_components:
-  - main
-  - contrib
-  - non-free
-  - non-free-firmware
-
-repo_debian_security_enabled: true
-repo_debian_security_name: "debian-12-security"
-repo_debian_security_remote_url: "https://security.debian.org/debian-security/"
-repo_debian_security_distribution: "bookworm-security"
-repo_debian_security_components:
-  - main
-  - contrib
-  - non-free
-  - non-free-firmware
-
-pulp_default_admin_password: "{{ vault_pulp_admin_password }}"
-
-pulp_settings:
-  secret_key: "{{ vault_pulp_secret_key }}"
-  content_origin: "https://{{ repo_fqdn }}"
+repo_storage_path: /srv/nexus

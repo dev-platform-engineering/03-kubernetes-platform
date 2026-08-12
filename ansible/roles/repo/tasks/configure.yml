@@ -1,0 +1,86 @@
+---
+- name: Wait for Nexus Repository to become available
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/"
+    method: GET
+    status_code:
+      - 200
+      - 302
+      - 401
+    timeout: 10
+  register: repo_nexus_health
+  until: repo_nexus_health.status in [200, 302, 401]
+  retries: 60
+  delay: 5
+
+- name: Check Nexus initial admin password
+  ansible.builtin.stat:
+    path: "{{ repo_nexus_data_path }}/admin.password"
+  register: repo_nexus_admin_password_file
+
+- name: Read Nexus initial admin password
+  ansible.builtin.slurp:
+    src: "{{ repo_nexus_data_path }}/admin.password"
+  register: repo_nexus_initial_password
+  when: repo_nexus_admin_password_file.stat.exists
+  no_log: true
+
+- name: Test Nexus admin credentials
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 401
+    return_content: false
+  register: repo_nexus_admin_auth
+  no_log: true
+
+- name: Set Nexus admin password
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/security/users/admin/change-password"
+    method: PUT
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_initial_password.content | b64decode | trim }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "text/plain"
+    body: "{{ repo_nexus_admin_password }}"
+    body_format: raw
+    status_code: 204
+  when:
+    - repo_nexus_admin_auth.status == 401
+    - repo_nexus_admin_password_file.stat.exists
+  no_log: true
+
+- name: Configure Nexus outbound proxy
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/http"
+    method: PUT
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      nonProxyHosts: "{{ repo_nexus_proxy_no_proxy }}"
+
+      httpProxy:
+        enabled: "{{ repo_nexus_proxy_enabled }}"
+        host: "{{ repo_nexus_proxy_host }}"
+        port: "{{ repo_nexus_proxy_port | string }}"
+        authInfo:
+          enabled: false
+
+      httpsProxy:
+        enabled: "{{ repo_nexus_proxy_enabled }}"
+        host: "{{ repo_nexus_proxy_host }}"
+        port: "{{ repo_nexus_proxy_port | string }}"
+        authInfo:
+          enabled: false
+
+    status_code: 200
+  when: repo_nexus_proxy_enabled | bool
+  no_log: true
