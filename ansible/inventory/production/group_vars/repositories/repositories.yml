@@ -10,6 +10,7 @@ repo_fqdn: repo-01.infra.platform.internal
 repo_storage_path: /srv/pulp
 
 pulp_install_epel: false
+pulp_python_interpreter: "/usr/bin/python3.11"
 
 # Pulp API
 repo_pulp_base_url: "https://{{ repo_fqdn }}"
