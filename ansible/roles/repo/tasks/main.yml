@@ -2,6 +2,10 @@
 - name: Configure repository server
   when: repo_enabled | bool
   become: true
+  environment:
+    http_proxy: "{{ inet_proxy.http_proxy }}"
+    https_proxy: "{{ inet_proxy.https_proxy }}"
+    no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
   block:
     - name: Run repository prerequisites
       ansible.builtin.include_tasks:
@@ -10,12 +14,6 @@
     - name: Configure Pulp
       ansible.builtin.include_tasks:
         file: pulp.yml
-        apply:
-          #become: true
-          environment:
-            http_proxy: "{{ inet_proxy.http_proxy }}"
-            https_proxy: "{{ inet_proxy.https_proxy }}"
-            no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
 
     - name: Verify Pulp
       ansible.builtin.include_tasks:
@@ -24,9 +22,3 @@
     - name: Configure repositories
       ansible.builtin.include_tasks:
         file: repositories.yml
-        apply:
-          #become: true
-          environment:
-            http_proxy: "{{ inet_proxy.http_proxy }}"
-            https_proxy: "{{ inet_proxy.https_proxy }}"
-            no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
