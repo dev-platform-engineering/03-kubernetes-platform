@@ -34,7 +34,7 @@
 
 - name: Sync Rocky Linux repository
   ansible.builtin.uri:
-    url: "{{ repo_rocky_remote.json.pulp_href }}sync/"
+    url: "{{ repo_pulp_api_url }}{{ repo_rocky_remote.json.pulp_href }}sync/"
     method: POST
     user: "{{ repo_pulp_api_user }}"
     password: "{{ repo_pulp_api_password }}"
