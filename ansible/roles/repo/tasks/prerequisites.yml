@@ -6,17 +6,15 @@
       - tar
       - gzip
       - policycoreutils-python-utils
-      - python3-pip # Важно: убедитесь, что pip и venv установлены в системе
-      - python3-venv # нужен для создания изолированных окружений
+      - python3-pip
     state: present
 
-# Вместо stat и assert мы просто создаем virtualenv, если его нет
 - name: Ensure Pulp virtualenv exists
   ansible.builtin.pip:
-    name: pip # Обновит/установит базовый pip внутри venv
+    name: pip
     state: latest
     virtualenv: /usr/local/lib/pulp
-    virtualenv_command: /usr/bin/python3 -m venv # Путь к системному python3
+    virtualenv_command: /usr/bin/python3 -m venv
 
 - name: Check typing_extensions in Pulp virtualenv
   ansible.builtin.command:
