@@ -20,7 +20,7 @@
       pulp-deb:
         version: "3.10.0"
 
-    pulp_core_version: "3.32.3"
+    pulp_version: "3.32.3"
     pulp_dependencies_upgrade: true
 
     pulp_media_root: "{{ repo_storage_path }}/media"
