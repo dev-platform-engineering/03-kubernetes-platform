@@ -1,10 +1,12 @@
 ---
-- name: Configure Rocky Linux repository
+- name: Repository Configuration Block
   become: true
-  ansible.builtin.include_tasks:
-    file: rocky.yml
-  when: repo_rocky_enabled | bool
-# - name: Configure Debian repositories
-#   ansible.builtin.include_tasks:
-#     file: debian.yml
-#   when: repo_debian_enabled | bool
+  environment:
+    http_proxy: "{{ inet_proxy.http_proxy }}"
+    https_proxy: "{{ inet_proxy.https_proxy }}"
+    no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
+  block:
+    - name: Configure Rocky Linux repository
+      ansible.builtin.include_tasks:
+        file: rocky.yml
+      when: repo_rocky_enabled | bool
