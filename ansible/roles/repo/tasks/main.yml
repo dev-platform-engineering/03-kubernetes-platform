@@ -7,6 +7,7 @@
         file: prerequisites.yml
 
     - name: Configure Pulp
+      become: true
       ansible.builtin.include_tasks:
         file: pulp.yml
         apply:
@@ -20,5 +21,6 @@
         file: verify.yml
 
     - name: Configure repositories
+      become: true
       ansible.builtin.include_tasks:
         file: repositories.yml

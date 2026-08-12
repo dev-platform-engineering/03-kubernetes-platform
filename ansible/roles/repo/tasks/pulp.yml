@@ -2,6 +2,7 @@
 - name: Install and configure Pulp
   ansible.builtin.include_role:
     name: pulp.pulp_installer.pulp_all_services
+
   vars:
     pulp_install_plugins:
       pulp-rpm:
