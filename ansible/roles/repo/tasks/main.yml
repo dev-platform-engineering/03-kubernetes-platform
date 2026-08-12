@@ -15,7 +15,7 @@
             http_proxy: "{{ inet_proxy.http_proxy }}"
             https_proxy: "{{ inet_proxy.https_proxy }}"
             no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
-          PULP_PYTHON_INTERPRETER: "/usr/bin/python3.11"
+            PULP_PYTHON_INTERPRETER: "/usr/bin/python3.11"
       vars:
         ansible_python_interpreter: "/usr/bin/python3"
         pulp_python_interpreter: "/usr/bin/python3.11"
