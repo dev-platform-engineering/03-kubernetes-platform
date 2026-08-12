@@ -11,10 +11,10 @@
       ansible.builtin.include_tasks:
         file: pulp.yml
       apply:
-      environment:
-        http_proxy: "{{ inet_proxy.http_proxy }}"
-        https_proxy: "{{ inet_proxy.https_proxy }}"
-        no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
+        environment:
+          http_proxy: "{{ inet_proxy.http_proxy }}"
+          https_proxy: "{{ inet_proxy.https_proxy }}"
+          no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
 
     - name: Verify Pulp
       ansible.builtin.include_tasks:
