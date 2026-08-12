@@ -1,4 +1,14 @@
 ---
+- name: Show Pulp proxy environment
+  ansible.builtin.command:
+    cmd: env
+  register: repo_pulp_env
+  changed_when: false
+
+- name: Display Pulp proxy environment
+  ansible.builtin.debug:
+    msg: "{{ repo_pulp_env.stdout_lines | select('match', '(?i).*proxy.*') | list }}"
+
 - name: Install and configure Pulp
   ansible.builtin.include_role:
     name: pulp.pulp_installer.pulp_all_services
