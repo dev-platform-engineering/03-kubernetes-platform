@@ -15,6 +15,10 @@
     owner: root
     group: root
     mode: "0644"
+  environment:
+    http_proxy: "{{ inet_proxy.http_proxy }}"
+    https_proxy: "{{ inet_proxy.https_proxy }}"
+    no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
 
 - name: Install Docker CE
   ansible.builtin.dnf:
