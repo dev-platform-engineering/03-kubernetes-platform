@@ -20,6 +20,12 @@
     https_proxy: "{{ inet_proxy.https_proxy }}"
     no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
 
+- name: Remove Podman Docker compatibility package
+  ansible.builtin.dnf:
+    name:
+      - podman-docker
+    state: absent
+
 - name: Install Docker CE
   ansible.builtin.dnf:
     name:
