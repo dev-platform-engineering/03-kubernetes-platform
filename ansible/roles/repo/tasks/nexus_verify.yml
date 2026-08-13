@@ -39,6 +39,14 @@
   register: repo_nexus_eula
   no_log: true
 
+- name: Wait for Nexus to completely start up and open ports
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 8081
+    delay: 5
+    timeout: 120
+    state: started
+
 - name: Accept Nexus Community Edition EULA
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/system/eula"

@@ -396,6 +396,7 @@
     delay: 5
     timeout: 120
     state: started
+
 - name: Get current active security realms
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
