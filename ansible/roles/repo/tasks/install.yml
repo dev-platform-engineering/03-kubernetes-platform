@@ -14,7 +14,7 @@
     env:
       HTTP_PROXY: "{{ inet_proxy.http_proxy }}"
       HTTPS_PROXY: "{{ inet_proxy.https_proxy }}"
-      NO_PROXY: "{{ inet_proxy.no_proxy | join(',') }}"
+      NO_PROXY: "{{ inet_proxy.no_proxy | join(',') }},{{ repo_fqdn }}"
 
     ports:
       - "{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}:8081"

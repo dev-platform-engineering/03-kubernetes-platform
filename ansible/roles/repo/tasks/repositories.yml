@@ -383,7 +383,8 @@
     content: |
       {
         "insecure-registries": [
-          "{{ repo_fqdn }}:8082"
+          "{{ repo_fqdn }}:8082",
+          "127.0.0.1:8082
         ]
       }
   notify: Restart Docker
