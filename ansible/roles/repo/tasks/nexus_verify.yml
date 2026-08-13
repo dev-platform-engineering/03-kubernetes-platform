@@ -1,0 +1,98 @@
+---
+# -----------------------------------------------------------------------------
+# Nexus availability
+# -----------------------------------------------------------------------------
+
+- name: Check Nexus status
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/status"
+    method: GET
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_status
+  retries: 30
+  delay: 5
+  until: repo_nexus_status.status == 200
+  changed_when: false
+
+# -----------------------------------------------------------------------------
+# Nexus EULA
+# -----------------------------------------------------------------------------
+
+- name: Check Nexus EULA
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/system/eula"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Accept: application/json
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_eula
+  no_log: true
+
+- name: Accept Nexus Community Edition EULA
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/system/eula"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Accept: application/json
+      Content-Type: application/json
+    body_format: json
+    body:
+      accepted: true
+      disclaimer: "{{ repo_nexus_eula.json.disclaimer }}"
+    status_code: 200
+    validate_certs: false
+  when:
+    - not repo_nexus_eula.json.accepted | bool
+  no_log: true
+
+# -----------------------------------------------------------------------------
+# Verify EULA
+# -----------------------------------------------------------------------------
+
+- name: Verify Nexus EULA is accepted
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/system/eula"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Accept: application/json
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_eula_verify
+  no_log: true
+
+- name: Assert Nexus EULA is accepted
+  ansible.builtin.assert:
+    that:
+      - repo_nexus_eula_verify.json.accepted | bool
+    fail_msg: "Nexus Community Edition EULA has not been accepted."
+    success_msg: "Nexus Community Edition EULA is accepted."
+
+# -----------------------------------------------------------------------------
+# Nexus authenticated API
+# -----------------------------------------------------------------------------
+
+- name: Verify Nexus authenticated API
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Accept: application/json
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_api_check
+  changed_when: false
+  no_log: true

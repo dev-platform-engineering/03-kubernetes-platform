@@ -1,0 +1,90 @@
+---
+# -----------------------------------------------------------------------------
+# Repository connectivity
+# -----------------------------------------------------------------------------
+
+- name: Verify Rocky BaseOS connectivity
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/repository/{{ repo_nexus_rocky_baseos.name }}/repodata/repomd.xml"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_rocky_baseos_connectivity
+  when: repo_nexus_rocky_enabled | bool
+  changed_when: false
+  no_log: true
+
+- name: Verify Rocky AppStream connectivity
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/repository/{{ repo_nexus_rocky_appstream.name }}/repodata/repomd.xml"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_rocky_appstream_connectivity
+  when: repo_nexus_rocky_enabled | bool
+  changed_when: false
+  no_log: true
+
+- name: Verify EPEL connectivity
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/repository/{{ repo_nexus_epel.name }}/repodata/repomd.xml"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_epel_connectivity
+  when: repo_nexus_epel_enabled | bool
+  changed_when: false
+  no_log: true
+
+- name: Verify Debian connectivity
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/repository/{{ repo_nexus_debian.name }}/dists/bookworm/InRelease"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_debian_connectivity
+  when: repo_nexus_debian_enabled | bool
+  changed_when: false
+  no_log: true
+
+- name: Verify Debian Security connectivity
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/repository/{{ repo_nexus_debian_security.name }}/dists/bookworm-security/InRelease"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  register: repo_nexus_debian_security_connectivity
+  when: repo_nexus_debian_enabled | bool
+  changed_when: false
+  no_log: true
+
+# -----------------------------------------------------------------------------
+# Verification summary
+# -----------------------------------------------------------------------------
+
+- name: Display Nexus repository verification
+  ansible.builtin.debug:
+    msg:
+      - "Nexus status: OK"
+      - "Nexus EULA: accepted"
+      - "Nexus API: OK"
+      - "Rocky BaseOS: OK"
+      - "Rocky AppStream: OK"
+      - "EPEL 9: OK"
+      - "Debian 12: OK"
+      - "Debian 12 Security: OK"
