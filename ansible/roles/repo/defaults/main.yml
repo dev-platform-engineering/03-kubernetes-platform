@@ -11,7 +11,7 @@ repo_nexus_user: "nexus"
 repo_nexus_data_path: "/srv/nexus"
 repo_nexus_container_name: "nexus"
 
-repo_nexus_bind_address: "127.0.0.1"
+repo_nexus_bind_address: "0.0.0.0"
 repo_nexus_port: 8081
 
 # Nexus API
