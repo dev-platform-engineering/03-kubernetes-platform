@@ -374,6 +374,24 @@
     - repo_nexus_docker_check.status == 404
   no_log: true
 
+- name: Configure Nexus anonymous access
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/security/anonymous"
+    method: PUT
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      enabled: "{{ repo_nexus_anonymous_access_enabled }}"
+    status_code:
+      - 200
+      - 204
+    validate_certs: false
+  no_log: true
+
 - name: Configure Docker insecure registries
   ansible.builtin.copy:
     dest: /etc/docker/daemon.json
