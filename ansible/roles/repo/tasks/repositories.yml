@@ -294,8 +294,6 @@
         connection:
           retries: 3
           timeout: 60
-        # authentication:
-        #   type: "none"
 
       apt:
         distribution: "{{ repo_nexus_debian_security.distribution }}"
@@ -307,4 +305,70 @@
   when:
     - repo_nexus_debian_enabled | bool
     - repo_nexus_debian_security_check.status == 404
+  no_log: true
+
+#----
+# Docker repo
+#----
+
+- name: Check Docker repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ repo_nexus_docker_proxy.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  register: repo_nexus_docker_check
+  when: repo_nexus_docker_enabled | bool
+  no_log: true
+
+- name: Create Docker Proxy repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      name: "{{ repo_nexus_docker_proxy.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ repo_nexus_docker_proxy.url }}" # https://docker.io
+        contentMaxAge: 1440
+        metadataMaxAge: 1440
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+      docker:
+        v1Enabled: false
+        forceBasicAuth: false
+        dockerIndex: HUB
+        # httpPort: 8082
+
+    status_code: 201
+    validate_certs: false
+  when:
+    - repo_nexus_docker_enabled | bool
+    - repo_nexus_docker_check.status == 404
   no_log: true
