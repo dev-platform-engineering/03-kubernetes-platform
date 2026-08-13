@@ -1,19 +1,19 @@
 ---
-- name: Check Docker proxy repositories
-  ansible.builtin.uri:
-    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
-    method: GET
-    user: "{{ repo_nexus_admin_user }}"
-    password: "{{ repo_nexus_admin_password }}"
-    force_basic_auth: true
-    status_code:
-      - 200
-      - 404
-    validate_certs: false
-  loop: "{{ repo_nexus_docker_proxies }}"
-  register: repo_nexus_docker_checks
-  when: repo_nexus_docker_enabled | bool
-  no_log: true
+# - name: Check Docker proxy repositories
+#   ansible.builtin.uri:
+#     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
+#     method: GET
+#     user: "{{ repo_nexus_admin_user }}"
+#     password: "{{ repo_nexus_admin_password }}"
+#     force_basic_auth: true
+#     status_code:
+#       - 200
+#       - 404
+#     validate_certs: false
+#   loop: "{{ repo_nexus_docker_proxies }}"
+#   register: repo_nexus_docker_checks
+#   when: repo_nexus_docker_enabled | bool
+#   no_log: true
 
 # -----------------------------------------------------------------------------
 # Rocky Linux 9 - BaseOS
@@ -340,6 +340,8 @@
     validate_certs: false
   register: repo_nexus_docker_checks
   loop: "{{ repo_nexus_docker_proxies }}"
+  loop_control:
+    label: "{{ item.item.name }}"
   when: repo_nexus_docker_enabled | bool
   no_log: true
 
