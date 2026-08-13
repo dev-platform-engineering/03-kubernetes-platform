@@ -1,4 +1,4 @@
 [Service]
 Environment="HTTP_PROXY={{ inet_proxy.http_proxy }}"
 Environment="HTTPS_PROXY={{ inet_proxy.https_proxy }}"
-Environment="NO_PROXY={{ inet_proxy.no_proxy | join(',') }}"
+Environment="NO_PROXY={{ inet_proxy.no_proxy | join(',') }},{{ repo_fqdn }}"
