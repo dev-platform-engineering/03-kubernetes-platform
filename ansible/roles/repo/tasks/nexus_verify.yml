@@ -121,3 +121,17 @@
   register: repo_nexus_api_check
   changed_when: false
   no_log: true
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Restart Docker
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+    enabled: true
+
+- name: Give Nexus extra time to initialize web services
+  ansible.builtin.pause:
+    seconds: 20
