@@ -410,7 +410,7 @@
     body:
       - "NexusAuthenticatingRealm"
       - "NexusAuthorizingRealm"
-      - "DockerToken"
+      - "DockerTokenRealm"
     status_code: 204
     validate_certs: false
 
