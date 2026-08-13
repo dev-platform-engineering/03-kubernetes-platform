@@ -15,7 +15,7 @@
   register: repo_nexus_rocky_baseos_connectivity
   when: repo_nexus_rocky_enabled | bool
   changed_when: false
-  no_log: true
+  #no_log: true
 
 - name: Verify Rocky AppStream connectivity
   ansible.builtin.uri:
@@ -29,7 +29,7 @@
   register: repo_nexus_rocky_appstream_connectivity
   when: repo_nexus_rocky_enabled | bool
   changed_when: false
-  no_log: true
+  #no_log: true
 
 - name: Verify EPEL connectivity
   ansible.builtin.uri:
@@ -43,7 +43,7 @@
   register: repo_nexus_epel_connectivity
   when: repo_nexus_epel_enabled | bool
   changed_when: false
-  no_log: true
+  #no_log: true
 
 - name: Verify Debian connectivity
   ansible.builtin.uri:
@@ -57,7 +57,7 @@
   register: repo_nexus_debian_connectivity
   when: repo_nexus_debian_enabled | bool
   changed_when: false
-  no_log: true
+  #no_log: true
 
 - name: Verify Debian Security connectivity
   ansible.builtin.uri:
@@ -71,7 +71,7 @@
   register: repo_nexus_debian_security_connectivity
   when: repo_nexus_debian_enabled | bool
   changed_when: false
-  no_log: true
+  #no_log: true
 
 # -----------------------------------------------------------------------------
 # Verification summary
