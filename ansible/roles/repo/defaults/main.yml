@@ -110,4 +110,10 @@ repo_nexus_docker_proxies:
     index_type: "REGISTRY"
     http_port: 8084
 
+docker_insecure_registries:
+  - "127.0.0.1:8082"
+  - "repo-01.infra.platform.internal:8082"
+  - "repo-01.infra.platform.internal:8083"
+  - "repo-01.infra.platform.internal:8084"
+
 repo_nexus_anonymous_access_enabled: true

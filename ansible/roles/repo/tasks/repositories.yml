@@ -405,13 +405,12 @@
     owner: root
     group: root
     mode: "0644"
-    content: |
-      {
-        "insecure-registries": [
-          "{{ repo_fqdn }}:8082",
-          "127.0.0.1:8082"
-        ]
-      }
+    content: >
+      {{ 
+        {
+          'insecure-registries': docker_insecure_registries
+        } | to_nice_json 
+      }}
   notify: Restart Docker
 
 - name: Wait for Nexus to completely start up and open ports
