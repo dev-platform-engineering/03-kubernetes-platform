@@ -15,26 +15,21 @@
       userAgent: "{{ repo_nexus_http_user_agent }}"
       timeout: "{{ repo_nexus_http_timeout }}"
       retries: "{{ repo_nexus_http_retries }}"
+
       httpProxy:
         enabled: "{{ repo_nexus_http_proxy_enabled }}"
         host: "{{ repo_nexus_http_proxy_host }}"
         port: "{{ repo_nexus_http_proxy_port }}"
         authInfo:
-          enabled: "{{ repo_nexus_http_proxy_auth_enabled }}"
-          username: "{{ repo_nexus_http_proxy_username }}"
-          password: "{{ repo_nexus_http_proxy_password }}"
-          ntlmHost: ""
-          ntlmDomain: ""
+          enabled: false
+
       httpsProxy:
         enabled: "{{ repo_nexus_https_proxy_enabled }}"
         host: "{{ repo_nexus_https_proxy_host }}"
         port: "{{ repo_nexus_https_proxy_port }}"
         authInfo:
-          enabled: "{{ repo_nexus_https_proxy_auth_enabled }}"
-          username: "{{ repo_nexus_https_proxy_username }}"
-          password: "{{ repo_nexus_https_proxy_password }}"
-          ntlmHost: ""
-          ntlmDomain: ""
+          enabled: false
+
     status_code: 204
     validate_certs: false
-  #no_log: true
+    #no_log: true
