@@ -394,9 +394,8 @@
     host: "127.0.0.1"
     port: 8082
     delay: 5
-    timeout: 120
+    retries: 30
     state: started
-
 - name: Get current active security realms
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
@@ -405,13 +404,15 @@
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
     validate_certs: false
+    status_code: 200
   register: current_nexus_realms
+  no_log: true
 
-- name: Debug current realms (Opcional)
+- name: Debug current active realms
   ansible.builtin.debug:
     msg: "Current active realms: {{ current_nexus_realms.json }}"
 
-- name: Activate Docker Bearer Token Realm securely
+- name: Activate Docker Bearer Token Realm
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
     method: PUT
@@ -419,37 +420,17 @@
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
     headers:
-      Content-Type: application/json
+      Content-Type: "application/json"
     body_format: raw
-    body: "{{ (current_nexus_realms.json | default([]) | union(['DockerTokenRealm'])) | to_json }}"
+    body: >-
+      {{
+        (
+          current_nexus_realms.json
+          | default([])
+          | union(['DockerToken'])
+        )
+        | to_json
+      }}
     status_code: 204
     validate_certs: false
-
-- name: Update Docker Proxy repo to allow Anonymous Pull
-  ansible.builtin.uri:
-    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ repo_nexus_docker_proxy.name }}"
-    method: PUT
-    user: "{{ repo_nexus_admin_user }}"
-    password: "{{ repo_nexus_admin_password }}"
-    force_basic_auth: true
-    headers:
-      Content-Type: application/json
-    body_format: json
-    body:
-      name: "{{ repo_nexus_docker_proxy.name }}"
-      online: true
-      storage:
-        blobStoreName: default
-        strictContentTypeValidation: true
-      proxy:
-        remoteUrl: "{{ repo_nexus_docker_proxy.url }}"
-      dockerProxy:
-        indexType: "HUB"
-      docker:
-        v1Enabled: false
-        forceBasicAuth: false
-        httpPort: 8082
-      security:
-        anonymousAccess: true
-    status_code: 204
-    validate_certs: false
+  no_log: true

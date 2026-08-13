@@ -11,24 +11,33 @@ repo_nexus_user: "nexus"
 repo_nexus_data_path: "/srv/nexus"
 repo_nexus_container_name: "nexus"
 
+# ---------------------------------------------------------------------------
+# Nexus listener
+# ---------------------------------------------------------------------------
+
 repo_nexus_bind_address: "0.0.0.0"
 repo_nexus_port: 8081
 
-# Nexus API
-repo_nexus_api_url: "http://{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}"
+# Address used by Ansible to connect to Nexus API
+repo_nexus_api_host: "127.0.0.1"
+repo_nexus_api_url: "http://{{ repo_nexus_api_host }}:{{ repo_nexus_port }}"
 
 repo_nexus_admin_user: "admin"
 repo_nexus_admin_password: "{{ vault_nexus_admin_password }}"
 
+# ---------------------------------------------------------------------------
 # Nexus outbound proxy
+# ---------------------------------------------------------------------------
+
 repo_nexus_proxy_enabled: "{{ proxy_enabled | default(false) | bool }}"
+
 repo_nexus_http_proxy_enabled: true
 repo_nexus_http_proxy_host: "10.50.60.59"
-repo_nexus_http_proxy_port: "5555"
+repo_nexus_http_proxy_port: 5555
 
 repo_nexus_https_proxy_enabled: true
 repo_nexus_https_proxy_host: "10.50.60.59"
-repo_nexus_https_proxy_port: "5555"
+repo_nexus_https_proxy_port: 5555
 
 # Proxy does not require authentication
 repo_nexus_http_proxy_auth_enabled: false
