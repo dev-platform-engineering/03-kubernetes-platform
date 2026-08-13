@@ -11,6 +11,11 @@
     state: started
     restart_policy: unless-stopped
 
+    env:
+      HTTP_PROXY: "{{ inet_proxy.http_proxy }}"
+      HTTPS_PROXY: "{{ inet_proxy.https_proxy }}"
+      NO_PROXY: "{{ inet_proxy.no_proxy | join(',') }}"
+
     ports:
       - "{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}:8081"
 
