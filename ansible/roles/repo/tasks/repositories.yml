@@ -456,11 +456,11 @@
       - 200
       - 404
     validate_certs: false
-    register: repo_nexus_k8s_checks
-    loop: "{{ repo_nexus_k8s_proxies }}"
-    loop_control:
-      label: "{{ item.name }}"
-    no_log: true
+  loop: "{{ repo_nexus_k8s_proxies }}"
+  loop_control:
+    label: "{{ item.name | default('undefined') }}"
+  register: repo_nexus_k8s_checks
+  no_log: true
 
 - name: Create Kubernetes APT proxy repositories
   ansible.builtin.uri:
@@ -503,11 +503,10 @@
 
     status_code: 201
     validate_certs: false
-
-    loop: "{{ repo_nexus_k8s_checks.results }}"
-    loop_control:
-      label: "{{ item.item.name }}"
-    when: item.status == 404
+  loop: "{{ repo_nexus_k8s_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.status == 404
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
