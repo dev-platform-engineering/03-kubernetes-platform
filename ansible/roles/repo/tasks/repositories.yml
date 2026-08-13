@@ -394,7 +394,7 @@
     host: "127.0.0.1"
     port: 8082
     delay: 5
-    retries: 30
+    timeout: 120
     state: started
 - name: Get current active security realms
   ansible.builtin.uri:
