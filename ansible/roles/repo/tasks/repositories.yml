@@ -230,20 +230,17 @@
         connection:
           retries: 3
           timeout: 60
-        authentication:
-          type: "none"
 
       apt:
         distribution: "{{ repo_nexus_debian.distribution }}"
         flat: "{{ repo_nexus_debian.flat }}"
-        strictContentTypeValidation: true
+        enforceDistribution: "{{ repo_nexus_debian.enforce_distribution }}"
 
     status_code: 201
     validate_certs: false
   when:
     - repo_nexus_debian_enabled | bool
     - repo_nexus_debian_check.status == 404
-  no_log: true
 
 # -----------------------------------------------------------------------------
 # Debian 12 Security
@@ -297,8 +294,8 @@
         connection:
           retries: 3
           timeout: 60
-        authentication:
-          type: "none"
+        # authentication:
+        #   type: "none"
 
       apt:
         distribution: "{{ repo_nexus_debian_security.distribution }}"
