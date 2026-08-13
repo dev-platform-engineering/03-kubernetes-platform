@@ -1,4 +1,8 @@
 ---
+# -----------------------------------------------------------------------------
+# Rocky Linux 9 - BaseOS
+# -----------------------------------------------------------------------------
+
 - name: Check Rocky BaseOS repository
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy/{{ repo_nexus_rocky_baseos.name }}"
@@ -9,6 +13,7 @@
     status_code:
       - 200
       - 404
+    validate_certs: false
   register: repo_nexus_rocky_baseos_check
   when: repo_nexus_rocky_enabled | bool
   no_log: true
@@ -20,28 +25,107 @@
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
+    headers:
+      Content-Type: application/json
     body_format: json
     body:
       name: "{{ repo_nexus_rocky_baseos.name }}"
       online: true
+
       storage:
         blobStoreName: default
         strictContentTypeValidation: true
+
       proxy:
         remoteUrl: "{{ repo_nexus_rocky_baseos.url }}"
         contentMaxAge: 1440
         metadataMaxAge: 60
+
       negativeCache:
         enabled: true
         timeToLive: 1440
+
       httpClient:
         blocked: false
         autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+        authentication:
+          type: "none"
+
     status_code: 201
+    validate_certs: false
   when:
     - repo_nexus_rocky_enabled | bool
     - repo_nexus_rocky_baseos_check.status == 404
   no_log: true
+
+# -----------------------------------------------------------------------------
+# Rocky Linux 9 - AppStream
+# -----------------------------------------------------------------------------
+
+- name: Check Rocky AppStream repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy/{{ repo_nexus_rocky_appstream.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  register: repo_nexus_rocky_appstream_check
+  when: repo_nexus_rocky_enabled | bool
+  no_log: true
+
+- name: Create Rocky AppStream repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      name: "{{ repo_nexus_rocky_appstream.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ repo_nexus_rocky_appstream.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 60
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+        authentication:
+          type: "none"
+
+    status_code: 201
+    validate_certs: false
+  when:
+    - repo_nexus_rocky_enabled | bool
+    - repo_nexus_rocky_appstream_check.status == 404
+  no_log: true
+
+# -----------------------------------------------------------------------------
+# EPEL 9
+# -----------------------------------------------------------------------------
 
 - name: Check EPEL repository
   ansible.builtin.uri:
@@ -53,6 +137,7 @@
     status_code:
       - 200
       - 404
+    validate_certs: false
   register: repo_nexus_epel_check
   when: repo_nexus_epel_enabled | bool
   no_log: true
@@ -64,28 +149,45 @@
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
+    headers:
+      Content-Type: application/json
     body_format: json
     body:
       name: "{{ repo_nexus_epel.name }}"
       online: true
+
       storage:
         blobStoreName: default
         strictContentTypeValidation: true
+
       proxy:
         remoteUrl: "{{ repo_nexus_epel.url }}"
         contentMaxAge: 1440
         metadataMaxAge: 60
+
       negativeCache:
         enabled: true
         timeToLive: 1440
+
       httpClient:
         blocked: false
         autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+        authentication:
+          type: "none"
+
     status_code: 201
+    validate_certs: false
   when:
     - repo_nexus_epel_enabled | bool
     - repo_nexus_epel_check.status == 404
   no_log: true
+
+# -----------------------------------------------------------------------------
+# Debian 12
+# -----------------------------------------------------------------------------
 
 - name: Check Debian repository
   ansible.builtin.uri:
@@ -97,6 +199,7 @@
     status_code:
       - 200
       - 404
+    validate_certs: false
   register: repo_nexus_debian_check
   when: repo_nexus_debian_enabled | bool
   no_log: true
@@ -108,6 +211,8 @@
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
+    headers:
+      Content-Type: application/json
     body_format: json
     body:
       name: "{{ repo_nexus_debian.name }}"
@@ -129,17 +234,27 @@
       httpClient:
         blocked: false
         autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+        authentication:
+          type: "none"
 
       apt:
         distribution: "{{ repo_nexus_debian.distribution }}"
         flat: "{{ repo_nexus_debian.flat }}"
-        enforceDistribution: "{{ repo_nexus_debian.enforce_distribution }}"
+        strictContentTypeValidation: true
 
     status_code: 201
+    validate_certs: false
   when:
     - repo_nexus_debian_enabled | bool
     - repo_nexus_debian_check.status == 404
   no_log: true
+
+# -----------------------------------------------------------------------------
+# Debian 12 Security
+# -----------------------------------------------------------------------------
 
 - name: Check Debian Security repository
   ansible.builtin.uri:
@@ -151,6 +266,7 @@
     status_code:
       - 200
       - 404
+    validate_certs: false
   register: repo_nexus_debian_security_check
   when: repo_nexus_debian_enabled | bool
   no_log: true
@@ -162,6 +278,8 @@
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
+    headers:
+      Content-Type: application/json
     body_format: json
     body:
       name: "{{ repo_nexus_debian_security.name }}"
@@ -183,6 +301,11 @@
       httpClient:
         blocked: false
         autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+        authentication:
+          type: "none"
 
       apt:
         distribution: "{{ repo_nexus_debian_security.distribution }}"
@@ -190,6 +313,7 @@
         enforceDistribution: "{{ repo_nexus_debian_security.enforce_distribution }}"
 
     status_code: 201
+    validate_certs: false
   when:
     - repo_nexus_debian_enabled | bool
     - repo_nexus_debian_security_check.status == 404
