@@ -59,7 +59,6 @@
   when:
     - repo_nexus_rocky_enabled | bool
     - repo_nexus_rocky_baseos_check.status == 404
-  no_log: true
 
 # -----------------------------------------------------------------------------
 # Rocky Linux 9 - AppStream
