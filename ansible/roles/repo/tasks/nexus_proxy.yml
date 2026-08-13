@@ -37,4 +37,4 @@
           ntlmDomain: ""
     status_code: 204
     validate_certs: false
-  no_log: true
+  #no_log: true
