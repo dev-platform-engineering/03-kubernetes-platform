@@ -1,4 +1,19 @@
 ---
+- name: Check Docker proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  loop: "{{ repo_nexus_docker_proxies }}"
+  register: repo_nexus_docker_checks
+  no_log: true
+
 # -----------------------------------------------------------------------------
 # Rocky Linux 9 - BaseOS
 # -----------------------------------------------------------------------------
@@ -311,9 +326,9 @@
 # Docker repo
 #----
 
-- name: Check Docker repository
+- name: Check Docker repositories
   ansible.builtin.uri:
-    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ repo_nexus_docker_proxy.name }}"
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
     method: GET
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
@@ -322,7 +337,8 @@
       - 200
       - 404
     validate_certs: false
-  register: repo_nexus_docker_check
+  register: repo_nexus_docker_checks
+  loop: "{{ repo_nexus_docker_proxies }}"
   when: repo_nexus_docker_enabled | bool
   no_log: true
 
@@ -369,9 +385,10 @@
         httpPort: 8082
     status_code: 201
     validate_certs: false
+  loop: "{{ repo_nexus_docker_checks.results }}"
   when:
     - repo_nexus_docker_enabled | bool
-    - repo_nexus_docker_check.status == 404
+    - item.status == 404
   no_log: true
 
 - name: Configure Nexus anonymous access
@@ -452,4 +469,17 @@
       }}
     status_code: 204
     validate_certs: false
+  no_log: true
+
+- name: Verify Docker proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+  loop: "{{ repo_nexus_docker_proxies }}"
+  when: repo_nexus_docker_enabled | bool
   no_log: true

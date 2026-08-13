@@ -94,8 +94,20 @@ repo_nexus_debian_security:
   enforce_distribution: true
 
 repo_nexus_docker_enabled: true
-repo_nexus_docker_proxy:
-  name: "docker-hub"
-  url: "https://registry-1.docker.io"
+repo_nexus_docker_proxies:
+  - name: "docker-hub"
+    url: "https://registry-1.docker.io"
+    index_type: "HUB"
+    http_port: 8082
+
+  - name: "registry-k8s-io"
+    url: "https://registry.k8s.io"
+    index_type: "REGISTRY"
+    http_port: 8083
+
+  - name: "quay-io"
+    url: "https://quay.io"
+    index_type: "REGISTRY"
+    http_port: 8084
 
 repo_nexus_anonymous_access_enabled: true
