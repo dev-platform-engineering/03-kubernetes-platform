@@ -21,3 +21,6 @@
 
     - name: Verify Nexus
       ansible.builtin.include_tasks: nexus_verify.yml
+
+    - name: Verify repository connectivity
+      ansible.builtin.include_tasks: nexus_repository_verify.yml
