@@ -396,6 +396,7 @@
     delay: 5
     timeout: 120
     state: started
+
 - name: Get current active security realms
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
@@ -419,8 +420,8 @@
     force_basic_auth: true
     headers:
       Content-Type: application/json
-    body_format: json
-    body: "{{ current_nexus_realms.json | default([]) | union(['DockerTokenRealm']) }}"
+    body_format: raw
+    body: "{{ (current_nexus_realms.json | default([]) | union(['DockerTokenRealm'])) | to_json }}"
     status_code: 204
     validate_certs: false
 
