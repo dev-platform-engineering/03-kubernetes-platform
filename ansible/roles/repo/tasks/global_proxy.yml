@@ -2,43 +2,55 @@
   ansible.builtin.pause:
     seconds: 5
 
-- name: Configure Nexus global HTTP/HTTPS proxy
+- name: Configure Nexus global HTTP/HTTPS proxy via ExtDirect
   ansible.builtin.uri:
-    url: "{{ repo_nexus_api_url }}/service/rest/v1/http"
-    method: PUT
+    url: "{{ repo_nexus_api_url }}/service/extdirect"
+    method: POST
     user: "{{ repo_nexus_admin_user }}"
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
     headers:
-      Accept: "application/json"
       Content-Type: "application/json"
     body_format: json
     body:
-      nonProxyHosts: "{{ repo_nexus_proxy_non_proxy_hosts }}"
-      userAgent: "{{ repo_nexus_http_user_agent }}"
-      timeout: "{{ repo_nexus_http_timeout }}"
-      retries: "{{ repo_nexus_http_retries }}"
+      action: "coreui_HttpSettings"
+      method: "update"
+      tid: 42
+      type: "rpc"
+      data:
+        - httpEnabled: "{{ repo_nexus_http_proxy_enabled }}"
+          httpHost: "{{ repo_nexus_http_proxy_host }}"
+          httpPort: "{{ repo_nexus_http_proxy_port }}"
+          httpsEnabled: "{{ repo_nexus_https_proxy_enabled }}"
+          httpsHost: "{{ repo_nexus_https_proxy_host }}"
+          httpsPort: "{{ repo_nexus_https_proxy_port }}"
 
-      httpProxy:
-        enabled: "{{ repo_nexus_http_proxy_enabled }}"
-        host: "{{ repo_nexus_http_proxy_host }}"
-        port: "{{ repo_nexus_http_proxy_port }}"
-        authInfo:
-          enabled: "{{ repo_nexus_http_proxy_auth_enabled }}"
-          username: "{{ repo_nexus_http_proxy_username }}"
-          password: "{{ repo_nexus_http_proxy_password }}"
+          httpAuthEnabled: "{{ repo_nexus_http_proxy_auth_enabled }}"
+          httpAuthUsername: "{{ repo_nexus_http_proxy_username }}"
+          httpAuthPassword: "{{ repo_nexus_http_proxy_password }}"
 
-      httpsProxy:
-        enabled: "{{ repo_nexus_https_proxy_enabled }}"
-        host: "{{ repo_nexus_https_proxy_host }}"
-        port: "{{ repo_nexus_https_proxy_port }}"
-        authInfo:
-          enabled: "{{ repo_nexus_https_proxy_auth_enabled }}"
-          username: "{{ repo_nexus_https_proxy_username }}"
-          password: "{{ repo_nexus_https_proxy_password }}"
+          httpsAuthEnabled: "{{ repo_nexus_https_proxy_auth_enabled }}"
+          httpsAuthUsername: "{{ repo_nexus_https_proxy_username }}"
+          httpsAuthPassword: "{{ repo_nexus_https_proxy_password }}"
 
-    status_code:
-      - 200
-      - 204
+          ntlmHost: ""
+          ntlmDomain: ""
+
+          nonProxyHosts: "{{ repo_nexus_proxy_non_proxy_hosts }}"
+
+          userAgentCustomization: "{{ repo_nexus_http_user_agent }}"
+          connectionTimeout: "{{ repo_nexus_http_timeout }}"
+          requestTimeout: "{{ repo_nexus_http_timeout }}"
+    status_code: 200
     validate_certs: false
-# no_log: true
+  register: repo_nexus_proxy_result
+  #no_log: true
+
+- name: Verify Nexus proxy configuration
+  ansible.builtin.assert:
+    that:
+      - repo_nexus_proxy_result.json.result.success | default(false) | bool
+    fail_msg: >-
+      Nexus ExtDirect proxy configuration failed:
+      {{ repo_nexus_proxy_result.json | default(repo_nexus_proxy_result.content) }}
+    success_msg: "Nexus global HTTP/HTTPS proxy configured successfully."
