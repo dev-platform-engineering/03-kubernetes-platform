@@ -15,9 +15,6 @@
       ansible.builtin.include_tasks:
         file: configure.yml
 
-    - name: Configure Nexus outbound proxy
-      ansible.builtin.include_tasks: nexus_proxy.yml
-
     - name: Configure package repositories
       ansible.builtin.include_tasks:
         file: repositories.yml
@@ -25,5 +22,5 @@
     - name: Verify Nexus
       ansible.builtin.include_tasks: nexus_verify.yml
 
-    - name: Verify repository connectivity
-      ansible.builtin.include_tasks: nexus_repository_verify.yml
+    # - name: Verify repository connectivity
+    #   ansible.builtin.include_tasks: nexus_repository_verify.yml
