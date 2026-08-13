@@ -366,10 +366,10 @@
       docker:
         v1Enabled: false
         forceBasicAuth: false
-        # httpPort: 8082
+        httpPort: 8082
     status_code: 201
     validate_certs: false
   when:
     - repo_nexus_docker_enabled | bool
     - repo_nexus_docker_check.status == 404
-  #no_log: true
+  no_log: true

@@ -18,6 +18,7 @@
 
     ports:
       - "{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}:8081"
+      - "{{ repo_nexus_bind_address }}:8082:8082" #for docker
 
     volumes:
       - "{{ repo_nexus_data_path }}:/nexus-data"
