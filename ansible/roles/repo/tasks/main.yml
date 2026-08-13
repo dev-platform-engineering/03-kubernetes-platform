@@ -19,6 +19,10 @@
       ansible.builtin.include_tasks:
         file: repositories.yml
 
+    - name: Set Global Proxy Nexus
+      ansible.builtin.include_tasks:
+        file: global_proxy.yml
+
     - name: Verify Nexus
       ansible.builtin.include_tasks: nexus_verify.yml
 

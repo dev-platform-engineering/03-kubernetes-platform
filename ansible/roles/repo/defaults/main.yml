@@ -45,6 +45,8 @@ repo_nexus_https_proxy_auth_enabled: false
 
 repo_nexus_http_proxy_username: ""
 repo_nexus_http_proxy_password: ""
+repo_nexus_https_proxy_username: ""
+repo_nexus_https_proxy_password: ""
 
 # Hosts that should bypass the corporate proxy
 repo_nexus_proxy_non_proxy_hosts:
@@ -53,7 +55,7 @@ repo_nexus_proxy_non_proxy_hosts:
   - "*.platform.internal"
 
 # Global Nexus HTTP settings
-repo_nexus_http_user_agent: ""
+repo_nexus_http_user_agent: "Nexus/3"
 repo_nexus_http_timeout: 60
 repo_nexus_http_retries: 3
 
