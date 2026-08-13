@@ -15,6 +15,9 @@
       ansible.builtin.include_tasks:
         file: configure.yml
 
+    - name: Configure Nexus outbound proxy
+      ansible.builtin.include_tasks: nexus_proxy.yml
+
     - name: Configure package repositories
       ansible.builtin.include_tasks:
         file: repositories.yml
