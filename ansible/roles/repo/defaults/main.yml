@@ -94,6 +94,6 @@ repo_nexus_debian_security:
 repo_nexus_docker_enabled: true
 repo_nexus_docker_proxy:
   name: "docker-hub"
-  url: "https://docker.io"
+  url: "https://registry-1.docker.io"
 
 repo_nexus_anonymous_access_enabled: true
