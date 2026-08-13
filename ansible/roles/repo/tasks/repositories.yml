@@ -12,7 +12,8 @@
     validate_certs: false
   loop: "{{ repo_nexus_docker_proxies }}"
   register: repo_nexus_docker_checks
-  no_log: true
+  when: repo_nexus_docker_enabled | bool
+  #no_log: true
 
 # -----------------------------------------------------------------------------
 # Rocky Linux 9 - BaseOS
@@ -361,7 +362,7 @@
         strictContentTypeValidation: true
 
       proxy:
-        remoteUrl: "{{ repo_nexus_docker_proxy.url }}"
+        remoteUrl: "{{ item.item.url }}"
         contentMaxAge: 1440
         metadataMaxAge: 1440
 
@@ -386,10 +387,12 @@
     status_code: 201
     validate_certs: false
   loop: "{{ repo_nexus_docker_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
   when:
     - repo_nexus_docker_enabled | bool
     - item.status == 404
-  no_log: true
+  #no_log: true
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
