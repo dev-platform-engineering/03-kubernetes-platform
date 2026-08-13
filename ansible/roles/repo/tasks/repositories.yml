@@ -373,3 +373,17 @@
     - repo_nexus_docker_enabled | bool
     - repo_nexus_docker_check.status == 404
   no_log: true
+
+- name: Configure Docker insecure registries
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {
+        "insecure-registries": [
+          "{{ repo_fqdn }}:8082"
+        ]
+      }
+  notify: Restart Docker
