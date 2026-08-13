@@ -2,6 +2,13 @@
 # -----------------------------------------------------------------------------
 # Nexus availability
 # -----------------------------------------------------------------------------
+- name: Wait for Nexus to completely start up and open ports
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 8081
+    delay: 5
+    timeout: 120
+    state: started
 
 - name: Check Nexus status
   ansible.builtin.uri:

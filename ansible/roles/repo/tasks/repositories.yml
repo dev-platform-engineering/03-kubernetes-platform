@@ -384,7 +384,61 @@
       {
         "insecure-registries": [
           "{{ repo_fqdn }}:8082",
-          "127.0.0.1:8082
+          "127.0.0.1:8082"
         ]
       }
   notify: Restart Docker
+
+- name: Wait for Nexus to completely start up and open ports
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 8082
+    delay: 5
+    timeout: 120
+    state: started
+
+- name: Activate Docker Bearer Token Realm
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
+    method: PUT
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      - "NexusAuthenticatingRealm"
+      - "NexusAuthorizingRealm"
+      - "DockerToken"
+    status_code: 204
+    validate_certs: false
+
+- name: Update Docker Proxy repo to allow Anonymous Pull
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ repo_nexus_docker_proxy.name }}"
+    method: PUT
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      name: "{{ repo_nexus_docker_proxy.name }}"
+      online: true
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+      proxy:
+        remoteUrl: "{{ repo_nexus_docker_proxy.url }}"
+      dockerProxy:
+        indexType: "HUB"
+      docker:
+        v1Enabled: false
+        forceBasicAuth: false
+        httpPort: 8082
+      security:
+        anonymousAccess: true
+    status_code: 204
+    validate_certs: false
