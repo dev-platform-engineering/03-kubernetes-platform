@@ -51,8 +51,6 @@
         connection:
           retries: 3
           timeout: 60
-        authentication:
-          type: "none"
 
     status_code: 201
     validate_certs: false
@@ -112,8 +110,6 @@
         connection:
           retries: 3
           timeout: 60
-        authentication:
-          type: "none"
 
     status_code: 201
     validate_certs: false
@@ -174,8 +170,6 @@
         connection:
           retries: 3
           timeout: 60
-        authentication:
-          type: "none"
 
     status_code: 201
     validate_certs: false
