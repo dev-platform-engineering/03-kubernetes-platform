@@ -13,7 +13,7 @@
   loop: "{{ repo_nexus_docker_proxies }}"
   register: repo_nexus_docker_checks
   when: repo_nexus_docker_enabled | bool
-  #no_log: true
+  no_log: true
 
 # -----------------------------------------------------------------------------
 # Rocky Linux 9 - BaseOS
@@ -354,7 +354,7 @@
       Content-Type: application/json
     body_format: json
     body:
-      name: "{{ repo_nexus_docker_proxy.name }}"
+      name: "{{ item.item.name }}"
       online: true
 
       storage:
@@ -378,14 +378,15 @@
           timeout: 60
 
       dockerProxy:
-        indexType: "HUB"
+        indexType: "{{ item.item.index_type }}"
 
       docker:
         v1Enabled: false
         forceBasicAuth: false
-        httpPort: 8082
+        httpPort: "{{ item.item.http_port }}"
     status_code: 201
     validate_certs: false
+
   loop: "{{ repo_nexus_docker_checks.results }}"
   loop_control:
     label: "{{ item.item.name }}"
