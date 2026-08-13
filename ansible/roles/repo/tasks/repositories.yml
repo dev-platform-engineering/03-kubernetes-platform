@@ -341,9 +341,9 @@
   register: repo_nexus_docker_checks
   loop: "{{ repo_nexus_docker_proxies }}"
   loop_control:
-    label: "{{ item.item.name }}"
+    label: "{{ item.name }}"
   when: repo_nexus_docker_enabled | bool
-  no_log: true
+  no_log: false
 
 - name: Create Docker Proxy repository
   ansible.builtin.uri:
