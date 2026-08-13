@@ -50,7 +50,7 @@
     validate_certs: false
   when:
     - not repo_nexus_eula.json.accepted | bool
-  #no_log: true
+  no_log: true
 
 # -----------------------------------------------------------------------------
 # Verify EULA
