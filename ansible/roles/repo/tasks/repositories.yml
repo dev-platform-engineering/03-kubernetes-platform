@@ -396,8 +396,21 @@
     delay: 5
     timeout: 120
     state: started
+- name: Get current active security realms
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    validate_certs: false
+  register: current_nexus_realms
 
-- name: Activate Docker Bearer Token Realm
+- name: Debug current realms (Opcional)
+  ansible.builtin.debug:
+    msg: "Current active realms: {{ current_nexus_realms.json }}"
+
+- name: Activate Docker Bearer Token Realm securely
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/realms/active"
     method: PUT
@@ -407,10 +420,7 @@
     headers:
       Content-Type: application/json
     body_format: json
-    body:
-      - "NexusAuthenticatingRealm"
-      - "NexusAuthorizingRealm"
-      - "DockerTokenRealm"
+    body: "{{ current_nexus_realms.json | default([]) | union(['DockerTokenRealm']) }}"
     status_code: 204
     validate_certs: false
 
