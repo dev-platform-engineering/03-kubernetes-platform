@@ -395,11 +395,11 @@
       - 200
       - 404
     validate_certs: false
-    register: repo_nexus_raw_checks
-    loop: "{{ repo_nexus_raw_proxies }}"
-    loop_control:
-      label: "{{ item.name }}"
-    no_log: true
+  loop: "{{ repo_nexus_raw_proxies }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: repo_nexus_raw_checks
+  no_log: true
 
 - name: Create RAW proxy repositories
   ansible.builtin.uri:
@@ -437,11 +437,10 @@
 
     status_code: 201
     validate_certs: false
-
-    loop: "{{ repo_nexus_raw_checks.results }}"
-    loop_control:
-      label: "{{ item.item.name }}"
-    when: item.status == 404
+  loop: "{{ repo_nexus_raw_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.status == 404
 
 # -----------------------------------------------------------------------------
 # Kubernetes APT proxy repositories
