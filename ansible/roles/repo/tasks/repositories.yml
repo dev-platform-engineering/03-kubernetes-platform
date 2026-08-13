@@ -345,7 +345,7 @@
         strictContentTypeValidation: true
 
       proxy:
-        remoteUrl: "{{ repo_nexus_docker_proxy.url }}" # https://docker.io
+        remoteUrl: "{{ repo_nexus_docker_proxy.url }}"
         contentMaxAge: 1440
         metadataMaxAge: 1440
 
@@ -360,15 +360,18 @@
           retries: 3
           timeout: 60
 
+      dockerProxy:
+        indexType: "HUB"
+
       docker:
         v1Enabled: false
         forceBasicAuth: false
-        dockerIndex: HUB
         # httpPort: 8082
-
     status_code: 201
     validate_certs: false
   when:
     - repo_nexus_docker_enabled | bool
     - repo_nexus_docker_check.status == 404
+  no_log: true
+
   #no_log: true
