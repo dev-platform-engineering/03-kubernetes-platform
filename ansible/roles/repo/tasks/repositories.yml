@@ -372,6 +372,4 @@
   when:
     - repo_nexus_docker_enabled | bool
     - repo_nexus_docker_check.status == 404
-  no_log: true
-
   #no_log: true
