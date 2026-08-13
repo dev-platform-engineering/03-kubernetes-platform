@@ -379,7 +379,136 @@
   when:
     - repo_nexus_docker_enabled | bool
     - item.status == 404
-  #no_log: true
+  no_log: true
+
+# -----------------------------------------------------------------------------
+# RAW proxy repositories
+# -----------------------------------------------------------------------------
+- name: Check RAW proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/raw/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+    register: repo_nexus_raw_checks
+    loop: "{{ repo_nexus_raw_proxies }}"
+    loop_control:
+      label: "{{ item.name }}"
+    no_log: true
+
+- name: Create RAW proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/raw/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ item.item.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ item.item.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 60
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+    status_code: 201
+    validate_certs: false
+
+    loop: "{{ repo_nexus_raw_checks.results }}"
+    loop_control:
+      label: "{{ item.item.name }}"
+    when: item.status == 404
+
+# -----------------------------------------------------------------------------
+# Kubernetes APT proxy repositories
+# -----------------------------------------------------------------------------
+- name: Check Kubernetes APT repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/apt/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+    register: repo_nexus_k8s_checks
+    loop: "{{ repo_nexus_k8s_proxies }}"
+    loop_control:
+      label: "{{ item.name }}"
+    no_log: true
+
+- name: Create Kubernetes APT proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/apt/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ item.item.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ item.item.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 60
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+      apt:
+        distribution: "{{ item.item.distribution }}"
+        flat: "{{ item.item.flat }}"
+        enforceDistribution: "{{ item.item.enforce_distribution }}"
+
+    status_code: 201
+    validate_certs: false
+
+    loop: "{{ repo_nexus_k8s_checks.results }}"
+    loop_control:
+      label: "{{ item.item.name }}"
+    when: item.status == 404
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
