@@ -19,6 +19,8 @@
     ports:
       - "{{ repo_nexus_bind_address }}:{{ repo_nexus_port }}:8081"
       - "{{ repo_nexus_bind_address }}:8082:8082" #for docker
+      - "{{ repo_nexus_bind_address }}:8083:8083" #for k8s
+      - "{{ repo_nexus_bind_address }}:8084:8084" #for quay
 
     volumes:
       - "{{ repo_nexus_data_path }}:/nexus-data"

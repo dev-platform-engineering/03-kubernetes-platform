@@ -460,18 +460,3 @@
     status_code: 204
     validate_certs: false
   no_log: true
-# - name: Verify Docker proxy repositories
-#   ansible.builtin.uri:
-#     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/{{ item.name }}"
-#     method: GET
-#     user: "{{ repo_nexus_admin_user }}"
-#     password: "{{ repo_nexus_admin_password }}"
-#     force_basic_auth: true
-#     status_code: 200
-#     validate_certs: false
-#   loop: "{{ repo_nexus_docker_proxies }}"
-#   loop_control:
-#     label: "{{ item.name }}"
-
-#   when: repo_nexus_docker_enabled | bool
-#   no_log: true
