@@ -11,7 +11,7 @@ locals {
     datastore = "data2_R10"
     disk_size = 100
 
-    network = "services"
+    network = "etcd"
 
     netmask = 24
     gateway = "10.50.40.254"
