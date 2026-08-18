@@ -56,3 +56,5 @@ ansible/roles/geerlingguy.postgresql/
 # *vault.yaml
 # *.vault
 
+#PowerShell
+config*.ps1
