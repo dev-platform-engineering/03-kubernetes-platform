@@ -49,9 +49,9 @@ resource "vsphere_virtual_machine" "this" {
         }
       }
 
-      ipv4_gateway    = var.ipv4_gateway
-      dns_server_list = var.dns_servers
-      dns_suffix_list = var.dns_search_domains
+      ipv4_gateway = var.ipv4_gateway
+      # dns_server_list = var.dns_servers
+      # dns_suffix_list = var.dns_search_domains
     }
   }
 }
