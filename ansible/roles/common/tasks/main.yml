@@ -10,12 +10,12 @@
 - name: Configure DNS
   include_tasks: dns.yml
 
-- name: Configure NTP
-  include_tasks: ntp.yml
-
 - name: Configure proxy
   include_tasks: proxy.yml
   when: proxy_enabled | default(false)
+
+- name: Configure NTP
+  include_tasks: ntp.yml
 
 - name: Install common packages
   include_tasks: packages.yml
