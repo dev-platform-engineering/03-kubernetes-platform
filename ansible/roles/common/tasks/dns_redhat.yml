@@ -22,18 +22,26 @@
       dns=default
   notify: Restart NetworkManager
 
-- name: Configure NetworkManager DNS management
-  ansible.builtin.copy:
-    dest: /etc/NetworkManager/conf.d/90-dns.conf
+# - name: Check DNS migration marker
+#   ansible.builtin.stat:
+#     path: /etc/.dns_fixed
+#   register: dns_fixed
+
+- name: Check resolv.conf
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+  register: resolv_conf
+
+- name: Fix resolv.conf if it is missing or a broken symlink
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    state: touch
     owner: root
     group: root
     mode: "0644"
-    content: |
-      [main]
-      dns=systemd-resolved
-  notify: Restart NetworkManager
+  when: not resolv_conf.stat.exists or resolv_conf.stat.islnk | default(false)
 
-- name: Configure DNS via NetworkManager
+- name: Configure DNS
   community.general.nmcli:
     conn_name: "{{ nm_active.stdout.split('\n')[0].split(':')[0] }}"
     dns4: "{{ dns_servers }}"
@@ -42,28 +50,8 @@
     state: present
   notify: Restart NetworkManager
 
-- name: Ensure systemd-resolved is running
-  ansible.builtin.systemd:
-    name: systemd-resolved
-    state: started
-    enabled: true
-
-- name: Ensure correct symlink for resolv.conf
-  ansible.builtin.file:
-    src: /run/systemd/resolve/resolv.conf
-    dest: /etc/resolv.conf
-    state: link
-    force: true
-# - name: Check DNS migration marker
-#   ansible.builtin.stat:
-#     path: /etc/.dns_fixed
-#   register: dns_fixed
-
-# - name: Check resolv.conf
-#   ansible.builtin.stat:
-#     path: /etc/resolv.conf
-#   register: resolv_conf
-
+- name: Apply NetworkManager changes immediately
+  ansible.builtin.meta: flush_handlers
 # - name: Remove old resolv.conf
 #   ansible.builtin.file:
 #     path: /etc/resolv.conf
