@@ -1,0 +1,7 @@
+- name: Upgrade Debian OS
+  ansible.builtin.include_tasks: upgrade-debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Upgrade RedHat OS
+  ansible.builtin.include_tasks: upgrade-redhat.yml
+  when: ansible_os_family == "RedHat"
