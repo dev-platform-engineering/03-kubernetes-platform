@@ -4,6 +4,9 @@
     state: latest
     update_only: true
   register: system_upgrade
+  retries: 5
+  delay: 30
+  until: system_upgrade is succeeded
 
 - name: Reboot after system upgrade
   ansible.builtin.reboot:
