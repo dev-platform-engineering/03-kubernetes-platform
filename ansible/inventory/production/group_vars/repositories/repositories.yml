@@ -6,6 +6,4 @@ proxy_enabled: true
 
 repo_enabled: true
 
-repo_fqdn: repo-01.infra.platform.internal
-
 repo_storage_path: /srv/nexus

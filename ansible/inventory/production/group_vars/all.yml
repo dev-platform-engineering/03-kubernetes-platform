@@ -34,6 +34,8 @@ domain_infra: "infra.{{ domain_env_root }}" # infra.prod.platform.internal
 domain_k8s: "k8s.{{ domain_env_root }}" # k8s.prod.platform.internal
 domain_apps: "apps.{{ domain_env_root }}" # apps.prod.platform.internal
 
+repo_fqdn: repo-01.infra.platform.internal
+
 repo_rocky_baseos_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-baseos/"
 repo_rocky_appstream_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-appstream/"
 
