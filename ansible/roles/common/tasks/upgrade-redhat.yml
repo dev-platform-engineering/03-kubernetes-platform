@@ -3,7 +3,7 @@
     name: "*"
     state: latest
     update_only: true
-    register: system_upgrade
+  register: system_upgrade
 
 - name: Reboot after system upgrade
   ansible.builtin.reboot:
