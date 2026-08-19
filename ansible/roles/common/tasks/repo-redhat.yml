@@ -1,26 +1,61 @@
----
-- name: Configure Rocky Linux repositories
+- name: Create backup directory for default internet repos
+  ansible.builtin.file:
+    path: /etc/yum.repos.d/backup
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Find all existing repo files
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "*.repo"
+    file_type: file
+  register: default_repos
+
+- name: Isolate default repos to prevent internet lookup timeouts
+  ansible.builtin.command:
+    cmd: "mv {{ item.path }} /etc/yum.repos.d/backup/"
+  loop: "{{ default_repos.files }}"
+  changed_when: true
+
+- name: Copy Rocky Linux 9 GPG key
+  ansible.builtin.copy:
+    src: RPM-GPG-KEY-Rocky-9
+    dest: "{{ repo_rocky_local_gpg_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: repo_enabled | bool
+
+- name: Import Rocky Linux 9 GPG key into RPM database
+  ansible.builtin.rpm_key:
+    state: present
+    key: "{{ repo_rocky_local_gpg_path }}"
+  when: repo_enabled | bool
+
+- name: Configure Rocky Linux 9 BaseOS repository
   ansible.builtin.yum_repository:
-    name: "{{ item.name }}"
-    description: "{{ item.description }}"
-    baseurl: "{{ item.url }}"
+    name: internal-rocky-9-baseos
+    description: Internal Rocky Linux 9 - BaseOS
+    baseurl: "{{ repo_rocky_baseos_url }}"
     enabled: true
-    gpgcheck: false
-  loop:
-    - name: internal-rocky-9-baseos
-      description: Internal Rocky Linux 9 - BaseOS
-      url: "{{ repo_rocky_baseos_url }}"
+    gpgcheck: true
+    gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
+  when: repo_enabled | bool
 
-    - name: internal-rocky-9-appstream
-      description: Internal Rocky Linux 9 - AppStream
-      url: "{{ repo_rocky_appstream_url }}"
-  when:
-    - repo_enabled | bool
-    - ansible_os_family == "RedHat"
+- name: Configure Rocky Linux 9 AppStream repository
+  ansible.builtin.yum_repository:
+    name: internal-rocky-9-appstream
+    description: Internal Rocky Linux 9 - AppStream
+    baseurl: "{{ repo_rocky_appstream_url }}"
+    enabled: true
+    gpgcheck: true
+    gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
+  when: repo_enabled | bool
 
-- name: Refresh DNF metadata
+- name: Hard reset DNF cache and build local metadata
   ansible.builtin.dnf:
     update_cache: true
-  when:
-    - repo_enabled | bool
-    - ansible_os_family == "RedHat"
+    clean: all
+  when: repo_enabled | bool

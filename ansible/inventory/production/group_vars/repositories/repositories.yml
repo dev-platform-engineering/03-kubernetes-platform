@@ -9,6 +9,3 @@ repo_enabled: true
 repo_fqdn: repo-01.infra.platform.internal
 
 repo_storage_path: /srv/nexus
-
-repo_rocky_baseos_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-baseos/"
-repo_rocky_appstream_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-appstream/"
