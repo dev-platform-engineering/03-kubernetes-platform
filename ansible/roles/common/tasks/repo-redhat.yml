@@ -1,3 +1,13 @@
+- name: Find all existing default repo files
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "*.repo"
+    excludes:
+      - "internal-rocky-9-baseos.repo"
+      - "internal-rocky-9-appstream.repo"
+    file_type: file
+  register: default_repos
+
 - name: Create backup directory for default internet repos
   ansible.builtin.file:
     path: /etc/yum.repos.d/backup
@@ -5,13 +15,6 @@
     owner: root
     group: root
     mode: "0755"
-
-- name: Find all existing repo files
-  ansible.builtin.find:
-    paths: /etc/yum.repos.d
-    patterns: "*.repo"
-    file_type: file
-  register: default_repos
 
 - name: Isolate default repos to prevent internet lookup timeouts
   ansible.builtin.command:
@@ -26,13 +29,11 @@
     owner: root
     group: root
     mode: "0644"
-  when: repo_enabled | bool
 
 - name: Import Rocky Linux 9 GPG key into RPM database
   ansible.builtin.rpm_key:
     state: present
     key: "{{ repo_rocky_local_gpg_path }}"
-  when: repo_enabled | bool
 
 - name: Configure Rocky Linux 9 BaseOS repository
   ansible.builtin.yum_repository:
@@ -42,7 +43,6 @@
     enabled: true
     gpgcheck: true
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
-  when: repo_enabled | bool
 
 - name: Configure Rocky Linux 9 AppStream repository
   ansible.builtin.yum_repository:
@@ -52,24 +52,20 @@
     enabled: true
     gpgcheck: true
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
-  when: repo_enabled | bool
 
 - name: Refresh DNF repository metadata
   ansible.builtin.dnf:
     update_cache: true
-  when: repo_enabled | bool
 
 - name: Verify configured Rocky repositories
   ansible.builtin.command:
     cmd: dnf repolist
   register: dnf_repolist
   changed_when: false
-  when: repo_enabled | bool
 
 - name: Display configured Rocky repositories
   ansible.builtin.debug:
     var: dnf_repolist.stdout_lines
-  when: repo_enabled | bool
 
 - name: Verify BaseOS repository
   ansible.builtin.command:
@@ -77,7 +73,6 @@
   register: baseos_repo_check
   changed_when: false
   failed_when: baseos_repo_check.rc != 0
-  when: repo_enabled | bool
 
 - name: Verify AppStream repository
   ansible.builtin.command:
@@ -85,4 +80,3 @@
   register: appstream_repo_check
   changed_when: false
   failed_when: appstream_repo_check.rc != 0
-  when: repo_enabled | bool

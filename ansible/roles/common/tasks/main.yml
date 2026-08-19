@@ -18,6 +18,9 @@
   include_tasks: proxy.yml
   when: proxy_enabled | default(false)
 
+- name: Upgrade OS
+  include_tasks: upgrade.yml
+
 - name: Configure NTP
   include_tasks: ntp.yml
 
