@@ -1,0 +1,5 @@
+---
+- name: Configure Etcd cluster
+  hosts: etcd
+  roles:
+    - common
