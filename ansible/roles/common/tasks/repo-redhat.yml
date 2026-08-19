@@ -1,0 +1,26 @@
+---
+- name: Configure Rocky Linux repositories
+  ansible.builtin.yum_repository:
+    name: "{{ item.name }}"
+    description: "{{ item.description }}"
+    baseurl: "{{ item.url }}"
+    enabled: true
+    gpgcheck: false
+  loop:
+    - name: internal-rocky-9-baseos
+      description: Internal Rocky Linux 9 - BaseOS
+      url: "{{ repo_rocky_baseos_url }}"
+
+    - name: internal-rocky-9-appstream
+      description: Internal Rocky Linux 9 - AppStream
+      url: "{{ repo_rocky_appstream_url }}"
+  when:
+    - repo_enabled | bool
+    - ansible_os_family == "RedHat"
+
+- name: Refresh DNF metadata
+  ansible.builtin.dnf:
+    update_cache: true
+  when:
+    - repo_enabled | bool
+    - ansible_os_family == "RedHat"
