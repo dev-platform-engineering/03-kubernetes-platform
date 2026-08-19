@@ -54,8 +54,35 @@
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
   when: repo_enabled | bool
 
-- name: Hard reset DNF cache and build local metadata
+- name: Refresh DNF repository metadata
   ansible.builtin.dnf:
     update_cache: true
-    clean: all
+  when: repo_enabled | bool
+
+- name: Verify configured Rocky repositories
+  ansible.builtin.command:
+    cmd: dnf repolist
+  register: dnf_repolist
+  changed_when: false
+  when: repo_enabled | bool
+
+- name: Display configured Rocky repositories
+  ansible.builtin.debug:
+    var: dnf_repolist.stdout_lines
+  when: repo_enabled | bool
+
+- name: Verify BaseOS repository
+  ansible.builtin.command:
+    cmd: dnf repolist enabled internal-rocky-9-baseos
+  register: baseos_repo_check
+  changed_when: false
+  failed_when: baseos_repo_check.rc != 0
+  when: repo_enabled | bool
+
+- name: Verify AppStream repository
+  ansible.builtin.command:
+    cmd: dnf repolist enabled internal-rocky-9-appstream
+  register: appstream_repo_check
+  changed_when: false
+  failed_when: appstream_repo_check.rc != 0
   when: repo_enabled | bool
