@@ -11,7 +11,7 @@
   include_tasks: dns.yml
 
 - name: Configure repo
-  include_tasks: repoy.yml
+  include_tasks: repo.yml
   when: repo_enabled | default(false)
 
 - name: Configure proxy
