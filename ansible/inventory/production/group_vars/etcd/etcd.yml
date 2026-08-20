@@ -5,3 +5,30 @@ dns_search:
 proxy_enabled: false
 
 repo_enabled: true
+
+etcd_version: "v3.5.15"
+
+etcd_cluster_name: "prod-etcd-cluster"
+etcd_initial_cluster_state: "new"
+
+etcd_data_dir: "/var/lib/etcd"
+etcd_config_dir: "/etc/etcd"
+etcd_bin_dir: "/usr/local/bin"
+
+etcd_user: "etcd"
+etcd_group: "etcd"
+etcd_user_system: true
+etcd_user_shell: "/sbin/nologin"
+
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+etcd_manage_hosts: true
+
+etcd_manage_firewall: true
+
+etcd_selinux_state: "enforcing"
+
+etcd_limit_nofile: 65536
+
+etcd_enable_tls: true

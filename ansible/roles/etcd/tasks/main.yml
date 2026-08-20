@@ -1,0 +1,11 @@
+---
+- name: Configuration etcd cluster
+  become: true
+  block:
+    - name: Run etcd prerequisites
+      ansible.builtin.include_tasks:
+        file: prerequisites.yml
+
+    - name: Create directories
+      ansible.builtin.include_tasks:
+        file: directories.yml
