@@ -3,8 +3,11 @@
   hosts: etcd
   become: true
   roles:
-    - common
-    - etcd
+    - role: common
+      tags: common
+
+    - role: etcd
+      tags: etcd
 # - name: Configure etcd nodes
 #   hosts: etcd
 #   become: true

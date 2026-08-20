@@ -1,4 +1,10 @@
 ---
+- name: Preflight | Verify minimum RAM availability (etcd baseline)
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 2048
+    fail_msg: "etcd node requires at least 2GB of RAM for baseline stability."
+
 - name: Prerequisites | Ensure Local DNS mapping in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
@@ -6,6 +12,25 @@
     line: "{{ hostvars[item]['ansible_host'] }} {{ hostvars[item]['etcd_name'] }}"
     state: present
   loop: "{{ groups['etcd'] }}"
+
+- name: Preflight | Verify DNS resolution for etcd node
+  ansible.builtin.command: "getent hosts {{ inventory_hostname }}.k8s.prod.platform.internal"
+  register: dns_check
+  changed_when: false
+  failed_when: dns_check.rc != 0
+  when: not etcd_manage_hosts | default(false)
+
+- name: Prerequisites | Ensure Chrony is running and synchronized
+  ansible.builtin.systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+
+- name: Preflight | Check if Chrony is synchronized
+  ansible.builtin.command: "chronyc tracking"
+  register: chrony_tracking
+  changed_when: false
+  failed_when: "'Leap status     : Normal' not in chrony_tracking.stdout"
 
 - name: Prerequisites | Create etcd group
   ansible.builtin.group:
@@ -31,12 +56,6 @@
       - curl
       - sysstat
     state: present
-
-- name: Prerequisites | Ensure Chrony is running and synchronized
-  ansible.builtin.systemd:
-    name: chronyd
-    state: started
-    enabled: yes
 
 - name: Prerequisites | Disable swap
   ansible.builtin.command:
