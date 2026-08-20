@@ -8,10 +8,9 @@
 - name: Prerequisites | Ensure Local DNS mapping in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: ".*{{ inventory_hostname }}$"
-    line: "{{ hostvars[item]['ansible_host'] }} {{ item }}"
+    regexp: ".*{{ item }}$"
+    line: "{{ hostvars[item]['ansible_host'] }} {{ item }} {{ item }}.k8s.prod.platform.internal"
     state: present
-  loop: "{{ groups['etcd'] }}"
   when: etcd_manage_hosts | default(false)
 
 - name: Preflight | Verify DNS resolution for etcd node
