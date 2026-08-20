@@ -11,6 +11,7 @@
     regexp: ".*{{ item }}$"
     line: "{{ hostvars[item]['ansible_host'] }} {{ item }} {{ item }}.k8s.prod.platform.internal"
     state: present
+  loop: "{{ groups['etcd'] }}"
   when: etcd_manage_hosts | default(false)
 
 - name: Preflight | Verify DNS resolution for etcd node
