@@ -4,6 +4,7 @@
   become: true
   roles:
     - common
+    - etcd
 # - name: Configure etcd nodes
 #   hosts: etcd
 #   become: true
