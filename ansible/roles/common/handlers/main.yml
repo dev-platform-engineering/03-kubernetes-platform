@@ -10,6 +10,7 @@
     state: restarted
 
 - name: Restart chronyd
-  ansible.builtin.service:
-    name: "{{ ntp_service }}"
+  ansible.builtin.systemd:
+    name: chronyd
     state: restarted
+    daemon_reload: true
