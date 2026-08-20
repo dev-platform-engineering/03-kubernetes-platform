@@ -16,10 +16,13 @@
     group: root
     mode: "0755"
 
-- name: Isolate default repos to prevent internet lookup timeouts
+- name: Repositories | Move default repository files
   ansible.builtin.command:
-    cmd: "mv {{ item.path }} /etc/yum.repos.d/backup/"
+    cmd: "mv {{ item.path }} /etc/yum.repos.d/backup/{{ item.path | basename }}"
   loop: "{{ default_repos.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: default_repos.files | length > 0
   changed_when: true
 
 - name: Copy Rocky Linux 9 GPG key
@@ -43,6 +46,7 @@
     enabled: true
     gpgcheck: true
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
+    state: present
 
 - name: Configure Rocky Linux 9 AppStream repository
   ansible.builtin.yum_repository:
@@ -52,14 +56,19 @@
     enabled: true
     gpgcheck: true
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
+    state: present
 
-- name: Refresh DNF repository metadata
+- name: Repositories | Refresh metadata
   ansible.builtin.dnf:
     update_cache: true
+    disablerepo: "*"
+    enablerepo:
+      - internal-rocky-9-baseos
+      - internal-rocky-9-appstream
 
-- name: Verify configured Rocky repositories
+- name: Repositories | Verify enabled repositories
   ansible.builtin.command:
-    cmd: dnf repolist
+    cmd: dnf repolist enabled
   register: dnf_repolist
   changed_when: false
 
