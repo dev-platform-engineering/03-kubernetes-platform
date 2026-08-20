@@ -58,17 +58,13 @@
     gpgkey: "file://{{ repo_rocky_local_gpg_path }}"
     state: present
 
-- name: Repositories | Refresh metadata
+- name: Refresh DNF repository metadata
   ansible.builtin.dnf:
     update_cache: true
-    disablerepo: "*"
-    enablerepo:
-      - internal-rocky-9-baseos
-      - internal-rocky-9-appstream
 
-- name: Repositories | Verify enabled repositories
+- name: Verify configured Rocky repositories
   ansible.builtin.command:
-    cmd: dnf repolist enabled
+    cmd: dnf repolist
   register: dnf_repolist
   changed_when: false
 
