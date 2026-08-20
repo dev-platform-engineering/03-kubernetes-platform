@@ -10,6 +10,7 @@
     owner: root
     group: root
     mode: "0644"
+    backup: true
   notify: Restart chronyd
 
 - name: NTP | Enable chronyd
@@ -17,3 +18,22 @@
     name: "{{ ntp_service }}"
     enabled: true
     state: started
+
+- name: NTP | Wait for synchronization
+  ansible.builtin.command:
+    cmd: chronyc tracking
+  register: chrony_tracking
+  changed_when: false
+  failed_when: false
+  retries: 12
+  delay: 5
+  until: "'Leap status     : Normal' in chrony_tracking.stdout"
+
+- name: NTP | Fail if not synchronized
+  ansible.builtin.fail:
+    msg: >-
+      Chrony is not synchronized.
+      Check `chronyc sources -v` and NTP connectivity.
+      Output:
+      {{ chrony_tracking.stdout }}
+  when: "'Leap status     : Normal' not in chrony_tracking.stdout"
