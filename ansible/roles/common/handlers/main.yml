@@ -8,3 +8,8 @@
   ansible.builtin.service:
     name: NetworkManager
     state: restarted
+
+- name: Restart chronyd
+  ansible.builtin.service:
+    name: "{{ ntp_service }}"
+    state: restarted

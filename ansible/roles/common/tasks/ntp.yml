@@ -1,10 +1,19 @@
-- name: Install chrony
-  package:
+- name: NTP | Install chrony
+  ansible.builtin.package:
     name: "{{ ntp_package }}"
     state: present
 
-- name: Enable chronyd
-  service:
+- name: NTP | Configure chrony
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart chronyd
+
+- name: NTP | Enable chronyd
+  ansible.builtin.service:
     name: "{{ ntp_service }}"
     enabled: true
     state: started
