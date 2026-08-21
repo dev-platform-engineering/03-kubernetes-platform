@@ -12,7 +12,7 @@
 
 - name: Configure repo
   include_tasks: repo.yml
-  when: repo_enabled | default(false) | bool
+  when: repo_use_internal_repos | default(false) | bool
 
 - name: Configure proxy
   include_tasks: proxy.yml
@@ -24,7 +24,7 @@
 #after upgrade all repo return to default and we need reapply our repo
 - name: Configure repo
   include_tasks: repo.yml
-  when: repo_enabled | default(false) | bool
+  when: repo_use_internal_repos | default(false) | bool
 
 - name: Configure NTP
   include_tasks: ntp.yml
