@@ -3,7 +3,7 @@
     url: "{{ etcd_artifact_url }}"
     dest: "/tmp/{{ etcd_archive }}"
     mode: "0644"
-    checksum: "{{ etcd_artifact_checksum }}"
+    checksum: "{{ etcd_artifact_checksums[etcd_version] }}"
 
 - name: Extract etcd archive
   ansible.builtin.unarchive:
