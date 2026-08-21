@@ -4,8 +4,11 @@ domain_root: "platform.internal"
 # global service
 domain_global_infra: "infra.{{ domain_root }}"
 
-#use internal repository
-repo_enabled: false
+# Use internal Nexus repositories for this host
+repo_use_internal_repos: false
+
+# Deploy Nexus Repository on this host
+repo_nexus_enabled: false
 
 timezone: Europe/Kyiv
 

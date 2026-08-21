@@ -1,5 +1,5 @@
 ---
-repo_enabled: false
+repo_use_internal_repos: false
 
 # Nexus
 repo_nexus_enabled: true

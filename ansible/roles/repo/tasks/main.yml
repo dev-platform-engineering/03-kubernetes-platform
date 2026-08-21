@@ -1,6 +1,6 @@
 ---
 - name: Configure repository server
-  when: repo_enabled | bool
+  when: repo_nexus_enabled | bool
   become: true
   block:
     - name: Run repository prerequisites

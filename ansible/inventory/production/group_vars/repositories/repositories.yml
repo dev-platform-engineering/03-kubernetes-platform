@@ -4,8 +4,7 @@ dns_search:
 
 proxy_enabled: true
 
-repo_enabled: false
-
 repo_storage_path: /srv/nexus
 
 repo_use_internal_repos: false
+repo_nexus_enabled: true

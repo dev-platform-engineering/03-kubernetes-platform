@@ -4,7 +4,7 @@ dns_search:
 
 proxy_enabled: false
 
-repo_enabled: true
+repo_use_internal_repos: true
 
 etcd_version: "v3.5.15"
 
