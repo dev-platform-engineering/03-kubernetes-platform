@@ -545,28 +545,12 @@
         blobStoreName: "{{ repo_nexus_platform_artifacts.blob_store }}"
         strictContentTypeValidation: "{{ repo_nexus_platform_artifacts.strict_content_type_validation }}"
 
-      proxy:
-        remoteUrl: "{{ item.item.url }}"
-        contentMaxAge: 1440
-        metadataMaxAge: 60
-
-      negativeCache:
-        enabled: true
-        timeToLive: 1440
-
-      httpClient:
-        blocked: false
-        autoBlock: true
-        connection:
-          retries: 3
-          timeout: 60
-
     status_code: 201
     validate_certs: false
   when:
     - repo_nexus_platform_artifacts_enabled | bool
     - repo_nexus_platform_artifacts_check.status == 404
-  no_log: true
+  no_log: false
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
