@@ -16,7 +16,7 @@ etcd_artifact_repo_url: >-
 etcd_artifact_url: >-
   {{ etcd_artifact_repo_url }}/etcd/{{ etcd_version }}/{{ etcd_archive }}
 
-etcd_artifact_checksum: "sha256:..."
+etcd_artifact_checksum: "sha256:3f6b48d8c2844699f2b19c1880508ecf63e1489769ed37ebb97495d5cd848a89"
 
 etcd_cluster_name: "prod-etcd-cluster"
 etcd_initial_cluster_state: "new"
