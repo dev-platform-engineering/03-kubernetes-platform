@@ -544,13 +544,16 @@
       storage:
         blobStoreName: "{{ repo_nexus_platform_artifacts.blob_store }}"
         strictContentTypeValidation: "{{ repo_nexus_platform_artifacts.strict_content_type_validation }}"
+        writePolicy: "{{ repo_nexus_platform_artifacts.write_policy }}"
 
     status_code: 201
     validate_certs: false
+
   when:
     - repo_nexus_platform_artifacts_enabled | bool
     - repo_nexus_platform_artifacts_check.status == 404
-  no_log: false
+
+  no_log: true
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
