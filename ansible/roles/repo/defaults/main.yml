@@ -129,6 +129,7 @@ repo_nexus_platform_artifacts:
   name: "platform-artifacts"
   blob_store: "default"
   strict_content_type_validation: true
+  write_policy: "ALLOW_ONCE"
 
 docker_insecure_registries:
   - "127.0.0.1:8082"
