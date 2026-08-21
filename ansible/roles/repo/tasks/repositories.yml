@@ -553,7 +553,7 @@
     - repo_nexus_platform_artifacts_enabled | bool
     - repo_nexus_platform_artifacts_check.status == 404
 
-  no_log: false
+  no_log: true
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
