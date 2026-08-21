@@ -3,10 +3,20 @@ dns_search:
   - platform.internal
 
 proxy_enabled: false
-
 repo_use_internal_repos: true
 
 etcd_version: "v3.5.15"
+etcd_arch: "linux-amd64"
+
+etcd_archive: "etcd-{{ etcd_version }}-{{ etcd_arch }}.tar.gz"
+
+etcd_artifact_repo_url: >-
+  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts
+
+etcd_artifact_url: >-
+  {{ etcd_artifact_repo_url }}/etcd/{{ etcd_version }}/{{ etcd_archive }}
+
+etcd_artifact_checksum: "sha256:..."
 
 etcd_cluster_name: "prod-etcd-cluster"
 etcd_initial_cluster_state: "new"
