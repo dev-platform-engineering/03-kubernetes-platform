@@ -123,6 +123,13 @@ repo_nexus_k8s_proxies:
     flat: true
     enforce_distribution: false
 
+repo_nexus_platform_artifacts_enabled: true
+
+repo_nexus_platform_artifacts:
+  name: "platform-artifacts"
+  blob_store: "default"
+  strict_content_type_validation: true
+
 docker_insecure_registries:
   - "127.0.0.1:8082"
   - "repo-01.infra.platform.internal:8082"
