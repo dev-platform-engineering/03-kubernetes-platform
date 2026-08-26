@@ -69,7 +69,7 @@ etcd_tls_peer_key: "{{ etcd_tls_dir }}/peer.key"
 # CA lives on Ansible controller
 # -----------------------------------------------------------------------------
 
-etcd_tls_controller_pki_dir: "{{ ansible_env.HOME }}/.ansible/pki/etcd"
+etcd_tls_controller_pki_dir: "{{ lookup('env', 'HOME') }}/.ansible/pki/etcd"
 
 etcd_tls_ca_key_local: "{{ etcd_tls_controller_pki_dir }}/ca.key"
 etcd_tls_ca_cert_local: "{{ etcd_tls_controller_pki_dir }}/ca.crt"
