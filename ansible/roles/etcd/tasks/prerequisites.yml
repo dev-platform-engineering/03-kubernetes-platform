@@ -58,6 +58,12 @@
       - sysstat
     state: present
 
+- name: Prerequisites | Install Python cryptography
+  ansible.builtin.dnf:
+    name:
+      - python3-cryptography
+    state: present
+
 - name: Prerequisites | Disable swap
   ansible.builtin.command:
     cmd: swapoff -a
