@@ -82,6 +82,22 @@
   run_once: true
 
 # -----------------------------------------------------------------------------
+# 5. Generate self-signed etcd CA certificate on Ansible controller
+# -----------------------------------------------------------------------------
+
+- name: TLS | Generate etcd CA certificate
+  community.crypto.x509_certificate:
+    path: "{{ etcd_tls_ca_cert_local }}"
+    csr_path: "{{ etcd_tls_controller_pki_dir }}/ca.csr"
+    privatekey_path: "{{ etcd_tls_ca_key_local }}"
+    provider: selfsigned
+    selfsigned_not_after: "+{{ etcd_tls_ca_validity_days }}d"
+    selfsigned_digest: sha256
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# -----------------------------------------------------------------------------
 # 5. Generate server private key on each etcd node
 # -----------------------------------------------------------------------------
 
