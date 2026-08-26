@@ -36,6 +36,7 @@
     mode: "0700"
   delegate_to: localhost
   become: false
+  run_once: true
 
 # -----------------------------------------------------------------------------
 # 3. Generate etcd CA private key on Ansible controller
