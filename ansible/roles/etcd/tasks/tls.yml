@@ -59,10 +59,12 @@
     path: "{{ etcd_tls_ca_cert_local }}"
     privatekey_path: "{{ etcd_tls_ca_key_local }}"
     provider: selfsigned
+
     selfsigned_not_after: "+{{ etcd_tls_ca_validity_days }}d"
-    selfsigned_create_subject_key_identifier: true
-    selfsigned_create_authority_key_identifier: true
+    selfsigned_create_subject_key_identifier: always_create
+    selfsigned_create_authority_key_identifier: always_create
     selfsigned_digest: sha256
+
     subject:
       commonName: "{{ etcd_tls_ca_common_name }}"
       organizationName: "Platform"
