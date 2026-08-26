@@ -39,7 +39,23 @@
   run_once: true
 
 # -----------------------------------------------------------------------------
-# 3. Generate etcd CA private key on Ansible controller
+# 3. Create per-node PKI directory on Ansible controller
+# -----------------------------------------------------------------------------
+
+- name: TLS | Create local node PKI directory
+  ansible.builtin.file:
+    path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+
+# =============================================================================
+# ETCD CA
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 4. Generate etcd CA private key on Ansible controller
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd CA private key
@@ -53,7 +69,7 @@
   run_once: true
 
 # -----------------------------------------------------------------------------
-# 4. Generate etcd CA CSR on Ansible controller
+# 5. Generate etcd CA CSR on Ansible controller
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd CA CSR
@@ -82,7 +98,7 @@
   run_once: true
 
 # -----------------------------------------------------------------------------
-# 5. Generate self-signed etcd CA certificate on Ansible controller
+# 6. Generate self-signed etcd CA certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd CA certificate
@@ -97,8 +113,12 @@
   become: false
   run_once: true
 
+# =============================================================================
+# SERVER CERTIFICATE
+# =============================================================================
+
 # -----------------------------------------------------------------------------
-# 5. Generate server private key on each etcd node
+# 7. Generate server private key on each etcd node
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd server private key
@@ -111,7 +131,7 @@
     group: "{{ etcd_group }}"
 
 # -----------------------------------------------------------------------------
-# 6. Generate server CSR on each etcd node
+# 8. Generate server CSR on each etcd node
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd server CSR
@@ -136,10 +156,19 @@
       - "DNS:{{ inventory_hostname }}"
       - "IP:{{ ansible_host }}"
 
-  register: etcd_server_csr
+# -----------------------------------------------------------------------------
+# 9. Check whether server CSR already exists on controller
+# -----------------------------------------------------------------------------
+
+- name: TLS | Check local server CSR
+  ansible.builtin.stat:
+    path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/server.csr"
+  register: etcd_server_csr_local
+  delegate_to: localhost
+  become: false
 
 # -----------------------------------------------------------------------------
-# 7. Fetch server CSR to Ansible controller
+# 10. Fetch server CSR to controller only when missing
 # -----------------------------------------------------------------------------
 
 - name: TLS | Fetch server CSR
@@ -147,10 +176,18 @@
     src: "{{ etcd_tls_dir }}/server.csr"
     dest: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/server.csr"
     flat: true
-  when: etcd_server_csr.changed
+  when: not etcd_server_csr_local.stat.exists
 
 # -----------------------------------------------------------------------------
-# 8. Sign server certificate on Ansible controller
+# 11. Sign etcd server certificate
+#
+# community.crypto.x509_certificate is idempotent.
+#
+# Existing certificate:
+#   - preserved when it matches the requested state
+#
+# Missing certificate:
+#   - generated
 # -----------------------------------------------------------------------------
 
 - name: TLS | Sign etcd server certificate
@@ -164,10 +201,13 @@
     ownca_digest: sha256
   delegate_to: localhost
   become: false
-  when: etcd_server_csr.changed
+
+# =============================================================================
+# PEER CERTIFICATE
+# =============================================================================
 
 # -----------------------------------------------------------------------------
-# 9. Generate peer private key on each etcd node
+# 12. Generate etcd peer private key
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd peer private key
@@ -180,7 +220,7 @@
     group: "{{ etcd_group }}"
 
 # -----------------------------------------------------------------------------
-# 10. Generate peer CSR on each etcd node
+# 13. Generate peer CSR on each etcd node
 # -----------------------------------------------------------------------------
 
 - name: TLS | Generate etcd peer CSR
@@ -206,10 +246,19 @@
       - "DNS:{{ inventory_hostname }}"
       - "IP:{{ ansible_host }}"
 
-  register: etcd_peer_csr
+# -----------------------------------------------------------------------------
+# 14. Check whether peer CSR already exists on controller
+# -----------------------------------------------------------------------------
+
+- name: TLS | Check local peer CSR
+  ansible.builtin.stat:
+    path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/peer.csr"
+  register: etcd_peer_csr_local
+  delegate_to: localhost
+  become: false
 
 # -----------------------------------------------------------------------------
-# 11. Fetch peer CSR to Ansible controller
+# 15. Fetch peer CSR to controller only when missing
 # -----------------------------------------------------------------------------
 
 - name: TLS | Fetch peer CSR
@@ -217,10 +266,12 @@
     src: "{{ etcd_tls_dir }}/peer.csr"
     dest: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/peer.csr"
     flat: true
-  when: etcd_peer_csr.changed
+  when: not etcd_peer_csr_local.stat.exists
 
 # -----------------------------------------------------------------------------
-# 12. Sign peer certificate on Ansible controller
+# 16. Sign etcd peer certificate
+#
+# community.crypto.x509_certificate is idempotent.
 # -----------------------------------------------------------------------------
 
 - name: TLS | Sign etcd peer certificate
@@ -234,10 +285,13 @@
     ownca_digest: sha256
   delegate_to: localhost
   become: false
-  when: etcd_peer_csr.changed
+
+# =============================================================================
+# INSTALL CERTIFICATES ON ETCD NODE
+# =============================================================================
 
 # -----------------------------------------------------------------------------
-# 13. Copy signed server certificate back to etcd node
+# 17. Install etcd server certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd server certificate
@@ -249,7 +303,7 @@
     mode: "0644"
 
 # -----------------------------------------------------------------------------
-# 14. Copy signed peer certificate back to etcd node
+# 18. Install etcd peer certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd peer certificate
@@ -261,7 +315,7 @@
     mode: "0644"
 
 # -----------------------------------------------------------------------------
-# 15. Install etcd CA certificate
+# 19. Install etcd CA certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd CA certificate
@@ -272,22 +326,11 @@
     group: "{{ etcd_group }}"
     mode: "0644"
 
+# =============================================================================
+# VALIDATION
+# =============================================================================
 # -----------------------------------------------------------------------------
-# 16. Remove CSRs from etcd node
-# -----------------------------------------------------------------------------
-
-- name: TLS | Remove server CSR from etcd node
-  ansible.builtin.file:
-    path: "{{ etcd_tls_dir }}/server.csr"
-    state: absent
-
-- name: TLS | Remove peer CSR from etcd node
-  ansible.builtin.file:
-    path: "{{ etcd_tls_dir }}/peer.csr"
-    state: absent
-
-# -----------------------------------------------------------------------------
-# 17. Verify server certificate
+# 20. Verify etcd server certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Verify etcd server certificate
@@ -301,7 +344,7 @@
   failed_when: etcd_server_cert_verify.rc != 0
 
 # -----------------------------------------------------------------------------
-# 18. Verify peer certificate
+# 21. Verify etcd peer certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Verify etcd peer certificate
@@ -315,7 +358,7 @@
   failed_when: etcd_peer_cert_verify.rc != 0
 
 # -----------------------------------------------------------------------------
-# 19. Display certificate information
+# 22. Display etcd server certificate information
 # -----------------------------------------------------------------------------
 
 - name: TLS | Display etcd server certificate information
@@ -332,9 +375,13 @@
   register: etcd_server_cert_info
   changed_when: false
 
-- name: TLS | Display etcd server certificate information
+- name: TLS | Debug etcd server certificate information
   ansible.builtin.debug:
     var: etcd_server_cert_info.stdout_lines
+
+# -----------------------------------------------------------------------------
+# 23. Display etcd peer certificate information
+# -----------------------------------------------------------------------------
 
 - name: TLS | Display etcd peer certificate information
   ansible.builtin.command:
@@ -350,6 +397,6 @@
   register: etcd_peer_cert_info
   changed_when: false
 
-- name: TLS | Display etcd peer certificate information
+- name: TLS | Debug etcd peer certificate information
   ansible.builtin.debug:
     var: etcd_peer_cert_info.stdout_lines
