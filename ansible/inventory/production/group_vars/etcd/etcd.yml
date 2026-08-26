@@ -40,4 +40,47 @@ etcd_selinux_state: "enforcing"
 
 etcd_limit_nofile: 65536
 
-etcd_enable_tls: true
+# =============================================================================
+# etcd network identity
+# =============================================================================
+
+etcd_domain: "k8s.prod.platform.internal"
+
+etcd_fqdn: "{{ inventory_hostname }}.{{ etcd_domain }}"
+
+# -----------------------------------------------------------------------------
+# etcd TLS / PKI
+# -----------------------------------------------------------------------------
+
+etcd_tls_enabled: true
+
+# TLS files on etcd nodes
+etcd_tls_dir: "/etc/etcd/pki"
+
+etcd_tls_ca_cert: "{{ etcd_tls_dir }}/ca.crt"
+
+etcd_tls_server_cert: "{{ etcd_tls_dir }}/server.crt"
+etcd_tls_server_key: "{{ etcd_tls_dir }}/server.key"
+
+etcd_tls_peer_cert: "{{ etcd_tls_dir }}/peer.crt"
+etcd_tls_peer_key: "{{ etcd_tls_dir }}/peer.key"
+
+# -----------------------------------------------------------------------------
+# CA lives on Ansible controller
+# -----------------------------------------------------------------------------
+
+etcd_tls_controller_pki_dir: "/etc/ansible/pki/etcd"
+
+etcd_tls_ca_key_local: "{{ etcd_tls_controller_pki_dir }}/ca.key"
+etcd_tls_ca_cert_local: "{{ etcd_tls_controller_pki_dir }}/ca.crt"
+
+# CA subject
+etcd_tls_ca_common_name: "etcd-cluster-ca"
+
+# Certificate validity
+etcd_tls_ca_validity_days: 3650
+etcd_tls_cert_validity_days: 825
+
+# RSA key sizes
+etcd_tls_ca_key_size: 4096
+etcd_tls_node_key_size: 3072
