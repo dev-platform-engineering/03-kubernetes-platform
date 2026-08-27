@@ -10,9 +10,10 @@
 - name: Config | Build etcd initial cluster
   ansible.builtin.set_fact:
     etcd_initial_cluster: >-
-      {% for host in groups['etcd'] -%}
-      {{ host }}=https://{{ hostvars[host]['ansible_host'] }}:{{ etcd_peer_port }}{% if not loop.last %},{% endif %}
-      {%- endfor %}
+      {%- for host in groups['etcd'] -%}
+      {{ host }}=https://{{ hostvars[host]['ansible_host'] }}:{{ etcd_peer_port }}
+      {%- if not loop.last -%},{%- endif -%}
+      {%- endfor -%}
 
 - name: Config | Display etcd initial cluster
   ansible.builtin.debug:
