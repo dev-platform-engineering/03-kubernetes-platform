@@ -43,22 +43,22 @@ initial-cluster-token: "{{ etcd_initial_cluster_token }}"
 # -----------------------------------------------------------------------------
 
 client-transport-security:
-    cert-file: "{{ etcd_tls_server_cert }}"
-    key-file: "{{ etcd_tls_server_key }}"
-    trusted-ca-file: "{{ etcd_tls_ca_cert }}"
-    client-cert-auth: true
-    auto-tls: false
+  cert-file: "{{ etcd_tls_server_cert }}"
+  key-file: "{{ etcd_tls_server_key }}"
+  trusted-ca-file: "{{ etcd_tls_ca_cert }}"
+  client-cert-auth: true
+  auto-tls: false
 
 # -----------------------------------------------------------------------------
 # Peer TLS
 # -----------------------------------------------------------------------------
 
 peer-transport-security:
-    peer-cert-file: "{{ etcd_tls_peer_cert }}"
-    peer-key-file: "{{ etcd_tls_peer_key }}"
-    peer-trusted-ca-file: "{{ etcd_tls_ca_cert }}"
-    peer-client-cert-auth: true
-    peer-auto-tls: false
+  cert-file: "{{ etcd_tls_peer_cert }}"
+  key-file: "{{ etcd_tls_peer_key }}"
+  trusted-ca-file: "{{ etcd_tls_ca_cert }}"
+  client-cert-auth: true
+  auto-tls: false
 
 # -----------------------------------------------------------------------------
 # Security
