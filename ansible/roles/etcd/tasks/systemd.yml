@@ -34,3 +34,10 @@
     name: etcd
     enabled: true
     state: started
+
+- name: Systemd | Verify etcd service is active
+  ansible.builtin.systemd:
+    name: etcd
+  register: etcd_service_status
+  failed_when: etcd_service_status.status.ActiveState != "active"
+  changed_when: false
