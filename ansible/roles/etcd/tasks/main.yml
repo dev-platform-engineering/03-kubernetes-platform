@@ -10,6 +10,10 @@
       ansible.builtin.include_tasks:
         file: directories.yml
 
+    - name: Configure firewall
+      ansible.builtin.include_tasks:
+        file: firewall.yml
+
     - name: Install etcd
       ansible.builtin.include_tasks:
         file: install.yml
@@ -25,10 +29,6 @@
     - name: Configure systemd
       ansible.builtin.include_tasks:
         file: systemd.yml
-
-    # - name: Configure firewall
-    #   ansible.builtin.include_tasks:
-    #     file: firewall.yml
 
     # - name: Validate etcd
     #   ansible.builtin.include_tasks:
