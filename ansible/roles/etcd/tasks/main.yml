@@ -30,6 +30,6 @@
       ansible.builtin.include_tasks:
         file: systemd.yml
 
-    # - name: Validate etcd
-    #   ansible.builtin.include_tasks:
-    #     file: validate.yml
+    - name: Validate etcd
+      ansible.builtin.include_tasks:
+        file: validate.yml

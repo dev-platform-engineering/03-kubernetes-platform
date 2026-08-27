@@ -1,0 +1,81 @@
+---
+# =============================================================================
+# etcd validation
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Verify systemd service
+# -----------------------------------------------------------------------------
+
+- name: Validate | Check etcd service
+  ansible.builtin.command:
+    cmd: systemctl is-active etcd
+  register: etcd_service_status
+  changed_when: false
+  failed_when: etcd_service_status.stdout != "active"
+
+# -----------------------------------------------------------------------------
+# 2. Check local etcd endpoint health
+# -----------------------------------------------------------------------------
+
+- name: Validate | Check local etcd health
+  ansible.builtin.command:
+    cmd: >
+      {{ etcd_bin_dir }}/etcdctl
+      --endpoints=https://{{ ansible_host }}:{{ etcd_client_port }}
+      --cacert={{ etcd_tls_ca_cert }}
+      --cert={{ etcd_tls_client_cert }}
+      --key={{ etcd_tls_client_key }}
+      endpoint health
+  environment:
+    ETCDCTL_API: "3"
+  register: etcd_local_health
+  changed_when: false
+  retries: 10
+  delay: 2
+  until: etcd_local_health.rc == 0
+
+# -----------------------------------------------------------------------------
+# 3. Check complete etcd cluster health
+# -----------------------------------------------------------------------------
+
+- name: Validate | Check etcd cluster health
+  ansible.builtin.command:
+    cmd: >
+      {{ etcd_bin_dir }}/etcdctl
+      --endpoints={% for host in groups['etcd'] %}https://{{ hostvars[host].ansible_host }}:{{ etcd_client_port }}{% if not loop.last %},{% endif %}{% endfor %}
+      --cacert={{ etcd_tls_ca_cert }}
+      --cert={{ etcd_tls_client_cert }}
+      --key={{ etcd_tls_client_key }}
+      endpoint health
+  environment:
+    ETCDCTL_API: "3"
+  register: etcd_cluster_health
+  changed_when: false
+  retries: 10
+  delay: 2
+  until: etcd_cluster_health.rc == 0
+  run_once: true
+
+# -----------------------------------------------------------------------------
+# 4. Check cluster members and Raft state
+# -----------------------------------------------------------------------------
+
+- name: Validate | Check etcd cluster status
+  ansible.builtin.command:
+    cmd: >
+      {{ etcd_bin_dir }}/etcdctl
+      --endpoints={% for host in groups['etcd'] %}https://{{ hostvars[host].ansible_host }}:{{ etcd_client_port }}{% if not loop.last %},{% endif %}{% endfor %}
+      --cacert={{ etcd_tls_ca_cert }}
+      --cert={{ etcd_tls_client_cert }}
+      --key={{ etcd_tls_client_key }}
+      endpoint status
+      -w table
+  environment:
+    ETCDCTL_API: "3"
+  register: etcd_cluster_status
+  changed_when: false
+
+- name: Validate | Display cluster status
+  ansible.builtin.debug:
+    var: etcd_cluster_status.stdout_lines
