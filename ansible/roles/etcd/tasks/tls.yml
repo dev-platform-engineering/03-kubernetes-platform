@@ -126,7 +126,7 @@
     path: "{{ etcd_tls_server_key }}"
     type: RSA
     size: "{{ etcd_tls_node_key_size }}"
-    mode: "0600"
+    mode: "0640"
     owner: root
     group: "{{ etcd_group }}"
 
@@ -215,7 +215,7 @@
     path: "{{ etcd_tls_peer_key }}"
     type: RSA
     size: "{{ etcd_tls_node_key_size }}"
-    mode: "0600"
+    mode: "0640"
     owner: root
     group: "{{ etcd_group }}"
 
