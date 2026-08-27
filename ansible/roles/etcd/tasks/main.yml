@@ -22,9 +22,9 @@
       ansible.builtin.include_tasks:
         file: config.yml
 
-    # - name: Configure systemd
-    #   ansible.builtin.include_tasks:
-    #     file: systemd.yml
+    - name: Configure systemd
+      ansible.builtin.include_tasks:
+        file: systemd.yml
 
     # - name: Configure firewall
     #   ansible.builtin.include_tasks:

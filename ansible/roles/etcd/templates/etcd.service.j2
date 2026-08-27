@@ -1,5 +1,26 @@
-[Service]
-User=etcd
-Group=etcd
+[Unit]
+Description=etcd distributed key-value store
+Documentation=https://etcd.io/docs/
+After=network-online.target
+Wants=network-online.target
 
-LimitNOFILE=65536
+[Service]
+Type=notify
+
+User={{ etcd_user }}
+Group={{ etcd_group }}
+
+ExecStart={{ etcd_bin_dir }}/etcd \
+  --config-file={{ etcd_config_file }}
+
+Restart=on-failure
+RestartSec=5
+
+LimitNOFILE={{ etcd_limit_nofile }}
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+ReadWritePaths={{ etcd_data_dir }}
