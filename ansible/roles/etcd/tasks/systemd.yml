@@ -35,9 +35,11 @@
     enabled: true
     state: started
 
-- name: Systemd | Verify etcd service is active
+- name: Systemd | Wait for etcd service to become active
   ansible.builtin.systemd:
     name: etcd
   register: etcd_service_status
-  failed_when: etcd_service_status.status.ActiveState != "active"
+  until: etcd_service_status.status.ActiveState == "active"
+  retries: 10
+  delay: 2
   changed_when: false
