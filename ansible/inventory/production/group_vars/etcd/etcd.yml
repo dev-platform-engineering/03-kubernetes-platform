@@ -19,10 +19,12 @@ etcd_artifact_checksums:
 
 etcd_cluster_name: "prod-etcd-cluster"
 etcd_initial_cluster_state: "new"
+etcd_initial_cluster_token: "prod-etcd-cluster"
 
 etcd_data_dir: "/var/lib/etcd"
 etcd_config_dir: "/etc/etcd"
 etcd_bin_dir: "/usr/local/bin"
+etcd_config_file: "{{ etcd_config_dir }}/etcd.yml"
 
 etcd_user: "etcd"
 etcd_group: "etcd"

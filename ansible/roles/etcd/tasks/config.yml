@@ -1,0 +1,29 @@
+---
+# =============================================================================
+# etcd configuration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Build etcd initial cluster definition
+# -----------------------------------------------------------------------------
+
+- name: Config | Build etcd initial cluster
+  ansible.builtin.set_fact:
+    etcd_initial_cluster: >-
+      {%- for host in groups['etcd'] -%}
+      {{ host }}=https://{{ hostvars[host].ansible_host }}:{{ etcd_peer_port }}
+      {%- if not loop.last %},{% endif -%}
+      {%- endfor -%}
+
+# -----------------------------------------------------------------------------
+# 2. Deploy etcd configuration
+# -----------------------------------------------------------------------------
+
+- name: Config | Deploy etcd configuration
+  ansible.builtin.template:
+    src: etcd.yml.j2
+    dest: "{{ etcd_config_file }}"
+    owner: root
+    group: "{{ etcd_group }}"
+    mode: "0640"
+  notify: Restart etcd

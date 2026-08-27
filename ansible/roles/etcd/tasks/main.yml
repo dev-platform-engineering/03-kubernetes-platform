@@ -18,9 +18,9 @@
       ansible.builtin.include_tasks:
         file: tls.yml
 
-    # - name: Configure etcd
-    #   ansible.builtin.include_tasks:
-    #     file: config.yml
+    - name: Configure etcd
+      ansible.builtin.include_tasks:
+        file: config.yml
 
     # - name: Configure systemd
     #   ansible.builtin.include_tasks:
