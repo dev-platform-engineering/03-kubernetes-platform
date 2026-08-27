@@ -287,11 +287,99 @@
   become: false
 
 # =============================================================================
+# CLIENT CERTIFICATE
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 17. Generate etcd client private key
+# -----------------------------------------------------------------------------
+
+- name: TLS | Generate etcd client private key
+  community.crypto.openssl_privatekey:
+    path: "{{ etcd_tls_client_key }}"
+    type: RSA
+    size: "{{ etcd_tls_node_key_size }}"
+    mode: "0640"
+    owner: root
+    group: "{{ etcd_group }}"
+
+# -----------------------------------------------------------------------------
+# 18. Generate etcd client CSR
+# -----------------------------------------------------------------------------
+
+- name: TLS | Generate etcd client CSR
+  community.crypto.openssl_csr:
+    path: "{{ etcd_tls_dir }}/client.csr"
+    privatekey_path: "{{ etcd_tls_client_key }}"
+    common_name: "etcd-client"
+    digest: sha256
+
+    basic_constraints:
+      - "CA:FALSE"
+
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+
+    extended_key_usage:
+      - clientAuth
+
+# -----------------------------------------------------------------------------
+# 19. Check whether local client CSR already exists
+# -----------------------------------------------------------------------------
+
+- name: TLS | Check local client CSR
+  ansible.builtin.stat:
+    path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/client.csr"
+  register: etcd_client_csr_local
+  delegate_to: localhost
+  become: false
+
+# -----------------------------------------------------------------------------
+# 20. Fetch client CSR
+# -----------------------------------------------------------------------------
+
+- name: TLS | Fetch client CSR
+  ansible.builtin.fetch:
+    src: "{{ etcd_tls_dir }}/client.csr"
+    dest: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/client.csr"
+    flat: true
+  when: not etcd_client_csr_local.stat.exists
+
+# -----------------------------------------------------------------------------
+# 21. Sign client certificate
+# -----------------------------------------------------------------------------
+
+- name: TLS | Sign etcd client certificate
+  community.crypto.x509_certificate:
+    path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/client.crt"
+    csr_path: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/client.csr"
+    ownca_path: "{{ etcd_tls_ca_cert_local }}"
+    ownca_privatekey_path: "{{ etcd_tls_ca_key_local }}"
+    provider: ownca
+    ownca_not_after: "+{{ etcd_tls_cert_validity_days }}d"
+    ownca_digest: sha256
+  delegate_to: localhost
+  become: false
+
+# -----------------------------------------------------------------------------
+# 22. Install client certificate
+# -----------------------------------------------------------------------------
+
+- name: TLS | Install etcd client certificate
+  ansible.builtin.copy:
+    src: "{{ etcd_tls_controller_pki_dir }}/{{ inventory_hostname }}/client.crt"
+    dest: "{{ etcd_tls_client_cert }}"
+    owner: root
+    group: "{{ etcd_group }}"
+    mode: "0644"
+
+# =============================================================================
 # INSTALL CERTIFICATES ON ETCD NODE
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# 17. Install etcd server certificate
+# 23. Install etcd server certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd server certificate
@@ -303,7 +391,7 @@
     mode: "0644"
 
 # -----------------------------------------------------------------------------
-# 18. Install etcd peer certificate
+# 24. Install etcd peer certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd peer certificate
@@ -315,7 +403,7 @@
     mode: "0644"
 
 # -----------------------------------------------------------------------------
-# 19. Install etcd CA certificate
+# 25. Install etcd CA certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Install etcd CA certificate
@@ -330,7 +418,7 @@
 # VALIDATION
 # =============================================================================
 # -----------------------------------------------------------------------------
-# 20. Verify etcd server certificate
+# 26. Verify etcd server certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Verify etcd server certificate
@@ -344,7 +432,7 @@
   failed_when: etcd_server_cert_verify.rc != 0
 
 # -----------------------------------------------------------------------------
-# 21. Verify etcd peer certificate
+# 27. Verify etcd peer certificate
 # -----------------------------------------------------------------------------
 
 - name: TLS | Verify etcd peer certificate
@@ -358,7 +446,7 @@
   failed_when: etcd_peer_cert_verify.rc != 0
 
 # -----------------------------------------------------------------------------
-# 22. Display etcd server certificate information
+# 28. Display etcd server certificate information
 # -----------------------------------------------------------------------------
 
 - name: TLS | Display etcd server certificate information
@@ -380,7 +468,7 @@
     var: etcd_server_cert_info.stdout_lines
 
 # -----------------------------------------------------------------------------
-# 23. Display etcd peer certificate information
+# 29. Display etcd peer certificate information
 # -----------------------------------------------------------------------------
 
 - name: TLS | Display etcd peer certificate information

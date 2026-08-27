@@ -41,5 +41,5 @@
   register: etcd_service_status
   until: etcd_service_status.status.ActiveState == "active"
   retries: 10
-  delay: 2
+  delay: 3
   changed_when: false

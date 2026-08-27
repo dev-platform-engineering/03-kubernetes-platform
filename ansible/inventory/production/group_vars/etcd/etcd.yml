@@ -67,6 +67,10 @@ etcd_tls_server_key: "{{ etcd_tls_dir }}/server.key"
 etcd_tls_peer_cert: "{{ etcd_tls_dir }}/peer.crt"
 etcd_tls_peer_key: "{{ etcd_tls_dir }}/peer.key"
 
+etcd_tls_client_cert: "{{ etcd_tls_dir }}/client.crt"
+etcd_tls_client_key: "{{ etcd_tls_dir }}/client.key"
+
+etcd_tls_client_common_name: "etcd-client"
 # -----------------------------------------------------------------------------
 # CA lives on Ansible controller
 # -----------------------------------------------------------------------------
