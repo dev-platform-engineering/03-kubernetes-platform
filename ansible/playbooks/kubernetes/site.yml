@@ -1,0 +1,10 @@
+---
+- name: Configure settings for Kubernetes cluster
+  hosts: kubernetes
+  become: true
+  roles:
+    - role: common
+      tags: common
+
+    # - role: kubernetes
+    #   tags: kubernetes

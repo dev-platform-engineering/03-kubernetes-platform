@@ -10,6 +10,8 @@ repo_use_internal_repos: false
 # Deploy Nexus Repository on this host
 repo_nexus_enabled: false
 
+common_upgrade_packages: false
+
 timezone: Europe/Kyiv
 
 dns_domain: platform.internal

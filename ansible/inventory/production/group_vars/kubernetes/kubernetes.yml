@@ -1,0 +1,7 @@
+dns_search:
+  - k8s.prod.platform.internal
+  - platform.internal
+
+proxy_enabled: false
+repo_use_internal_repos: true
+common_upgrade_packages: true

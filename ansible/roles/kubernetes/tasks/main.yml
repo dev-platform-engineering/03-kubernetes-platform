@@ -1,0 +1,27 @@
+---
+- name: Configure Kubernetes node
+  become: true
+  block:
+    - name: Run Kubernetes prerequisites
+      ansible.builtin.include_tasks:
+        file: prerequisites.yml
+
+    # - name: Configure kernel modules
+    #   ansible.builtin.include_tasks:
+    #     file: kernel.yml
+
+    # - name: Configure kernel parameters
+    #   ansible.builtin.include_tasks:
+    #     file: sysctl.yml
+
+    # - name: Install and configure containerd
+    #   ansible.builtin.include_tasks:
+    #     file: containerd.yml
+
+    # - name: Install Kubernetes packages
+    #   ansible.builtin.include_tasks:
+    #     file: kube_packages.yml
+
+    # - name: Validate Kubernetes node
+    #   ansible.builtin.include_tasks:
+    #     file: validate.yml

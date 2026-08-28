@@ -19,7 +19,9 @@
   when: proxy_enabled | default(false) | bool
 
 - name: Upgrade OS
-  include_tasks: upgrade.yml
+  ansible.builtin.include_tasks:
+    file: upgrade.yml
+  when: common_upgrade_packages | default(false) | bool
 
 #after upgrade all repo return to default and we need reapply our repo
 - name: Configure repo

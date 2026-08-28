@@ -4,6 +4,7 @@ dns_search:
 
 proxy_enabled: false
 repo_use_internal_repos: true
+common_upgrade_packages: true
 
 etcd_version: "v3.5.15"
 etcd_arch: "linux-amd64"
