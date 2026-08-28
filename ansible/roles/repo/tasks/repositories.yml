@@ -508,6 +508,53 @@
     label: "{{ item.item.name }}"
   when: item.status == 404
 
+# ---------------------------------------------------------------------------
+# Platform artifacts - RAW hosted repository
+# ---------------------------------------------------------------------------
+
+- name: Check platform artifacts repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/raw/hosted/{{ repo_nexus_platform_artifacts.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  register: repo_nexus_platform_artifacts_check
+  when: repo_nexus_platform_artifacts_enabled | bool
+  no_log: true
+
+- name: Create platform artifacts repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/raw/hosted"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ repo_nexus_platform_artifacts.name }}"
+      online: true
+
+      storage:
+        blobStoreName: "{{ repo_nexus_platform_artifacts.blob_store }}"
+        strictContentTypeValidation: "{{ repo_nexus_platform_artifacts.strict_content_type_validation }}"
+        writePolicy: "{{ repo_nexus_platform_artifacts.write_policy }}"
+
+    status_code: 201
+    validate_certs: false
+
+  when:
+    - repo_nexus_platform_artifacts_enabled | bool
+    - repo_nexus_platform_artifacts_check.status == 404
+
+  no_log: true
+
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/security/anonymous"

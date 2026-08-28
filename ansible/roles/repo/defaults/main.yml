@@ -1,5 +1,5 @@
 ---
-repo_enabled: false
+repo_use_internal_repos: false
 
 # Nexus
 repo_nexus_enabled: true
@@ -122,6 +122,14 @@ repo_nexus_k8s_proxies:
     distribution: "/"
     flat: true
     enforce_distribution: false
+
+repo_nexus_platform_artifacts_enabled: true
+
+repo_nexus_platform_artifacts:
+  name: "platform-artifacts"
+  blob_store: "default"
+  strict_content_type_validation: true
+  write_policy: "ALLOW_ONCE"
 
 docker_insecure_registries:
   - "127.0.0.1:8082"

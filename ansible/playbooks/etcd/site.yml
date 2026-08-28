@@ -1,0 +1,16 @@
+---
+- name: Configure common settings for Etcd cluster
+  hosts: etcd
+  become: true
+  roles:
+    - role: common
+      tags: common
+
+    - role: etcd
+      tags: etcd
+# - name: Configure etcd nodes
+#   hosts: etcd
+#   become: true
+#   serial: 1
+#   roles:
+#     - etcd

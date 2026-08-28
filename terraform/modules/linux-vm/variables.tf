@@ -43,9 +43,9 @@ variable "ipv4_gateway" {
   type = string
 }
 
-variable "dns_servers" {
-  type = list(string)
-}
+# variable "dns_servers" {
+#   type = list(string)
+# }
 
 variable "dns_search_domains" {
   type    = list(string)

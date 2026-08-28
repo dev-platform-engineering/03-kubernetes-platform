@@ -1,10 +1,9 @@
 data "vsphere_virtual_machine" "templates" {
-  for_each = {
-    for vm in local.linux_vms :
-    vm.template_name => vm
-  }
+  for_each = toset([
+    for vm in local.linux_vms : vm.template_name
+  ])
 
-  name          = each.key
+  name          = each.value
   datacenter_id = data.terraform_remote_state.foundation.outputs.datacenter_id
 }
 

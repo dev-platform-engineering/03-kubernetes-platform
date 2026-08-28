@@ -1,0 +1,18 @@
+- name: Upgrade all system packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_only: true
+  register: system_upgrade
+  retries: 5
+  delay: 30
+  until: system_upgrade is succeeded
+
+- name: Reboot after system upgrade
+  ansible.builtin.reboot:
+    msg: "Rebooting after system package upgrade"
+    reboot_timeout: 600
+    connect_timeout: 10
+    pre_reboot_delay: 5
+    post_reboot_delay: 10
+  when: system_upgrade.changed

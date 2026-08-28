@@ -1,0 +1,20 @@
+- name: Update APT package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Upgrade all system packages
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: true
+    autoclean: true
+  register: system_upgrade
+
+- name: Reboot after system upgrade
+  ansible.builtin.reboot:
+    msg: "Rebooting after system package upgrade"
+    reboot_timeout: 600
+    connect_timeout: 10
+    pre_reboot_delay: 5
+    post_reboot_delay: 10
+  when: system_upgrade.changed

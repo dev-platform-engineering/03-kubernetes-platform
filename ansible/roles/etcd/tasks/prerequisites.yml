@@ -1,0 +1,96 @@
+---
+- name: Preflight | Verify minimum RAM availability (etcd baseline)
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 2048
+    fail_msg: "etcd node requires at least 2GB of RAM for baseline stability."
+
+- name: Prerequisites | Ensure Local DNS mapping in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*{{ item }}$"
+    line: "{{ hostvars[item]['ansible_host'] }} {{ item }} {{ item }}.k8s.prod.platform.internal"
+    state: present
+  loop: "{{ groups['etcd'] }}"
+  when: etcd_manage_hosts | default(false)
+
+- name: Preflight | Verify DNS resolution for etcd node
+  ansible.builtin.command: "getent hosts {{ inventory_hostname }}.k8s.prod.platform.internal"
+  register: dns_check
+  changed_when: false
+  failed_when: dns_check.rc != 0
+  when: not etcd_manage_hosts | default(false)
+
+- name: Prerequisites | Ensure Chrony is running and synchronized
+  ansible.builtin.systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+
+- name: Preflight | Check if Chrony is synchronized
+  ansible.builtin.command: "chronyc tracking"
+  register: chrony_tracking
+  changed_when: false
+  failed_when: "'Leap status     : Normal' not in chrony_tracking.stdout"
+
+- name: Prerequisites | Create etcd group
+  ansible.builtin.group:
+    name: "{{ etcd_group }}"
+    system: "{{ etcd_user_system }}"
+    state: present
+
+- name: Prerequisites | Create etcd user
+  ansible.builtin.user:
+    name: "{{ etcd_user }}"
+    group: "{{ etcd_group }}"
+    system: "{{ etcd_user_system }}"
+    shell: "{{ etcd_user_shell }}"
+    home: "/"
+    create_home: false
+    state: present
+
+- name: Prerequisites | Install required base utilities
+  ansible.builtin.dnf:
+    name:
+      - chrony
+      - tar
+      - curl
+      - sysstat
+    state: present
+
+- name: Prerequisites | Install Python cryptography
+  ansible.builtin.dnf:
+    name:
+      - python3-cryptography
+    state: present
+
+- name: Prerequisites | Disable swap
+  ansible.builtin.command:
+    cmd: swapoff -a
+  when: ansible_swaptotal_mb | int > 0
+
+- name: Prerequisites | Remove swap entries from fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*[^#\s]+\s+\S+\s+swap\s+\S+.*)$'
+    replace: '# \1'
+    backup: true
+
+- name: Prerequisites | Set swappiness
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "0"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-etcd.conf
+    reload: true
+
+- name: Prerequisites | Ensure SELinux is enforcing
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+
+- name: Prerequisites | Verify time synchronization
+  ansible.builtin.command:
+    cmd: chronyc tracking
+  register: etcd_chrony_tracking
+  changed_when: false

@@ -1,10 +1,36 @@
-- name: Install chrony
-  package:
+- name: NTP | Install chrony
+  ansible.builtin.package:
     name: "{{ ntp_package }}"
     state: present
 
-- name: Enable chronyd
-  service:
+- name: NTP | Configure chrony
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart chronyd
+
+- name: NTP | Enable chronyd
+  ansible.builtin.service:
     name: "{{ ntp_service }}"
     enabled: true
     state: started
+
+- name: NTP | Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: NTP | Wait for synchronization
+  ansible.builtin.command:
+    cmd: chronyc waitsync 120
+  register: chrony_waitsync
+  changed_when: false
+
+- name: NTP | Verify synchronization
+  ansible.builtin.command:
+    cmd: chronyc tracking
+  register: chrony_tracking
+  changed_when: false
+  failed_when: "'Leap status     : Normal' not in chrony_tracking.stdout"

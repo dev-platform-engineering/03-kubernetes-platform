@@ -1,0 +1,68 @@
+# =============================================================================
+# Managed by Ansible
+# etcd configuration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Member identity
+# -----------------------------------------------------------------------------
+
+name: "{{ inventory_hostname }}"
+
+# -----------------------------------------------------------------------------
+# Data
+# -----------------------------------------------------------------------------
+
+data-dir: "{{ etcd_data_dir }}"
+
+# -----------------------------------------------------------------------------
+# Client communication
+# -----------------------------------------------------------------------------
+
+listen-client-urls: "https://{{ ansible_host }}:{{ etcd_client_port }}"
+advertise-client-urls: "https://{{ ansible_host }}:{{ etcd_client_port }}"
+
+# -----------------------------------------------------------------------------
+# Peer communication
+# -----------------------------------------------------------------------------
+
+listen-peer-urls: "https://{{ ansible_host }}:{{ etcd_peer_port }}"
+
+initial-advertise-peer-urls: "https://{{ ansible_host }}:{{ etcd_peer_port }}"
+
+# -----------------------------------------------------------------------------
+# Cluster bootstrap
+# -----------------------------------------------------------------------------
+
+initial-cluster: "{{ etcd_initial_cluster }}"
+initial-cluster-state: "{{ etcd_initial_cluster_state }}"
+initial-cluster-token: "{{ etcd_initial_cluster_token }}"
+
+# -----------------------------------------------------------------------------
+# Client TLS
+# -----------------------------------------------------------------------------
+
+client-transport-security:
+  cert-file: "{{ etcd_tls_server_cert }}"
+  key-file: "{{ etcd_tls_server_key }}"
+  trusted-ca-file: "{{ etcd_tls_ca_cert }}"
+  client-cert-auth: true
+  auto-tls: false
+
+# -----------------------------------------------------------------------------
+# Peer TLS
+# -----------------------------------------------------------------------------
+
+peer-transport-security:
+  cert-file: "{{ etcd_tls_peer_cert }}"
+  key-file: "{{ etcd_tls_peer_key }}"
+  trusted-ca-file: "{{ etcd_tls_ca_cert }}"
+  client-cert-auth: true
+  auto-tls: false
+
+# -----------------------------------------------------------------------------
+# Security
+# -----------------------------------------------------------------------------
+
+strict-reconfig-check: true
+enable-v2: false

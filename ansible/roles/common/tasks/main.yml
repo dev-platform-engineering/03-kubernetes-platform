@@ -10,12 +10,24 @@
 - name: Configure DNS
   include_tasks: dns.yml
 
-- name: Configure NTP
-  include_tasks: ntp.yml
+- name: Configure repo
+  include_tasks: repo.yml
+  when: repo_use_internal_repos | default(false) | bool
 
 - name: Configure proxy
   include_tasks: proxy.yml
-  when: proxy_enabled | default(false)
+  when: proxy_enabled | default(false) | bool
+
+- name: Upgrade OS
+  include_tasks: upgrade.yml
+
+#after upgrade all repo return to default and we need reapply our repo
+- name: Configure repo
+  include_tasks: repo.yml
+  when: repo_use_internal_repos | default(false) | bool
+
+- name: Configure NTP
+  include_tasks: ntp.yml
 
 - name: Install common packages
   include_tasks: packages.yml

@@ -22,41 +22,61 @@
       dns=default
   notify: Restart NetworkManager
 
-- name: Check DNS migration marker
-  ansible.builtin.stat:
-    path: /etc/.dns_fixed
-  register: dns_fixed
+# - name: Check DNS migration marker
+#   ansible.builtin.stat:
+#     path: /etc/.dns_fixed
+#   register: dns_fixed
 
 - name: Check resolv.conf
   ansible.builtin.stat:
     path: /etc/resolv.conf
   register: resolv_conf
 
-- name: Remove old resolv.conf
+- name: Fix resolv.conf if it is missing or a broken symlink
   ansible.builtin.file:
     path: /etc/resolv.conf
-    state: absent
-  register: resolv_conf_removed
-  when:
-    - not dns_fixed.stat.exists
-    - resolv_conf.stat.exists
-    - not resolv_conf.stat.islnk | default(false)
-  notify: Restart NetworkManager
-
-- name: Create DNS migration marker
-  ansible.builtin.file:
-    path: /etc/.dns_fixed
     state: touch
     owner: root
     group: root
     mode: "0644"
-  when: resolv_conf_removed.changed
+  when: not resolv_conf.stat.exists or resolv_conf.stat.islnk | default(false)
 
 - name: Configure DNS
   community.general.nmcli:
-    conn_name: "{{ nm_active.stdout.split(':')[0] }}"
+    conn_name: "{{ nm_active.stdout.split('\n')[0].split(':')[0] }}"
     dns4: "{{ dns_servers }}"
     dns4_search: "{{ dns_search }}"
     dns4_ignore_auto: true
     state: present
   notify: Restart NetworkManager
+
+- name: Apply NetworkManager changes immediately
+  ansible.builtin.meta: flush_handlers
+# - name: Remove old resolv.conf
+#   ansible.builtin.file:
+#     path: /etc/resolv.conf
+#     state: absent
+#   register: resolv_conf_removed
+#   when:
+#     - not dns_fixed.stat.exists
+#     - resolv_conf.stat.exists
+#     - not resolv_conf.stat.islnk | default(false)
+#   notify: Restart NetworkManager
+
+# - name: Create DNS migration marker
+#   ansible.builtin.file:
+#     path: /etc/.dns_fixed
+#     state: touch
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   when: resolv_conf_removed.changed
+
+# - name: Configure DNS
+#   community.general.nmcli:
+#     conn_name: "{{ nm_active.stdout.split(':')[0] }}"
+#     dns4: "{{ dns_servers }}"
+#     dns4_search: "{{ dns_search }}"
+#     dns4_ignore_auto: true
+#     state: present
+#   notify: Restart NetworkManager

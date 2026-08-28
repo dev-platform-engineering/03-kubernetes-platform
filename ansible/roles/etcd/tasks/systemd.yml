@@ -1,0 +1,45 @@
+---
+# =============================================================================
+# etcd systemd service
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Install systemd unit
+# -----------------------------------------------------------------------------
+
+- name: Systemd | Deploy etcd service unit
+  ansible.builtin.template:
+    src: etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: etcd_systemd_unit
+
+# -----------------------------------------------------------------------------
+# 2. Reload systemd when unit changes
+# -----------------------------------------------------------------------------
+
+- name: Systemd | Reload systemd daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when: etcd_systemd_unit.changed
+
+# -----------------------------------------------------------------------------
+# 3. Enable and start etcd
+# -----------------------------------------------------------------------------
+
+- name: Systemd | Enable and start etcd
+  ansible.builtin.systemd_service:
+    name: etcd
+    enabled: true
+    state: started
+
+- name: Systemd | Wait for etcd service to become active
+  ansible.builtin.systemd:
+    name: etcd
+  register: etcd_service_status
+  until: etcd_service_status.status.ActiveState == "active"
+  retries: 10
+  delay: 3
+  changed_when: false

@@ -1,0 +1,92 @@
+dns_search:
+  - k8s.prod.platform.internal
+  - platform.internal
+
+proxy_enabled: false
+repo_use_internal_repos: true
+
+etcd_version: "v3.5.15"
+etcd_arch: "linux-amd64"
+etcd_archive: "etcd-{{ etcd_version }}-{{ etcd_arch }}.tar.gz"
+etcd_artifact_repo_url: >-
+  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts
+etcd_artifact_url: >-
+  {{ etcd_artifact_repo_url }}/etcd/{{ etcd_version }}/{{ etcd_archive }}
+etcd_artifact_checksums:
+  "v3.5.15": "sha256:3f6b48d8c2844699f2b19c1880508ecf63e1489769ed37ebb97495d5cd848a89"
+  #v3.5.16: "sha256:b414b27a5ad05f7cb01395c447c85d3227e3fb1c176e51757a283b817f645ccc"
+  #https://github.com/andrewrothstein/ansible-etcd/blob/main/defaults/main.yml
+
+etcd_cluster_name: "prod-etcd-cluster"
+etcd_initial_cluster_state: "new"
+etcd_initial_cluster_token: "prod-etcd-cluster"
+
+etcd_data_dir: "/var/lib/etcd"
+etcd_config_dir: "/etc/etcd"
+etcd_bin_dir: "/usr/local/bin"
+etcd_config_file: "{{ etcd_config_dir }}/etcd.yml"
+
+etcd_user: "etcd"
+etcd_group: "etcd"
+etcd_user_system: true
+etcd_user_shell: "/sbin/nologin"
+
+etcd_client_port: 2379
+etcd_peer_port: 2380
+
+etcd_manage_hosts: true
+
+etcd_manage_firewall: true
+
+etcd_selinux_state: "enforcing"
+
+etcd_limit_nofile: 65536
+
+# =============================================================================
+# etcd network identity
+# =============================================================================
+
+etcd_domain: "k8s.prod.platform.internal"
+
+etcd_fqdn: "{{ inventory_hostname }}.{{ etcd_domain }}"
+
+# -----------------------------------------------------------------------------
+# etcd TLS / PKI
+# -----------------------------------------------------------------------------
+
+etcd_tls_enabled: true
+
+# TLS files on etcd nodes
+etcd_tls_dir: "/etc/etcd/pki"
+
+etcd_tls_ca_cert: "{{ etcd_tls_dir }}/ca.crt"
+
+etcd_tls_server_cert: "{{ etcd_tls_dir }}/server.crt"
+etcd_tls_server_key: "{{ etcd_tls_dir }}/server.key"
+
+etcd_tls_peer_cert: "{{ etcd_tls_dir }}/peer.crt"
+etcd_tls_peer_key: "{{ etcd_tls_dir }}/peer.key"
+
+etcd_tls_client_cert: "{{ etcd_tls_dir }}/client.crt"
+etcd_tls_client_key: "{{ etcd_tls_dir }}/client.key"
+
+etcd_tls_client_common_name: "etcd-client"
+# -----------------------------------------------------------------------------
+# CA lives on Ansible controller
+# -----------------------------------------------------------------------------
+
+etcd_tls_controller_pki_dir: "{{ lookup('env', 'HOME') }}/.ansible/pki/etcd"
+
+etcd_tls_ca_key_local: "{{ etcd_tls_controller_pki_dir }}/ca.key"
+etcd_tls_ca_cert_local: "{{ etcd_tls_controller_pki_dir }}/ca.crt"
+
+# CA subject
+etcd_tls_ca_common_name: "etcd-cluster-ca"
+
+# Certificate validity
+etcd_tls_ca_validity_days: 3650
+etcd_tls_cert_validity_days: 825
+
+# RSA key sizes
+etcd_tls_ca_key_size: 4096
+etcd_tls_node_key_size: 3072
