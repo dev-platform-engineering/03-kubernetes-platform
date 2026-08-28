@@ -1,0 +1,15 @@
+vsphere_server   = "vcsa.corp"
+vsphere_user     = "esxi-test@corp"
+vsphere_password = "password"
+
+datacenter = "***DC"
+esxi_host  = "esxi.corp"
+
+vyos_template = "template-vyos-2026.03"
+
+datastore     = "DS-LOCAL-R10-DATA"
+resource_pool = "RP-Network"
+
+management_portgroup        = "PG-V10-Management"
+trunk_portgroup             = "PG-VGT-Trunk"
+external_services_portgroup = "PG-S13-ExternalService"
