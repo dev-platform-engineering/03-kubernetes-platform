@@ -48,3 +48,11 @@ repo_rocky_baseos_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-baseos/"
 repo_rocky_appstream_url: "http://{{ repo_fqdn }}:8081/repository/rocky-9-appstream/"
 
 repo_rocky_local_gpg_path: "/etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-9"
+
+repo_debian_enabled: true
+repo_debian_base_url: "http://repo-01.infra.platform.internal:8081/repository/debian-12"
+repo_debian_security_url: "http://repo-01.infra.platform.internal:8081/repository/debian-12-security"
+repo_debian_release: "bookworm"
+repo_debian_security_release: "bookworm-security"
+repo_debian_components:
+  - main

@@ -1,0 +1,141 @@
+---
+# ============================================================
+# Debian APT repository configuration
+# ============================================================
+
+- name: Check default APT sources.list
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list
+  register: apt_sources_list
+
+# ============================================================
+# Backup existing repository configuration
+# ============================================================
+
+- name: Find all existing default APT repository files
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns:
+      - "*.list"
+      - "*.sources"
+    excludes:
+      - "internal-debian-12.list"
+      - "internal-debian-12-security.list"
+    file_type: file
+  register: default_apt_repos
+
+- name: Create backup directory for default Internet repositories
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/backup
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Repositories | Move default repository files
+  ansible.builtin.command:
+    cmd: "mv {{ item.path }} /etc/apt/sources.list.d/backup/{{ item.path | basename }}"
+  loop: "{{ default_apt_repos.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: default_apt_repos.files | length > 0
+  changed_when: true
+
+# ============================================================
+# Backup and disable /etc/apt/sources.list
+# ============================================================
+
+- name: Backup default APT sources.list
+  ansible.builtin.copy:
+    src: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.backup
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+    force: false
+  when: apt_sources_list.stat.exists
+
+- name: Disable default APT sources.list
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: "0644"
+
+# ============================================================
+# Configure internal Debian 12 Base repository
+# ============================================================
+
+- name: Configure Debian 12 Base repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb {{ repo_debian_base_url }}
+      {{ repo_debian_release }}
+      {{ repo_debian_components | join(' ') }}
+    filename: internal-debian-12
+    state: present
+    update_cache: false
+
+# ============================================================
+# Configure internal Debian 12 Security repository
+# ============================================================
+
+- name: Configure Debian 12 Security repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb {{ repo_debian_security_url }}
+      {{ repo_debian_security_release }}
+      {{ repo_debian_components | join(' ') }}
+    filename: internal-debian-12-security
+    state: present
+    update_cache: false
+
+# ============================================================
+# Refresh APT repository metadata
+# ============================================================
+
+- name: Refresh APT repository metadata
+  ansible.builtin.apt:
+    update_cache: true
+
+# ============================================================
+# Verify configured APT repositories
+# ============================================================
+
+- name: Verify configured APT repositories
+  ansible.builtin.command:
+    cmd: apt-cache policy
+  register: apt_policy
+  changed_when: false
+
+- name: Display configured APT repositories
+  ansible.builtin.debug:
+    var: apt_policy.stdout_lines
+
+# ============================================================
+# Verify Debian 12 Base repository
+# ============================================================
+
+- name: Verify Debian 12 Base repository
+  ansible.builtin.shell:
+    cmd: >
+      apt-cache policy |
+      grep -F "{{ repo_debian_base_url }}"
+  register: debian_base_repo_check
+  changed_when: false
+  failed_when: debian_base_repo_check.rc != 0
+
+# ============================================================
+# Verify Debian 12 Security repository
+# ============================================================
+
+- name: Verify Debian 12 Security repository
+  ansible.builtin.shell:
+    cmd: >
+      apt-cache policy |
+      grep -F "{{ repo_debian_security_url }}"
+  register: debian_security_repo_check
+  changed_when: false
+  failed_when: debian_security_repo_check.rc != 0

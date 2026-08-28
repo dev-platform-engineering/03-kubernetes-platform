@@ -1,6 +1,10 @@
+---
 - name: Configure APT repo
-  ansible.builtin.include_tasks: repo-debian.yml
-  when: ansible_os_family == "Debian"
+  ansible.builtin.include_tasks:
+    file: repo-debian.yml
+  when:
+    - ansible_os_family == "Debian"
+    - repo_debian_enabled | bool
 
 - name: Configure DNF repo
   ansible.builtin.include_tasks: repo-redhat.yml
