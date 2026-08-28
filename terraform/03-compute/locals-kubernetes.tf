@@ -7,11 +7,11 @@ locals {
 
     resource_pool = "RP-Kubernetes"
 
-    folder    = "Kubernetes/ControlPlane"
+    folder    = "control_plane"
     datastore = "data2_R10"
     disk_size = 100
 
-    network = "PG-V30-ControlPlane"
+    network = "control_plane"
 
     netmask = 24
     gateway = "10.50.30.254"
