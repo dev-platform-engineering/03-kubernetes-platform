@@ -1,54 +1,75 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import type { ClusterTopology } from '../types/terraform.js';
+
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class TerraformService {
-    // Список усіх шарів інфраструктури для сканування
-    private readonly layers: string[];
+    private readonly platformLayer = '04-platform';
+
     private readonly terraformBaseDir: string;
 
     constructor() {
-        this.terraformBaseDir = path.resolve(__dirname, '../../../terraform');
-        this.layers = ['01-foundation', '02-network', '03-compute'];
+        this.terraformBaseDir = path.resolve(
+            __dirname,
+            '../../../terraform'
+        );
     }
 
-    private async getLayerOutputs(layerPath: string): Promise<Record<string, any>> {
-        return new Promise((resolve) => {
-            exec('terraform output -json', { cwd: layerPath }, (error, stdout) => {
-                if (error) {
-
-                    return resolve({});
+    private async getLayerOutputs(
+        layerPath: string
+    ): Promise<Record<string, unknown>> {
+        try {
+            const { stdout } = await execFileAsync(
+                'terraform',
+                ['output', '-json'],
+                {
+                    cwd: layerPath,
                 }
-                try {
-                    resolve(JSON.parse(stdout));
-                } catch {
-                    resolve({});
-                }
-            });
-        });
-    }
+            );
 
-    async getPlatformTopology(): Promise<ClusterTopology> {
-        let combinedOutputs: Record<string, any> = {};
+            return JSON.parse(stdout) as Record<string, unknown>;
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error';
 
-        for (const layer of this.layers) {
-            const layerPath = path.join(this.terraformBaseDir, layer);
-            const layerOutputs = await this.getLayerOutputs(layerPath);
-
-            combinedOutputs = { ...combinedOutputs, ...layerOutputs };
-        }
-
-        if (!combinedOutputs.platform_topology) {
             throw new Error(
-                `Output 'platform_topology' not found in any Terraform layers (${this.layers.join(', ')}). ` +
-                `Перевірте, чи додали ви блок output в один із цих шарів та чи виконали terraform apply.`
+                `Failed to get Terraform outputs from ${layerPath}: ${message}`
+            );
+        }
+    }
+
+    public async getPlatformTopology(): Promise<ClusterTopology> {
+        const platformLayerPath = path.join(
+            this.terraformBaseDir,
+            this.platformLayer
+        );
+
+        const outputs =
+            await this.getLayerOutputs(platformLayerPath);
+
+        const platformTopology =
+            outputs['platform_topology'];
+
+        if (!platformTopology) {
+            throw new Error(
+                `Output 'platform_topology' not found in Terraform layer: ` +
+                this.platformLayer
             );
         }
 
-        return combinedOutputs.platform_topology.value;
+        return (
+            platformTopology as {
+                value: ClusterTopology;
+            }
+        ).value;
     }
 }

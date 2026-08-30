@@ -2,7 +2,9 @@ import { z } from 'zod';
 import type { TerraformService } from '../services/terraform.service.js';
 
 export class PlatformTopologyTool {
-    constructor(private readonly terraformService: TerraformService) { }
+    constructor(
+        private readonly terraformService: TerraformService
+    ) { }
 
     public getName(): string {
         return 'get_platform_topology';
@@ -18,7 +20,8 @@ export class PlatformTopologyTool {
 
     public async execute() {
         try {
-            const topology = await this.terraformService.getPlatformTopology();
+            const topology =
+                await this.terraformService.getPlatformTopology();
 
             return {
                 content: [
@@ -29,13 +32,18 @@ export class PlatformTopologyTool {
                 ],
             };
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error';
+
             return {
                 isError: true,
                 content: [
                     {
                         type: 'text' as const,
-                        text: `Failed to retrieve platform topology: ${message}`,
+                        text:
+                            `Failed to retrieve platform topology: ${message}`,
                     },
                 ],
             };
