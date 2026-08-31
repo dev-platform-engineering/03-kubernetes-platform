@@ -2,10 +2,13 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { TerraformService } from './services/terraform.service.js';
 import { PlatformTopologyTool } from './tools/platform-topology.tool.js';
+import { ConnectivityService } from './services/connectivity.service.js';
+import { PlatformConnectivityTool } from './tools/platform-connectivity.tool.js';
 
 export class PlatformMcpServer {
     private readonly server: McpServer;
     private readonly terraformService: TerraformService;
+    private readonly connectivityService: ConnectivityService;
 
     constructor() {
         this.server = new McpServer({
@@ -14,18 +17,29 @@ export class PlatformMcpServer {
         });
 
         this.terraformService = new TerraformService();
+        this.connectivityService = new ConnectivityService(this.terraformService);
+
 
         this.registerTools();
     }
 
     private registerTools(): void {
         const topologyTool = new PlatformTopologyTool(this.terraformService);
+        const connectivityTool = new PlatformConnectivityTool(this.connectivityService);
+
 
         this.server.tool(
             topologyTool.getName(),
             topologyTool.getDescription(),
             topologyTool.getSchema(),
             () => topologyTool.execute()
+        );
+
+        this.server.tool(
+            connectivityTool.getName(),
+            connectivityTool.getDescription(),
+            connectivityTool.getSchema(),
+            () => connectivityTool.execute()
         );
     }
 
