@@ -10,7 +10,10 @@ export interface ClusterTopology {
     vpc_id: string;
     region: string;
     control_plane_version: string;
+
     node_groups: NodeGroupInfo[];
+
+    nodes: PlatformNode[];
 }
 
 export interface NodeGroupInfo {
@@ -22,8 +25,20 @@ export interface NodeGroupInfo {
     labels: Record<string, string>;
 }
 
+export interface PlatformNode {
+    name: string;
+    address: string;
+    role: PlatformNodeRole;
+    ssh_port?: number;
+}
+
+export type PlatformNodeRole =
+    | 'control-plane'
+    | 'worker'
+    | 'etcd'
+    | 'router'
+    | 'repository';
+
 export interface PlatformTerraformOutputs {
     platform_topology: TerraformOutputWrapper<ClusterTopology>;
-
-    // kubeconfig_path?: TerraformOutputWrapper<string>;
 }
