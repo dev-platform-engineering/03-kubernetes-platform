@@ -1,15 +1,17 @@
 import net from 'node:net';
 
+import { TerraformService } from './terraform.service.js';
+
 import type {
-    PlatformNode,
+    ClusterTopology,
 } from '../types/terraform.js';
 
 import type {
     NodeConnectivityResult,
     PlatformConnectivity,
+    PlatformNode,
+    PlatformNodeRole,
 } from '../types/connectivity.js';
-
-import { TerraformService } from './terraform.service.js';
 
 
 export class ConnectivityService {
@@ -21,6 +23,81 @@ export class ConnectivityService {
         private readonly terraformService: TerraformService
     ) { }
 
+    /**
+     * Determine the platform role based on the node name.
+     */
+    private getNodeRole(
+        name: string
+    ): PlatformNodeRole {
+        if (name.startsWith('cp-')) {
+            return 'control-plane';
+        }
+
+        if (name.startsWith('etcd-')) {
+            return 'etcd';
+        }
+
+        if (name.startsWith('repo-')) {
+            return 'repository';
+        }
+
+        if (name.startsWith('vyos')) {
+            return 'router';
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * Convert Terraform topology into a normalized
+     * list of platform nodes.
+     */
+    private extractNodes(
+        topology: ClusterTopology
+    ): PlatformNode[] {
+        const nodes: PlatformNode[] = [];
+
+        // Linux VMs
+        for (const vm of Object.values(
+            topology.compute.linux_vms
+        )) {
+            if (!vm.ip_address) {
+                continue;
+            }
+
+            nodes.push({
+                name: vm.name,
+                address: vm.ip_address,
+                role: this.getNodeRole(vm.name),
+                ssh_port: this.defaultSshPort,
+            });
+        }
+
+        // VyOS routers
+        for (const router of Object.values(
+            topology.network.vyos
+        )) {
+            if (!router.ip_address) {
+                continue;
+            }
+
+            nodes.push({
+                name: router.name,
+                address: router.ip_address,
+                role: 'router',
+                ssh_port: this.defaultSshPort,
+            });
+        }
+
+        return nodes;
+    }
+
+    /**
+     * Check TCP connectivity to a single platform node.
+     *
+     * This checks whether the SSH TCP port is reachable.
+     * It does NOT perform SSH authentication.
+     */
     private async checkNode(
         node: PlatformNode
     ): Promise<NodeConnectivityResult> {
@@ -87,7 +164,7 @@ export class ConnectivityService {
                         reachable: false,
                         error:
                             `Connection timeout after ` +
-                            `${this.timeoutMs}ms`,
+                            `${this.timeoutMs} ms`,
                     });
                 }
             );
@@ -108,18 +185,28 @@ export class ConnectivityService {
         });
     }
 
+    /**
+     * Check connectivity to all platform nodes.
+     */
     public async checkPlatformConnectivity():
         Promise<PlatformConnectivity> {
-
         const topology =
             await this.terraformService
                 .getPlatformTopology();
 
+        const nodes =
+            this.extractNodes(topology);
+
+        if (nodes.length === 0) {
+            throw new Error(
+                'No platform nodes with IP addresses found in Terraform topology'
+            );
+        }
+
         const results =
             await Promise.all(
-                topology.nodes.map(
-                    (node) =>
-                        this.checkNode(node)
+                nodes.map(
+                    (node) => this.checkNode(node)
                 )
             );
 
@@ -127,6 +214,10 @@ export class ConnectivityService {
             results.filter(
                 (node) => node.reachable
             ).length;
+
+        const unreachableNodes =
+            results.length -
+            reachableNodes;
 
         return {
             checked_at:
@@ -139,8 +230,7 @@ export class ConnectivityService {
                 reachableNodes,
 
             unreachable_nodes:
-                results.length -
-                reachableNodes,
+                unreachableNodes,
 
             nodes: results,
         };

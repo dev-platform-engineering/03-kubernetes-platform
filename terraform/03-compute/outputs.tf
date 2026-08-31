@@ -4,10 +4,11 @@ output "linux_vms" {
   value = {
     for k, vm in module.linux_vm :
     k => {
-      id   = vm.id
-      name = vm.name
-      uuid = vm.uuid
-      moid = vm.moid
+      id         = vm.id
+      name       = vm.name
+      uuid       = vm.uuid
+      moid       = vm.moid
+      ip_address = vm.ip_address
     }
   }
 }

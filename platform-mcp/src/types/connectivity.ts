@@ -1,13 +1,25 @@
+export type PlatformNodeRole =
+    | 'control-plane'
+    | 'etcd'
+    | 'repository'
+    | 'router'
+    | 'unknown';
+
+export interface PlatformNode {
+    name: string;
+    address: string;
+    role: PlatformNodeRole;
+    ssh_port: number;
+}
+
 export interface NodeConnectivityResult {
     name: string;
     address: string;
-    role: string;
+    role: PlatformNodeRole;
     port: number;
-
     reachable: boolean;
 
     latency_ms?: number;
-
     error?: string;
 }
 
