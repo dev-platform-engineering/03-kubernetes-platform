@@ -12,3 +12,10 @@
       {% if dns_search | length > 0 %}
       search {{ dns_search | join(' ') }}
       {% endif %}
+
+- name: DNS | Verify repository hostname resolution
+  ansible.builtin.command:
+    cmd: getent hosts repo-01.infra.platform.internal
+  register: repo_dns_check
+  changed_when: false
+  failed_when: repo_dns_check.rc != 0
