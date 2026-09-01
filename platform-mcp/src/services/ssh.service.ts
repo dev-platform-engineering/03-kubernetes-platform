@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 
 import type {
+    SshAccessPath,
     SshCommandResult,
     SshConnection,
 } from '../types/ssh.js';
@@ -59,5 +60,23 @@ export class SshService {
                 }
             );
         });
+    }
+
+    public executeThroughJumpHost(
+        accessPath: SshAccessPath,
+        command: string
+    ): Promise<SshCommandResult> {
+        const target =
+            `${accessPath.targetHost.username}` +
+            `@${accessPath.targetHost.host}`;
+
+        const remoteCommand =
+            `ssh -p ${accessPath.targetHost.port} ` +
+            `${target} "${command}"`;
+
+        return this.execute(
+            accessPath.jumpHost,
+            remoteCommand
+        );
     }
 }

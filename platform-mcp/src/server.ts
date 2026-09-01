@@ -1,14 +1,23 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { TerraformService } from './services/terraform.service.js';
-import { PlatformTopologyTool } from './tools/platform-topology.tool.js';
 import { ConnectivityService } from './services/connectivity.service.js';
+import { SshService } from './services/ssh.service.js';
+import { PlatformConnectivityService } from './services/platform-connectivity.service.js';
+import { PlatformTopologyTool } from './tools/platform-topology.tool.js';
 import { PlatformConnectivityTool } from './tools/platform-connectivity.tool.js';
+import { platformAccessPath } from './config/platform.config.js';
+import type {
+    SshAccessPath,
+} from './types/ssh.js';
+import { IndirectPlatformConnectivityTool } from './tools/indirect-platform-connectivity.tool.js';
 
 export class PlatformMcpServer {
     private readonly server: McpServer;
     private readonly terraformService: TerraformService;
     private readonly connectivityService: ConnectivityService;
+    private readonly sshService: SshService;
+    private readonly platformConnectivityService: PlatformConnectivityService;
 
     constructor() {
         this.server = new McpServer({
@@ -18,7 +27,12 @@ export class PlatformMcpServer {
 
         this.terraformService = new TerraformService();
         this.connectivityService = new ConnectivityService(this.terraformService);
-
+        this.sshService = new SshService();
+        this.platformConnectivityService = new PlatformConnectivityService(
+            this.terraformService,
+            this.sshService,
+            platformAccessPath
+        );
 
         this.registerTools();
     }
@@ -26,7 +40,10 @@ export class PlatformMcpServer {
     private registerTools(): void {
         const topologyTool = new PlatformTopologyTool(this.terraformService);
         const connectivityTool = new PlatformConnectivityTool(this.connectivityService);
-
+        const indirectConnectivityTool =
+            new IndirectPlatformConnectivityTool(
+                this.platformConnectivityService
+            );
 
         this.server.tool(
             topologyTool.getName(),
@@ -40,6 +57,13 @@ export class PlatformMcpServer {
             connectivityTool.getDescription(),
             connectivityTool.getSchema(),
             () => connectivityTool.execute()
+        );
+
+        this.server.tool(
+            indirectConnectivityTool.getName(),
+            indirectConnectivityTool.getDescription(),
+            indirectConnectivityTool.getSchema(),
+            () => indirectConnectivityTool.execute()
         );
     }
 
