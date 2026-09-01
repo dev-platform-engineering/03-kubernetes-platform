@@ -26,3 +26,15 @@
     dest: /etc/resolv.conf
     state: link
     force: true
+
+- name: DNS | Verify systemd-resolved
+  ansible.builtin.command:
+    cmd: resolvectl status
+  register: resolved_status
+  changed_when: false
+
+- name: DNS | Verify repository DNS resolution
+  ansible.builtin.command:
+    cmd: resolvectl query repo-01.infra.platform.internal
+  register: repo_dns_check
+  changed_when: false
