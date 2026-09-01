@@ -27,14 +27,9 @@
     state: link
     force: true
 
-- name: DNS | Verify systemd-resolved
+- name: DNS | Verify repository hostname resolution
   ansible.builtin.command:
-    cmd: resolvectl status
-  register: resolved_status
-  changed_when: false
-
-- name: DNS | Verify repository DNS resolution
-  ansible.builtin.command:
-    cmd: resolvectl query repo-01.infra.platform.internal
+    cmd: getent hosts repo-01.infra.platform.internal
   register: repo_dns_check
   changed_when: false
+  failed_when: repo_dns_check.rc != 0
