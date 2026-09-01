@@ -1,5 +1,8 @@
 ntp_package: chrony
 ntp_service: chrony
+ntp_config_path: /etc/chrony/chrony.conf
+ntp_driftfile: /var/lib/chrony/chrony.drift
+ntp_keyfile: /etc/chrony/chrony.keys
 
 common_packages:
   - vim

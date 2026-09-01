@@ -4,12 +4,10 @@
 server {{ server }} iburst
 {% endfor %}
 
-driftfile /var/lib/chrony/drift
+driftfile {{ ntp_driftfile }}
 
 makestep 1.0 3
 rtcsync
 
-keyfile /etc/chrony.keys
+keyfile {{ ntp_keyfile }}
 leapsectz right/UTC
-
-logdir /var/log/chrony
