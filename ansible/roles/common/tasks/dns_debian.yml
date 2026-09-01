@@ -1,4 +1,18 @@
 ---
+- name: DNS | Configure bootstrap resolv.conf
+  ansible.builtin.copy:
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      {% for dns_server in dns_servers %}
+      nameserver {{ dns_server }}
+      {% endfor %}
+      {% if dns_search | length > 0 %}
+      search {{ dns_search | join(' ') }}
+      {% endif %}
+
 - name: DNS | Install systemd-resolved
   ansible.builtin.apt:
     name: systemd-resolved
