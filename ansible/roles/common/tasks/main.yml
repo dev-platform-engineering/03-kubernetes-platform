@@ -14,6 +14,11 @@
   include_tasks: repo.yml
   when: repo_use_internal_repos | default(false) | bool
 
+- name: Configure final Debian DNS
+  ansible.builtin.include_tasks:
+    file: dns-resolved-debian.yml
+  when: ansible_os_family == "Debian"
+
 - name: Configure proxy
   include_tasks: proxy.yml
   when: proxy_enabled | default(false) | bool
