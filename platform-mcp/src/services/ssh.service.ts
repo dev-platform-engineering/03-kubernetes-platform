@@ -12,17 +12,28 @@ export class SshService {
         connection: SshConnection,
         command: string
     ): Promise<SshCommandResult> {
+
+        const args: string[] = [
+            '-p',
+            String(connection.port),
+        ];
+
+        if (connection.privateKeyPath) {
+            args.push(
+                '-i',
+                connection.privateKeyPath
+            );
+        }
+
+        args.push(
+            `${connection.username}@${connection.host}`,
+            command
+        );
+
         return new Promise((resolve, reject) => {
             const ssh = spawn(
                 'ssh',
-                [
-                    '-p',
-                    String(connection.port),
-
-                    `${connection.username}@${connection.host}`,
-
-                    command,
-                ]
+                args
             );
 
             let stdout = '';
@@ -55,7 +66,8 @@ export class SshService {
                     resolve({
                         stdout,
                         stderr,
-                        exitCode: exitCode ?? -1,
+                        exitCode:
+                            exitCode ?? -1,
                     });
                 }
             );
@@ -66,6 +78,7 @@ export class SshService {
         accessPath: SshAccessPath,
         command: string
     ): Promise<SshCommandResult> {
+
         const target =
             `${accessPath.targetHost.username}` +
             `@${accessPath.targetHost.host}`;

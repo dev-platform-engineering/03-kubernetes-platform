@@ -2,6 +2,7 @@ export interface SshConnection {
     host: string;
     port: number;
     username: string;
+    privateKeyPath?: string;
 }
 
 export interface SshAccessPath {
