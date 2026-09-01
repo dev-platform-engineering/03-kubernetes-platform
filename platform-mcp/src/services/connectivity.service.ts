@@ -11,6 +11,7 @@ import type {
     PlatformConnectivity,
     PlatformNode,
     PlatformNodeRole,
+    TcpConnectivityResult,
 } from '../types/connectivity.js';
 
 
@@ -234,5 +235,81 @@ export class ConnectivityService {
 
             nodes: results,
         };
+    }
+
+    public checkTcp(
+        address: string,
+        port: number
+    ): Promise<TcpConnectivityResult> {
+        const startedAt = performance.now();
+
+        return new Promise((resolve) => {
+            const socket = new net.Socket();
+
+            let completed = false;
+
+            const finish = (
+                result: TcpConnectivityResult
+            ): void => {
+                if (completed) {
+                    return;
+                }
+
+                completed = true;
+
+                socket.destroy();
+
+                resolve(result);
+            };
+
+            socket.setTimeout(
+                this.timeoutMs
+            );
+
+            socket.connect(
+                port,
+                address,
+                () => {
+                    const latencyMs =
+                        Math.round(
+                            performance.now() -
+                            startedAt
+                        );
+
+                    finish({
+                        address,
+                        port,
+                        reachable: true,
+                        latency_ms: latencyMs,
+                    });
+                }
+            );
+
+            socket.once(
+                'timeout',
+                () => {
+                    finish({
+                        address,
+                        port,
+                        reachable: false,
+                        error:
+                            `Connection timeout after ` +
+                            `${this.timeoutMs}ms`,
+                    });
+                }
+            );
+
+            socket.once(
+                'error',
+                (error) => {
+                    finish({
+                        address,
+                        port,
+                        reachable: false,
+                        error: error.message,
+                    });
+                }
+            );
+        });
     }
 }

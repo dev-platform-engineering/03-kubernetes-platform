@@ -32,3 +32,15 @@ export interface PlatformConnectivity {
 
     nodes: NodeConnectivityResult[];
 }
+
+export interface TcpConnectivityResult {
+    address: string;
+
+    port: number;
+
+    reachable: boolean;
+
+    latency_ms?: number;
+
+    error?: string;
+}
