@@ -22,7 +22,8 @@ export const platformAccessPath:
         username: 'mcp',
 
         privateKeyPath:
-            'C:/Users/Administrator/.ssh/mcp_win10_ed25519',
+            //     'C:/Users/Administrator/.ssh/mcp_win10_ed25519',
+            'C:/ProgramData/platform-mcp/ssh/mcp_win10_ed25519',
         //debug: console.log
     },
 };

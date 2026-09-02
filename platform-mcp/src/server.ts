@@ -3,13 +3,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { TerraformService } from './services/terraform.service.js';
 import { ConnectivityService } from './services/connectivity.service.js';
 import { SshService } from './services/ssh.service.js';
-import { PlatformConnectivityService } from './services/platform-connectivity.service.js';
 import { PlatformTopologyTool } from './tools/platform-topology.tool.js';
 import { PlatformConnectivityTool } from './tools/platform-connectivity.tool.js';
 import { platformAccessPath } from './config/platform.config.js';
-import type {
-    SshAccessPath,
-} from './types/ssh.js';
+import { PlatformConnectivityService } from './services/platform-connectivity.service.js';
 import { IndirectPlatformConnectivityTool } from './tools/indirect-platform-connectivity.tool.js';
 
 export class PlatformMcpServer {
