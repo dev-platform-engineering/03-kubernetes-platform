@@ -1,0 +1,126 @@
+---
+- name: Kubernetes | Install and configure containerd
+  block:
+    # -------------------------------------------------------------------------
+    # Artifact
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Download containerd archive
+      ansible.builtin.get_url:
+        url: "{{ containerd_artifact_url }}"
+        dest: "/tmp/{{ containerd_archive }}"
+        checksum: "{{ containerd_artifact_checksums[containerd_version] }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    # -------------------------------------------------------------------------
+    # Installation
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Create containerd installation directory
+      ansible.builtin.file:
+        path: /usr/local
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Kubernetes | Extract containerd
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ containerd_archive }}"
+        dest: /usr/local
+        remote_src: true
+        owner: root
+        group: root
+
+    # -------------------------------------------------------------------------
+    # Configuration
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Create containerd configuration directory
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Kubernetes | Generate default containerd configuration
+      ansible.builtin.command:
+        cmd: /usr/local/bin/containerd config default
+      register: containerd_default_config
+      changed_when: false
+
+    - name: Kubernetes | Configure containerd
+      ansible.builtin.copy:
+        dest: /etc/containerd/config.toml
+        owner: root
+        group: root
+        mode: "0644"
+        content: "{{ containerd_default_config.stdout }}"
+      notify: Restart containerd
+
+    - name: Kubernetes | Configure systemd cgroup driver
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: "SystemdCgroup = false"
+        replace: "SystemdCgroup = true"
+      notify: Restart containerd
+
+    # -------------------------------------------------------------------------
+    # Systemd
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Install containerd systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/containerd.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=containerd container runtime
+          Documentation=https://containerd.io
+          After=network.target local-fs.target
+
+          [Service]
+          ExecStartPre=-/sbin/modprobe overlay
+          ExecStart=/usr/local/bin/containerd
+          Type=notify
+          Delegate=yes
+          KillMode=process
+          Restart=always
+          RestartSec=5
+          LimitNPROC=infinity
+          LimitCORE=infinity
+          LimitNOFILE=infinity
+          TasksMax=infinity
+          OOMScoreAdjust=-999
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Restart containerd
+
+    - name: Kubernetes | Enable containerd
+      ansible.builtin.systemd:
+        name: containerd
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    # -------------------------------------------------------------------------
+    # Validation
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Check containerd version
+      ansible.builtin.command:
+        cmd: /usr/local/bin/containerd --version
+      register: containerd_version_check
+      changed_when: false
+
+    - name: Kubernetes | Display containerd version
+      ansible.builtin.debug:
+        msg: "{{ containerd_version_check.stdout }}"
