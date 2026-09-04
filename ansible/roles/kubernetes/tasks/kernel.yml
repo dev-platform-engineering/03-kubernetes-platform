@@ -1,0 +1,22 @@
+---
+- name: Kubernetes | Configure required kernel modules
+  block:
+    - name: Kubernetes | Persist kernel modules
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Kubernetes | Load overlay kernel module
+      community.general.modprobe:
+        name: overlay
+        state: present
+
+    - name: Kubernetes | Load br_netfilter kernel module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
