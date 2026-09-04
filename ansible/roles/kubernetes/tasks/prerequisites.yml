@@ -1,0 +1,6 @@
+- name: Kubernetes | Install prerequisites
+  ansible.builtin.package:
+    name:
+      - conntrack
+      - socat
+    state: present
