@@ -2,7 +2,7 @@
 - name: Kubernetes | Install and configure containerd
   block:
     # -------------------------------------------------------------------------
-    # Artifact
+    # Download
     # -------------------------------------------------------------------------
 
     - name: Kubernetes | Download containerd archive
@@ -18,15 +18,7 @@
     # Installation
     # -------------------------------------------------------------------------
 
-    - name: Kubernetes | Create containerd installation directory
-      ansible.builtin.file:
-        path: /usr/local
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Kubernetes | Extract containerd
+    - name: Kubernetes | Extract containerd archive
       ansible.builtin.unarchive:
         src: "/tmp/{{ containerd_archive }}"
         dest: /usr/local
@@ -46,19 +38,16 @@
         group: root
         mode: "0755"
 
-    - name: Kubernetes | Generate default containerd configuration
-      ansible.builtin.command:
-        cmd: /usr/local/bin/containerd config default
-      register: containerd_default_config
-      changed_when: false
+    - name: Kubernetes | Check containerd configuration
+      ansible.builtin.stat:
+        path: /etc/containerd/config.toml
+      register: containerd_config
 
-    - name: Kubernetes | Configure containerd
-      ansible.builtin.copy:
-        dest: /etc/containerd/config.toml
-        owner: root
-        group: root
-        mode: "0644"
-        content: "{{ containerd_default_config.stdout }}"
+    - name: Kubernetes | Generate default containerd configuration
+      ansible.builtin.shell:
+        cmd: /usr/local/bin/containerd config default > /etc/containerd/config.toml
+      when: not containerd_config.stat.exists
+      changed_when: true
       notify: Restart containerd
 
     - name: Kubernetes | Configure systemd cgroup driver
@@ -109,7 +98,6 @@
         name: containerd
         enabled: true
         state: started
-        daemon_reload: true
 
     # -------------------------------------------------------------------------
     # Validation
@@ -118,9 +106,9 @@
     - name: Kubernetes | Check containerd version
       ansible.builtin.command:
         cmd: /usr/local/bin/containerd --version
-      register: containerd_version_check
+      register: containerd_version_output
       changed_when: false
 
     - name: Kubernetes | Display containerd version
       ansible.builtin.debug:
-        msg: "{{ containerd_version_check.stdout }}"
+        msg: "{{ containerd_version_output.stdout }}"
