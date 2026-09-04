@@ -24,3 +24,15 @@ containerd_artifact_url: >-
 
 containerd_artifact_checksums:
   "1.7.22": "sha256:f8b2d935d1f86003f4e0c1af3b9f0d2820bacabe6dc9f562785b74af24c5e468"
+
+# runc
+runc_version: "1.3.0"
+runc_arch: "amd64"
+
+runc_artifact: "runc.{{ runc_arch }}"
+runc_artifact_repo_url: >-
+  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts
+runc_artifact_url: >-
+  {{ runc_artifact_repo_url }}/runc/{{ runc_version }}/{{ runc_artifact }}
+runc_artifact_checksums:
+  "1.3.0": "sha256:028986516ab5646370edce981df2d8e8a8d12188deaf837142a02097000ae2f2"
