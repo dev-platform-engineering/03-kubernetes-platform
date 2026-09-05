@@ -21,6 +21,7 @@
     excludes:
       - "internal-debian-12.list"
       - "internal-debian-12-security.list"
+      - "internal-kubernetes-1.30.list"
     file_type: file
   register: default_apt_repos
 
@@ -89,6 +90,18 @@
       {{ repo_debian_security_release }}
       {{ repo_debian_components | join(' ') }}
     filename: internal-debian-12-security
+    state: present
+    update_cache: false
+
+# ---------------------------------------------------------------------------
+# Kubernetes 1.30
+# ---------------------------------------------------------------------------
+
+- name: Configure Kubernetes 1.30 repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [trusted=yes] {{ repo_kubernetes_1_30_url }} /
+    filename: internal-kubernetes-1.30
     state: present
     update_cache: false
 

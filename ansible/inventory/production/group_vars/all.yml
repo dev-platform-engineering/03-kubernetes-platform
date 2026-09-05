@@ -56,3 +56,10 @@ repo_debian_release: "bookworm"
 repo_debian_security_release: "bookworm-security"
 repo_debian_components:
   - main
+
+repo_nexus_k8s_proxies:
+  - name: kubernetes-1.30
+    url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
+    distribution: "/"
+    flat: true
+    enforce_distribution: false

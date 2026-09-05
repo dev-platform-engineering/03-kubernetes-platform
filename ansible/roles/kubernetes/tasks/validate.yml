@@ -1,0 +1,49 @@
+---
+- name: Kubernetes | Validate runc
+  ansible.builtin.command:
+    cmd: /usr/local/sbin/runc --version
+  register: runc_validate
+  changed_when: false
+
+- name: Kubernetes | Validate containerd
+  ansible.builtin.command:
+    cmd: /usr/local/bin/containerd --version
+  register: containerd_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubeadm
+  ansible.builtin.command:
+    cmd: kubeadm version -o short
+  register: kubeadm_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubelet
+  ansible.builtin.command:
+    cmd: kubelet --version
+  register: kubelet_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubectl
+  ansible.builtin.command:
+    cmd: kubectl version --client -o yaml
+  register: kubectl_validate
+  changed_when: false
+
+- name: Kubernetes | Validate systemd cgroup
+  ansible.builtin.command:
+    cmd: grep -E 'SystemdCgroup = true' /etc/containerd/config.toml
+  register: containerd_cgroup_validate
+  changed_when: false
+
+- name: Kubernetes | Validate containerd service
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+  register: containerd_service_validate
+
+- name: Kubernetes | Display Kubernetes versions
+  ansible.builtin.debug:
+    msg:
+      - "{{ kubeadm_validate.stdout }}"
+      - "{{ kubelet_validate.stdout }}"
+      - "{{ kubectl_validate.stdout }}"

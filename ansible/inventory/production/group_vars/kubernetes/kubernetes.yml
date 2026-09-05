@@ -9,19 +9,27 @@ common_upgrade_packages: true
 ansible_python_interpreter: /usr/bin/python3
 
 kubernetes_version: "1.30.5"
+kubernetes_apt_minor_version: "1.30"
+
+kubernetes_packages:
+  - kubeadm
+  - kubelet
+  - kubectl
+
+kubernetes_package_versions:
+  kubeadm: "1.30.5-*"
+  kubelet: "1.30.5-*"
+  kubectl: "1.30.5-*"
 
 # Container runtime
 containerd_version: "1.7.22"
 containerd_arch: "linux-amd64"
 
 containerd_archive: "containerd-{{ containerd_version }}-{{ containerd_arch }}.tar.gz"
-
 containerd_artifact_repo_url: >-
   http://repo-01.infra.platform.internal:8081/repository/platform-artifacts
-
 containerd_artifact_url: >-
   {{ containerd_artifact_repo_url }}/containerd/{{ containerd_version }}/{{ containerd_archive }}
-
 containerd_artifact_checksums:
   "1.7.22": "sha256:f8b2d935d1f86003f4e0c1af3b9f0d2820bacabe6dc9f562785b74af24c5e468"
 
