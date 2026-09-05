@@ -25,7 +25,7 @@
 
 - name: Kubernetes | Validate kubectl
   ansible.builtin.command:
-    cmd: kubectl version --client -o jsonpath={.clientVersion.gitVersion}
+    cmd: kubectl version --client -o yaml
   register: kubectl_validate
   changed_when: false
 
