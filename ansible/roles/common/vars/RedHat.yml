@@ -13,6 +13,7 @@ common_packages:
   - unzip
   - bind-utils
   - net-tools
+  - arping
   - lsof
   - tcpdump
   - rsync
