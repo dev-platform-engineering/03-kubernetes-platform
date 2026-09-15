@@ -80,17 +80,11 @@
         replace: 'config_path = "/etc/containerd/certs.d"'
       notify: Restart containerd
 
-    # - name: Kubernetes | Configure containerd sandbox image
-    #   ansible.builtin.replace:
-    #     path: /etc/containerd/config.toml
-    #     regexp: 'sandbox_image = "registry.k8s.io/pause:[^"]+"'
-    #     replace: 'sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
-    #   notify: Restart containerd
     - name: Kubernetes | Configure containerd sandbox image
-      ansible.builtin.lineinfile:
+      ansible.builtin.replace:
         path: /etc/containerd/config.toml
-        regexp: '^\s*sandbox_image\s*='
-        line: '    sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
+        regexp: 'sandbox_image = "registry.k8s.io/pause:[^"]+"'
+        replace: 'sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
       notify: Restart containerd
 
     - name: Kubernetes | Create containerd registry configuration directory
