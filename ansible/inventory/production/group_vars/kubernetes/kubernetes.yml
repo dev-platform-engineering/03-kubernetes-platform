@@ -51,9 +51,9 @@ repo_kubernetes_1_30_url: >-
 kubernetes_registry_k8s_endpoint: >-
   http://repo-01.infra.platform.internal:8081/repository/registry-k8s-io
 
-#kubernetes_containerd_sandbox_image: "registry.k8s.io/pause:3.9"
-kubernetes_containerd_sandbox_image: >-
-  http://repo-01.infra.platform.internal:8083/pause:3.9
+kubernetes_containerd_sandbox_image: "registry.k8s.io/pause:3.9"
+# kubernetes_containerd_sandbox_image: >-
+#   http://repo-01.infra.platform.internal:8083/pause:3.9
 
 kubernetes_registry_docker_hub_docker_endpoint: >-
   http://repo-01.infra.platform.internal:8082
