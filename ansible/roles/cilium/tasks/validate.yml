@@ -44,9 +44,9 @@
   kubernetes.core.k8s_info:
     api_version: apps/v1
     kind: Deployment
-    namespace: "{{ cilium_helm_namespace }}"
+    namespace: "{{ cilium_namespace }}"
     name: cilium-operator
-    kubeconfig: "{{ kubeconfig_local_path }}"
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
   register: cilium_operator
   delegate_to: localhost
   run_once: true
@@ -79,7 +79,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Node
-    kubeconfig: "{{ kubeconfig_local_path }}"
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
   register: kubernetes_nodes
   delegate_to: localhost
   run_once: true
