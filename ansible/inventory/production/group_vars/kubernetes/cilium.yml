@@ -1,0 +1,74 @@
+---
+# ==========================================================
+# Cilium
+# ==========================================================
+
+cilium_enabled: true
+
+# Kubernetes 1.30.5.
+cilium_version: "1.18.0"
+
+cilium_namespace: "kube-system"
+
+# ==========================================================
+# Networking
+# ==========================================================
+
+cilium_routing_mode: "native"
+
+cilium_ipv4_enabled: true
+cilium_ipv6_enabled: false
+
+# ==========================================================
+# kube-proxy replacement
+# ==========================================================
+
+cilium_kube_proxy_replacement: true
+
+# ==========================================================
+# IPAM
+# ==========================================================
+
+cilium_ipam_mode: "cluster-pool"
+
+cilium_cluster_pool_ipv4_cidr: "10.60.0.0/16"
+
+cilium_cluster_pool_ipv4_mask_size: 24
+
+# ==========================================================
+# BGP
+# ==========================================================
+
+cilium_bgp_enabled: true
+
+cilium_bgp_local_as: 65100
+
+# ==========================================================
+# BGP advertisements
+# ==========================================================
+
+cilium_bgp_advertise_pod_cidr: true
+
+cilium_bgp_advertise_service_ips: false
+
+cilium_bgp_advertise_loadbalancer_ips: false
+
+# ==========================================================
+# Helm
+# ==========================================================
+
+cilium_helm_repo_name: "cilium"
+
+cilium_helm_repo_url: "https://helm.cilium.io/"
+
+cilium_helm_release_name: "cilium"
+
+cilium_helm_chart_ref: "cilium/cilium"
+
+# ==========================================================
+# Validation
+# ==========================================================
+
+cilium_validation_retries: 30
+
+cilium_validation_delay: 10

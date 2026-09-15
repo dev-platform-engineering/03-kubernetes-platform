@@ -1,0 +1,72 @@
+---
+# ==========================================================
+# Cilium BGP Control Plane
+# ==========================================================
+
+- name: Cilium BGP | Configure peer policy
+  kubernetes.core.k8s:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPPeerConfig
+      metadata:
+        name: kubernetes-bgp-peer
+        namespace: kube-system
+      spec:
+        timers:
+          holdTimeSeconds: 90
+          keepAliveTimeSeconds: 30
+
+        ebgpMultihop: 1
+
+        gracefulRestart:
+          enabled: true
+          restartTimeSeconds: 120
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Configure BGP cluster
+  kubernetes.core.k8s:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPClusterConfig
+      metadata:
+        name: kubernetes-bgp
+        namespace: kube-system
+      spec:
+        nodeSelector:
+          matchLabels:
+            kubernetes.io/os: linux
+
+        bgpInstances:
+          - name: kubernetes
+            localASN: "{{ cilium_bgp_local_as }}"
+
+            peers:
+              - name: "{{ item.name }}"
+                peerASN: "{{ item.as }}"
+                peerAddress: "{{ item.address }}"
+                peerConfigRef:
+                  name: kubernetes-bgp-peer
+  loop: "{{ kubernetes_bgp_peers }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Configure Pod CIDR advertisement
+  kubernetes.core.k8s:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPAdvertisement
+      metadata:
+        name: pod-cidr
+        namespace: kube-system
+      spec:
+        advertisements:
+          - advertisementType: PodCIDR
+  delegate_to: localhost
+  run_once: true

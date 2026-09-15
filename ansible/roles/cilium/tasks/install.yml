@@ -1,0 +1,71 @@
+---
+- name: Cilium | Verify kubectl is available
+  ansible.builtin.command:
+    cmd: kubectl version --client
+  delegate_to: localhost
+  changed_when: false
+
+- name: Cilium | Verify kubeconfig exists
+  ansible.builtin.stat:
+    path: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+  delegate_to: localhost
+  register: cilium_kubeconfig
+
+- name: Cilium | Fail when kubeconfig is missing
+  ansible.builtin.assert:
+    that:
+      - cilium_kubeconfig.stat.exists
+    fail_msg: >-
+      Kubernetes kubeconfig was not found at
+      {{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config
+  delegate_to: localhost
+
+- name: Cilium | Add Helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ cilium_helm_repo_name }}"
+    repo_url: "{{ cilium_helm_repo_url }}"
+  delegate_to: localhost
+
+- name: Cilium | Install Helm release
+  kubernetes.core.helm:
+    name: "{{ cilium_helm_release_name }}"
+    chart_ref: "{{ cilium_helm_chart_ref }}"
+    release_namespace: "{{ cilium_namespace }}"
+    create_namespace: false
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    chart_version: "{{ cilium_version }}"
+    state: present
+    wait: true
+    timeout: "10m"
+    values:
+      routingMode: "{{ cilium_routing_mode }}"
+
+      ipv4:
+        enabled: "{{ cilium_ipv4_enabled }}"
+
+      ipv6:
+        enabled: "{{ cilium_ipv6_enabled }}"
+
+      nativeRoutingCIDRFromClusterPool: true
+
+      kubeProxyReplacement: "{{ cilium_kube_proxy_replacement }}"
+
+      k8sServiceHost: "api.k8s.prod.platform.internal"
+
+      k8sServicePort: "6443"
+
+      ipam:
+        mode: "{{ cilium_ipam_mode }}"
+
+        operator:
+          clusterPoolIPv4PodCIDRList:
+            - "{{ cilium_cluster_pool_ipv4_cidr }}"
+
+          clusterPoolIPv4MaskSize: "{{ cilium_cluster_pool_ipv4_mask_size }}"
+
+      bgpControlPlane:
+        enabled: "{{ cilium_bgp_enabled }}"
+
+      rollOutCiliumPods: true
+
+  delegate_to: localhost
