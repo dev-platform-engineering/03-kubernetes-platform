@@ -38,6 +38,16 @@
         group: root
         mode: "0755"
 
+    # NEW:
+    # Create the directory used by containerd for per-registry hosts.toml files.
+    - name: Kubernetes | Create containerd registry configuration directory
+      ansible.builtin.file:
+        path: /etc/containerd/certs.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
     - name: Kubernetes | Check containerd configuration
       ansible.builtin.stat:
         path: /etc/containerd/config.toml
@@ -79,6 +89,25 @@
         group: root
         mode: "0755"
 
+    # - name: Kubernetes | Configure registry.k8s.io Nexus mirror
+    #   ansible.builtin.copy:
+    #     dest: /etc/containerd/certs.d/registry.k8s.io/hosts.toml
+    #     owner: root
+    #     group: root
+    #     mode: "0644"
+    #     content: |
+    #       server = "https://registry.k8s.io"
+
+    #       [host."{{ kubernetes_registry_k8s_endpoint }}"]
+    #         capabilities = ["pull", "resolve"]
+    #   notify: Restart containerd
+    # CHANGED:
+    # Use the Nexus Docker connector on port 8083.
+    #
+    # Do not use:
+    # http://repo-01.infra.platform.internal:8081/repository/registry-k8s-io
+    #
+    # That is a Nexus repository/content URL, not the Docker connector.
     - name: Kubernetes | Configure registry.k8s.io Nexus mirror
       ansible.builtin.copy:
         dest: /etc/containerd/certs.d/registry.k8s.io/hosts.toml
@@ -88,7 +117,36 @@
         content: |
           server = "https://registry.k8s.io"
 
-          [host."{{ kubernetes_registry_k8s_endpoint }}"]
+          [host."{{ kubernetes_registry_k8s_docker_endpoint }}"]
+            capabilities = ["pull", "resolve"]
+      notify: Restart containerd
+
+    # =========================================================================
+    # quay.io mirror for Cilium
+    # =========================================================================
+
+    # NEW:
+    # Cilium images originate from quay.io, so it needs its own hosts.toml.
+    - name: Kubernetes | Create quay.io configuration directory
+      ansible.builtin.file:
+        path: /etc/containerd/certs.d/quay.io
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # NEW:
+    # Use the Nexus Docker connector on port 8084.
+    - name: Kubernetes | Configure quay.io Nexus mirror
+      ansible.builtin.copy:
+        dest: /etc/containerd/certs.d/quay.io/hosts.toml
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server = "https://quay.io"
+
+          [host."{{ kubernetes_registry_quay_docker_endpoint }}"]
             capabilities = ["pull", "resolve"]
       notify: Restart containerd
 
@@ -147,3 +205,27 @@
     - name: Kubernetes | Display containerd version
       ansible.builtin.debug:
         msg: "{{ containerd_version_output.stdout }}"
+
+    # NEW:
+    # Validate that the required registry configuration files exist.
+    - name: Kubernetes | Check registry.k8s.io hosts configuration
+      ansible.builtin.stat:
+        path: /etc/containerd/certs.d/registry.k8s.io/hosts.toml
+      register: registry_k8s_hosts_file
+      changed_when: false
+
+    - name: Kubernetes | Check quay.io hosts configuration
+      ansible.builtin.stat:
+        path: /etc/containerd/certs.d/quay.io/hosts.toml
+      register: quay_hosts_file
+      changed_when: false
+
+    - name: Kubernetes | Validate registry configuration files
+      ansible.builtin.assert:
+        that:
+          - registry_k8s_hosts_file.stat.exists
+          - quay_hosts_file.stat.exists
+        fail_msg: >-
+          One or more containerd registry hosts.toml files are missing.
+        success_msg: >-
+          Containerd registry mirror configuration files exist.
