@@ -60,11 +60,17 @@
       changed_when: true
       notify: Restart containerd
 
+    # - name: Kubernetes | Configure systemd cgroup driver
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/containerd/config.toml
+    #     regexp: '^\s*systemd_cgroup\s*='
+    #     line: "    systemd_cgroup = true"
+    #   notify: Restart containerd
     - name: Kubernetes | Configure systemd cgroup driver
-      ansible.builtin.lineinfile:
+      ansible.builtin.replace:
         path: /etc/containerd/config.toml
-        regexp: '^\s*systemd_cgroup\s*='
-        line: "    systemd_cgroup = true"
+        regexp: '^(\s*)SystemdCgroup = false$'
+        replace: '\1SystemdCgroup = true'
       notify: Restart containerd
 
     - name: Kubernetes | Configure containerd registry config path
