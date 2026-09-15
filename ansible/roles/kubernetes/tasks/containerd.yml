@@ -61,10 +61,10 @@
       notify: Restart containerd
 
     - name: Kubernetes | Configure systemd cgroup driver
-      ansible.builtin.replace:
+      ansible.builtin.lineinfile:
         path: /etc/containerd/config.toml
-        regexp: "SystemdCgroup = false"
-        replace: "SystemdCgroup = true"
+        regexp: '^\s*systemd_cgroup\s*='
+        line: "    systemd_cgroup = true"
       notify: Restart containerd
 
     - name: Kubernetes | Configure containerd registry config path
@@ -74,11 +74,17 @@
         replace: 'config_path = "/etc/containerd/certs.d"'
       notify: Restart containerd
 
+    # - name: Kubernetes | Configure containerd sandbox image
+    #   ansible.builtin.replace:
+    #     path: /etc/containerd/config.toml
+    #     regexp: 'sandbox_image = "registry.k8s.io/pause:[^"]+"'
+    #     replace: 'sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
+    #   notify: Restart containerd
     - name: Kubernetes | Configure containerd sandbox image
-      ansible.builtin.replace:
+      ansible.builtin.lineinfile:
         path: /etc/containerd/config.toml
-        regexp: 'sandbox_image = "registry.k8s.io/pause:[^"]+"'
-        replace: 'sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
+        regexp: '^\s*sandbox_image\s*='
+        line: '    sandbox_image = "{{ kubernetes_containerd_sandbox_image }}"'
       notify: Restart containerd
 
     - name: Kubernetes | Create containerd registry configuration directory
@@ -149,6 +155,37 @@
           [host."{{ kubernetes_registry_quay_docker_endpoint }}"]
             capabilities = ["pull", "resolve"]
       notify: Restart containerd
+
+      # =========================================================================
+    # docker.io mirror
+    # =========================================================================
+
+    - name: Kubernetes | Create docker.io configuration directory
+      ansible.builtin.file:
+        path: /etc/containerd/certs.d/docker.io
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Kubernetes | Configure docker.io Nexus mirror
+      ansible.builtin.copy:
+        dest: /etc/containerd/certs.d/docker.io/hosts.toml
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server = "https://registry-1.docker.io"
+
+          [host."{{ kubernetes_registry_docker_hub_docker_endpoint }}"]
+            capabilities = ["pull", "resolve"]
+      notify: Restart containerd
+
+    - name: Kubernetes | Check docker.io hosts configuration
+      ansible.builtin.stat:
+        path: /etc/containerd/certs.d/docker.io/hosts.toml
+      register: docker_io_hosts_file
+      changed_when: false
 
     # -------------------------------------------------------------------------
     # Systemd
@@ -225,6 +262,7 @@
         that:
           - registry_k8s_hosts_file.stat.exists
           - quay_hosts_file.stat.exists
+          - docker_io_hosts_file.stat.exists
         fail_msg: >-
           One or more containerd registry hosts.toml files are missing.
         success_msg: >-
