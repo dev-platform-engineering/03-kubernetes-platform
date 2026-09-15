@@ -33,6 +33,7 @@ cilium_ipam_mode: "cluster-pool"
 
 cilium_enable_ipv4: true
 cilium_enable_ipv4_masquerade: true
+cilium_enable_ip_masq_agent: false
 
 cilium_ipv4_native_routing_cidr: "10.60.0.0/16"
 

@@ -50,7 +50,7 @@
 
       enableIPv4Masquerade: "{{ cilium_enable_ipv4_masquerade }}"
 
-      enableIPMasqAgent: "{{ cilium_enable_ip_masquerade_agent }}"
+      enableIPMasqAgent: "{{ cilium_enable_ip_masq_agent }}"
 
       kubeProxyReplacement: "{{ cilium_kube_proxy_replacement }}"
 
