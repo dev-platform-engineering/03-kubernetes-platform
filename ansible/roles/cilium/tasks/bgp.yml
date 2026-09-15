@@ -27,7 +27,7 @@
 
 - name: Cilium BGP | Configure peer policy
   kubernetes.core.k8s:
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
     state: present
     definition:
       apiVersion: cilium.io/v2
@@ -54,7 +54,7 @@
 
 - name: Cilium BGP | Configure BGP cluster
   kubernetes.core.k8s:
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
     state: present
     definition:
       apiVersion: cilium.io/v2
@@ -81,7 +81,7 @@
 
 - name: Cilium BGP | Configure Pod CIDR advertisement
   kubernetes.core.k8s:
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
     state: present
     definition:
       apiVersion: cilium.io/v2

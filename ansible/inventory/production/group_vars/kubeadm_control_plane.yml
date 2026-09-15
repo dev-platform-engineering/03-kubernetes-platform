@@ -4,6 +4,9 @@ kubernetes_service_cidr: "10.96.0.0/12"
 #kubernetes_pod_cidr: ""
 kubernetes_api_port: 6443
 kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
+
+kubernetes_crictl_timeout: 10
+kubernetes_crictl_debug: false
 kubernetes_kube_proxy_enabled: false
 kubeconfig_local_path: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
 

@@ -1,0 +1,17 @@
+- name: Kubernetes | Configure crictl
+  ansible.builtin.copy:
+    dest: /etc/crictl.yaml
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      runtime-endpoint: {{ kubernetes_cri_socket }}
+      image-endpoint: {{ kubernetes_cri_socket }}
+      timeout: {{ kubernetes_crictl_timeout }}
+      debug: {{ kubernetes_crictl_debug }}
+
+- name: Kubernetes | Verify crictl configuration
+  ansible.builtin.command:
+    cmd: crictl info
+  register: kubernetes_crictl_info
+  changed_when: false

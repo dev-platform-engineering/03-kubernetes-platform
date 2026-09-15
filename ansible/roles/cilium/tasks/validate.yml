@@ -9,7 +9,7 @@
     kind: DaemonSet
     name: cilium
     namespace: "{{ cilium_namespace }}"
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
   register: cilium_daemonset
   delegate_to: localhost
   until:
@@ -46,7 +46,7 @@
     kind: Deployment
     namespace: "{{ cilium_namespace }}"
     name: cilium-operator
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
   register: cilium_operator
   delegate_to: localhost
   run_once: true
@@ -79,7 +79,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Node
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
   register: kubernetes_nodes
   delegate_to: localhost
   run_once: true

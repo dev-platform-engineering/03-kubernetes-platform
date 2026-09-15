@@ -7,7 +7,7 @@
 
 - name: Cilium | Verify kubeconfig exists
   ansible.builtin.stat:
-    path: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    path: "{{ kubeconfig_local_path }}"
   delegate_to: localhost
   register: cilium_kubeconfig
 
@@ -32,7 +32,7 @@
     chart_ref: "{{ cilium_helm_chart_ref }}"
     release_namespace: "{{ cilium_namespace }}"
     create_namespace: false
-    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
+    kubeconfig: "{{ kubeconfig_local_path }}"
     chart_version: "{{ cilium_version }}"
     state: present
     wait: true

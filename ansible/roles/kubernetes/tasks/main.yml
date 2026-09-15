@@ -22,6 +22,10 @@
       ansible.builtin.include_tasks:
         file: containerd.yml
 
+    - name: Install crictl
+      ansible.builtin.include_tasks:
+        file: crictl.yml
+
     - name: Install Kubernetes packages
       ansible.builtin.include_tasks:
         file: kube_packages.yml
