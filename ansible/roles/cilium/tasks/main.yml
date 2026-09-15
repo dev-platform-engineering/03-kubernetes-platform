@@ -1,0 +1,6 @@
+---
+- name: Install Cilium
+  ansible.builtin.import_tasks: install.yml
+
+- name: Validate Cilium
+  ansible.builtin.import_tasks: validate.yml

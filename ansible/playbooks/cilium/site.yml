@@ -1,0 +1,8 @@
+---
+- name: Install and validate Cilium
+  hosts: kubeadm_bootstrap
+  become: false
+  gather_facts: false
+
+  roles:
+    - role: cilium

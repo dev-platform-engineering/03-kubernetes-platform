@@ -5,6 +5,7 @@ kubernetes_service_cidr: "10.96.0.0/12"
 kubernetes_api_port: 6443
 kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
 kubernetes_kube_proxy_enabled: false
+kubeconfig_local_path: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
 
 kubernetes_etcd_endpoints: >-
   {{

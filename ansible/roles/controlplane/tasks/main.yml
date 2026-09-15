@@ -21,6 +21,11 @@
     file: bootstrap.yml
   when: controlplane_operation == "bootstrap"
 
+- name: Controlplane | Configure kubeconfig
+  ansible.builtin.include_tasks:
+    file: kubeconfig.yml
+  when: controlplane_operation == "bootstrap"
+
 - name: Controlplane | Join
   ansible.builtin.include_tasks:
     file: join.yml
