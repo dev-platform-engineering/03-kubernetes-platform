@@ -7,18 +7,17 @@
   kubernetes.core.k8s_info:
     api_version: apps/v1
     kind: DaemonSet
-    namespace: "{{ cilium_helm_namespace }}"
-    name: "{{ cilium_helm_release }}"
-    kubeconfig: "{{ kubeconfig_local_path }}"
+    name: cilium
+    namespace: "{{ cilium_namespace }}"
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
   register: cilium_daemonset
   delegate_to: localhost
-  run_once: true
-  retries: "{{ cilium_validation_retries }}"
-  delay: "{{ cilium_validation_delay }}"
   until:
-    - cilium_daemonset.resources | length == 1
-    - cilium_daemonset.resources[0].status.numberReady | default(0)
-      == cilium_daemonset.resources[0].status.desiredNumberScheduled | default(0)
+    - cilium_daemonset.resources | length > 0
+    - cilium_daemonset.resources[0].status.numberReady ==
+      cilium_daemonset.resources[0].status.desiredNumberScheduled
+  retries: 30
+  delay: 10
 
 - name: Cilium | Verify DaemonSet exists
   ansible.builtin.assert:
