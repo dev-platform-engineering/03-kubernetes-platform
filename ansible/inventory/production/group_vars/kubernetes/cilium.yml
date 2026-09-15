@@ -31,8 +31,12 @@ cilium_kube_proxy_replacement: true
 
 cilium_ipam_mode: "cluster-pool"
 
-cilium_cluster_pool_ipv4_cidr: "10.60.0.0/16"
+cilium_enable_ipv4: true
+cilium_enable_ipv4_masquerade: true
 
+cilium_ipv4_native_routing_cidr: "10.60.0.0/16"
+
+cilium_cluster_pool_ipv4_cidr: "10.60.0.0/16"
 cilium_cluster_pool_ipv4_mask_size: 24
 
 # ==========================================================
@@ -40,7 +44,6 @@ cilium_cluster_pool_ipv4_mask_size: 24
 # ==========================================================
 
 cilium_bgp_enabled: true
-
 cilium_bgp_local_as: 65100
 
 # ==========================================================
@@ -48,9 +51,7 @@ cilium_bgp_local_as: 65100
 # ==========================================================
 
 cilium_bgp_advertise_pod_cidr: true
-
 cilium_bgp_advertise_service_ips: false
-
 cilium_bgp_advertise_loadbalancer_ips: false
 
 # ==========================================================
@@ -58,11 +59,8 @@ cilium_bgp_advertise_loadbalancer_ips: false
 # ==========================================================
 
 cilium_helm_repo_name: "cilium"
-
 cilium_helm_repo_url: "https://helm.cilium.io/"
-
 cilium_helm_release_name: "cilium"
-
 cilium_helm_chart_ref: "cilium/cilium"
 
 # ==========================================================
@@ -70,5 +68,4 @@ cilium_helm_chart_ref: "cilium/cilium"
 # ==========================================================
 
 cilium_validation_retries: 30
-
 cilium_validation_delay: 10

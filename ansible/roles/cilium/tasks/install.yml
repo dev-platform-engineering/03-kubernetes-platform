@@ -46,12 +46,15 @@
       ipv6:
         enabled: "{{ cilium_ipv6_enabled }}"
 
-      nativeRoutingCIDRFromClusterPool: true
+      ipv4NativeRoutingCIDR: "{{ cilium_ipv4_native_routing_cidr }}"
+
+      enableIPv4Masquerade: "{{ cilium_enable_ipv4_masquerade }}"
+
+      enableIPMasqAgent: "{{ cilium_enable_ip_masquerade_agent }}"
 
       kubeProxyReplacement: "{{ cilium_kube_proxy_replacement }}"
 
       k8sServiceHost: "api.k8s.prod.platform.internal"
-
       k8sServicePort: "6443"
 
       ipam:
