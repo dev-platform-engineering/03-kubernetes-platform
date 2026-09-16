@@ -1,0 +1,32 @@
+# -----------------------------------------------------------------------------
+# CA lives on Ansible controller
+# -----------------------------------------------------------------------------
+
+etcd_tls_controller_pki_dir: "{{ lookup('env', 'HOME') }}/.ansible/pki/etcd"
+etcd_tls_ca_key_local: "{{ etcd_tls_controller_pki_dir }}/ca.key"
+etcd_tls_ca_cert_local: "{{ etcd_tls_controller_pki_dir }}/ca.crt"
+
+# =============================================================================
+# Controlplane PKI
+# =============================================================================
+
+kubernetes_pki_dir: "/etc/kubernetes/pki"
+kubernetes_etcd_pki_dir: "{{ kubernetes_pki_dir }}/etcd"
+kubernetes_etcd_ca_cert: "{{ kubernetes_etcd_pki_dir }}/ca.crt"
+kubernetes_etcd_client_csr: "{{ kubernetes_etcd_pki_dir }}/apiserver-etcd-client.csr"
+kubernetes_etcd_client_cert: "{{ kubernetes_etcd_pki_dir }}/apiserver-etcd-client.crt"
+kubernetes_etcd_client_key: "{{ kubernetes_etcd_pki_dir }}/apiserver-etcd-client.key"
+
+# PKI on Ansible controller
+
+controlplane_tls_controller_pki_dir: >-
+  {{ lookup('env', 'HOME') }}/.ansible/pki/controlplane
+controlplane_etcd_client_csr_local: >-
+  {{ controlplane_tls_controller_pki_dir }}/{{ inventory_hostname }}/apiserver-etcd-client.csr
+controlplane_etcd_client_cert_local: >-
+  {{ controlplane_tls_controller_pki_dir }}/{{ inventory_hostname }}/apiserver-etcd-client.crt
+
+# Existing etcd CA
+controlplane_etcd_client_cert_validity_days: 825
+controlplane_etcd_ca_cert_local: "{{ etcd_tls_ca_cert_local }}"
+controlplane_etcd_ca_key_local: "{{ etcd_tls_ca_key_local }}"

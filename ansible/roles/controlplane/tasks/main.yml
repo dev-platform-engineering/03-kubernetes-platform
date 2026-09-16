@@ -1,0 +1,32 @@
+---
+- name: Controlplane | Preflight
+  ansible.builtin.include_tasks:
+    file: preflight.yml
+
+- name: Controlplane | Configure PKI
+  ansible.builtin.include_tasks:
+    file: pki.yml
+
+- name: Controlplane | Generate join credentials
+  ansible.builtin.include_tasks:
+    file: join_credentials.yml
+  when: controlplane_operation == "join"
+
+- name: Controlplane | Configure kubeadm
+  ansible.builtin.include_tasks:
+    file: kubeadm_config.yml
+
+- name: Controlplane | Bootstrap
+  ansible.builtin.include_tasks:
+    file: bootstrap.yml
+  when: controlplane_operation == "bootstrap"
+
+- name: Controlplane | Configure kubeconfig
+  ansible.builtin.include_tasks:
+    file: kubeconfig.yml
+  when: controlplane_operation == "bootstrap"
+
+- name: Controlplane | Join
+  ansible.builtin.include_tasks:
+    file: join.yml
+  when: controlplane_operation == "join"

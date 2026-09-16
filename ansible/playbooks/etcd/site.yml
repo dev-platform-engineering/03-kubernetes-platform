@@ -2,6 +2,9 @@
 - name: Configure common settings for Etcd cluster
   hosts: etcd
   become: true
+  vars_files:
+    - ../../inventory/production/group_vars/pki.yml
+
   roles:
     - role: common
       tags: common

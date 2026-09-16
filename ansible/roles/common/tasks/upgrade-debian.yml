@@ -10,11 +10,18 @@
     autoclean: true
   register: system_upgrade
 
+- name: Check if reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
 - name: Reboot after system upgrade
   ansible.builtin.reboot:
-    msg: "Rebooting after system package upgrade"
+    msg: "Rebooting because system upgrade requires reboot"
     reboot_timeout: 600
     connect_timeout: 10
     pre_reboot_delay: 5
-    post_reboot_delay: 10
-  when: system_upgrade.changed
+    post_reboot_delay: 120
+  when:
+    - system_upgrade.changed
+    - reboot_required.stat.exists

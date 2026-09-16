@@ -72,14 +72,6 @@ etcd_tls_client_cert: "{{ etcd_tls_dir }}/client.crt"
 etcd_tls_client_key: "{{ etcd_tls_dir }}/client.key"
 
 etcd_tls_client_common_name: "etcd-client"
-# -----------------------------------------------------------------------------
-# CA lives on Ansible controller
-# -----------------------------------------------------------------------------
-
-etcd_tls_controller_pki_dir: "{{ lookup('env', 'HOME') }}/.ansible/pki/etcd"
-
-etcd_tls_ca_key_local: "{{ etcd_tls_controller_pki_dir }}/ca.key"
-etcd_tls_ca_cert_local: "{{ etcd_tls_controller_pki_dir }}/ca.crt"
 
 # CA subject
 etcd_tls_ca_common_name: "etcd-cluster-ca"

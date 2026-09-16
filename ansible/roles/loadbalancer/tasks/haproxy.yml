@@ -1,0 +1,22 @@
+---
+- name: Loadbalancer | Deploy HAProxy configuration
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify:
+    - Restart HAProxy
+
+- name: Loadbalancer | Validate HAProxy configuration
+  ansible.builtin.command:
+    cmd: "haproxy -c -f {{ haproxy_config_file }}"
+  changed_when: false
+
+- name: Loadbalancer | Enable and start HAProxy
+  ansible.builtin.systemd:
+    name: "{{ haproxy_service }}"
+    enabled: true
+    state: started

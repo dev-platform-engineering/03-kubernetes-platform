@@ -1,0 +1,24 @@
+---
+- name: Controlplane | Check whether cluster is already initialized
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: controlplane_admin_conf
+
+- name: Controlplane | Initialize Kubernetes cluster
+  ansible.builtin.command:
+    cmd: >-
+      kubeadm init
+      --config /etc/kubernetes/kubeadm-config.yaml
+      {% if not kubernetes_kube_proxy_enabled %}
+      --skip-phases=addon/kube-proxy
+      {% endif %}
+  register: controlplane_kubeadm_init
+  when: not controlplane_admin_conf.stat.exists
+  changed_when: true
+
+- name: Controlplane | Display kubeadm init result
+  ansible.builtin.debug:
+    var: controlplane_kubeadm_init.stdout_lines
+  when:
+    - controlplane_kubeadm_init is defined
+    - controlplane_kubeadm_init.changed

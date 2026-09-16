@@ -1,0 +1,16 @@
+---
+- name: Cilium | Install
+  ansible.builtin.import_tasks:
+    file: install.yml
+  when: cilium_enabled | bool
+
+- name: Cilium | Configure BGP
+  ansible.builtin.import_tasks:
+    file: bgp.yml
+  when:
+    - cilium_enabled | bool
+    - cilium_bgp_enabled | bool
+# - name: Cilium | Validate
+#   ansible.builtin.import_tasks:
+#     file: validate.yml
+#   when: cilium_enabled | bool

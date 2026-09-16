@@ -1,0 +1,7 @@
+---
+- name: Loadbalancer | Install HAProxy and Keepalived
+  ansible.builtin.package:
+    name:
+      - "{{ haproxy_package }}"
+      - "{{ keepalived_package }}"
+    state: present

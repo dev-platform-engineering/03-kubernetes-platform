@@ -6,5 +6,5 @@
     - role: common
       tags: common
 
-    # - role: kubernetes
-    #   tags: kubernetes
+    - role: kubernetes
+      tags: kubernetes

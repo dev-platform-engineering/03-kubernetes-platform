@@ -1,0 +1,42 @@
+---
+- name: Kubernetes | Configure APT keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Kubernetes | Configure Kubernetes APT repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [trusted=yes]
+      http://repo-01.infra.platform.internal:8081/repository/kubernetes-1.30
+      /
+    filename: kubernetes
+    state: present
+
+- name: Kubernetes | Update APT package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Kubernetes | Install Kubernetes packages
+  ansible.builtin.apt:
+    name:
+      - "kubeadm={{ kubernetes_package_versions.kubeadm }}"
+      - "kubelet={{ kubernetes_package_versions.kubelet }}"
+      - "kubectl={{ kubernetes_package_versions.kubectl }}"
+    state: present
+    allow_downgrade: true
+
+- name: Kubernetes | Hold Kubernetes packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop: "{{ kubernetes_packages }}"
+
+- name: Kubernetes | Enable kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true

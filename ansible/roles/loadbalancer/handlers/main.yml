@@ -1,0 +1,10 @@
+---
+- name: Restart HAProxy
+  ansible.builtin.systemd:
+    name: "{{ haproxy_service }}"
+    state: restarted
+
+- name: Restart Keepalived
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service }}"
+    state: restarted

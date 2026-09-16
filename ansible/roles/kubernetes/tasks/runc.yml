@@ -1,0 +1,42 @@
+---
+- name: Kubernetes | Install runc
+  block:
+    # -------------------------------------------------------------------------
+    # Download
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Download runc
+      ansible.builtin.get_url:
+        url: "{{ runc_artifact_url }}"
+        dest: "/tmp/{{ runc_artifact }}"
+        checksum: "{{ runc_artifact_checksums[runc_version] }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    # -------------------------------------------------------------------------
+    # Installation
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Install runc binary
+      ansible.builtin.copy:
+        src: "/tmp/{{ runc_artifact }}"
+        dest: /usr/local/sbin/runc
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    # -------------------------------------------------------------------------
+    # Validation
+    # -------------------------------------------------------------------------
+
+    - name: Kubernetes | Check runc version
+      ansible.builtin.command:
+        cmd: /usr/local/sbin/runc --version
+      register: runc_version_output
+      changed_when: false
+
+    - name: Kubernetes | Display runc version
+      ansible.builtin.debug:
+        var: runc_version_output.stdout

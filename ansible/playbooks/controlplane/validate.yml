@@ -1,0 +1,15 @@
+---
+- name: Validate Kubernetes control plane
+  hosts: kubeadm_control_plane
+  become: true
+
+  vars_files:
+    - ../../inventory/production/group_vars/pki.yml
+
+  tasks:
+    - name: Controlplane | Run validation
+      ansible.builtin.include_role:
+        name: controlplane
+        tasks_from: validate.yml
+      tags:
+        - controlplane_validate

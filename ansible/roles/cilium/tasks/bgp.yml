@@ -1,0 +1,104 @@
+---
+# ==========================================================
+# Cilium BGP
+# ==========================================================
+
+- name: Cilium BGP | Build peer configuration
+  ansible.builtin.set_fact:
+    cilium_bgp_peer_config: >-
+      {{
+        cilium_bgp_peer_config | default([]) +
+        [{
+          'name': item.name,
+          'peerASN': item.as,
+          'peerAddress': item.address,
+          'peerConfigRef': {
+            'name': 'kubernetes-bgp-peer'
+          }
+        }]
+      }}
+  loop: "{{ kubernetes_bgp_peers }}"
+  delegate_to: localhost
+  run_once: true
+
+# ----------------------------------------------------------
+# Peer policy
+# ----------------------------------------------------------
+
+- name: Cilium BGP | Configure peer policy
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_local_path }}"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPPeerConfig
+      metadata:
+        name: kubernetes-bgp-peer
+        namespace: kube-system
+      spec:
+        timers:
+          holdTimeSeconds: 90
+          keepAliveTimeSeconds: 30
+
+        ebgpMultihop: 1
+
+        gracefulRestart:
+          enabled: true
+          restartTimeSeconds: 120
+        families:
+          - afi: ipv4
+            safi: unicast
+            advertisements:
+              matchLabels:
+                advertise: pod-cidr
+  delegate_to: localhost
+  run_once: true
+
+# ----------------------------------------------------------
+# BGP cluster configuration
+# ----------------------------------------------------------
+
+- name: Cilium BGP | Configure BGP cluster
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_local_path }}"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPClusterConfig
+      metadata:
+        name: kubernetes-bgp
+        namespace: kube-system
+
+      spec:
+        nodeSelector:
+          matchLabels:
+            kubernetes.io/os: linux
+
+        bgpInstances:
+          - name: kubernetes
+            localASN: "{{ cilium_bgp_local_as }}"
+            peers: "{{ cilium_bgp_peer_config }}"
+  delegate_to: localhost
+  run_once: true
+
+# ----------------------------------------------------------
+# Pod CIDR advertisement
+# ----------------------------------------------------------
+
+- name: Cilium BGP | Configure Pod CIDR advertisement
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_local_path }}"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2
+      kind: CiliumBGPAdvertisement
+      metadata:
+        name: pod-cidr
+        namespace: kube-system
+        labels:
+          advertise: pod-cidr
+      spec:
+        advertisements:
+          - advertisementType: PodCIDR
+  delegate_to: localhost
+  run_once: true

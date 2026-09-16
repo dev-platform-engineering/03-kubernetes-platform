@@ -1,0 +1,25 @@
+global_defs {
+    router_id {{ inventory_hostname }}
+    enable_script_security
+}
+
+vrrp_instance VI_K8S_API {
+    state {{ keepalived_state }}
+
+    interface {{ keepalived_interface }}
+
+    virtual_router_id {{ keepalived_router_id }}
+
+    priority {{ keepalived_priority }}
+
+    advert_int 1
+
+    authentication {
+        auth_type {{ keepalived_auth_type }}
+        auth_pass {{ keepalived_auth_password }}
+    }
+
+    virtual_ipaddress {
+        {{ loadbalancer_vip }}/24
+    }
+}

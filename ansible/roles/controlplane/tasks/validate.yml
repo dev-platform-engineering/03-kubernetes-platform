@@ -1,0 +1,50 @@
+- name: Controlplane | Check kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+  register: controlplane_kubelet
+  changed_when: false
+
+- name: Controlplane | Verify kubelet is running
+  ansible.builtin.assert:
+    that:
+      - controlplane_kubelet.status.ActiveState == "active"
+    fail_msg: "kubelet is not running"
+
+- name: Controlplane | Check Kubernetes API readiness
+  ansible.builtin.command:
+    cmd: >-
+      kubectl
+      --kubeconfig=/etc/kubernetes/admin.conf
+      get --raw='/readyz'
+  register: controlplane_api_ready
+  changed_when: false
+  failed_when: false
+
+- name: Controlplane | Verify Kubernetes API is ready
+  ansible.builtin.assert:
+    that:
+      - controlplane_api_ready.rc == 0
+      - controlplane_api_ready.stdout | trim == "ok"
+    fail_msg: "Kubernetes API server is not ready"
+
+- name: Controlplane | Check control-plane node
+  ansible.builtin.command:
+    cmd: >-
+      kubectl
+      --kubeconfig=/etc/kubernetes/admin.conf
+      get node {{ inventory_hostname }}
+      -o json
+  register: controlplane_node
+  changed_when: false
+
+- name: Controlplane | Parse node information
+  ansible.builtin.set_fact:
+    controlplane_node_data: "{{ controlplane_node.stdout | from_json }}"
+
+- name: Controlplane | Verify control-plane label
+  ansible.builtin.assert:
+    that:
+      - "'node-role.kubernetes.io/control-plane' in controlplane_node_data.metadata.labels"
+    fail_msg: >-
+      Node {{ inventory_hostname }} does not have the
+      control-plane role label

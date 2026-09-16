@@ -1,0 +1,95 @@
+---
+- name: Controlplane | Check kubeadm
+  ansible.builtin.command:
+    cmd: kubeadm version -o short
+  register: controlplane_kubeadm_version
+  changed_when: false
+
+- name: Controlplane | Check kubelet
+  ansible.builtin.command:
+    cmd: kubelet --version
+  register: controlplane_kubelet_version
+  changed_when: false
+
+- name: Controlplane | Check containerd
+  ansible.builtin.systemd:
+    name: containerd
+  register: controlplane_containerd
+  changed_when: false
+
+- name: Controlplane | Verify containerd is running
+  ansible.builtin.assert:
+    that:
+      - controlplane_containerd.status.ActiveState == "active"
+    fail_msg: >-
+      containerd is not running.
+      ActiveState={{ controlplane_containerd.status.ActiveState | default('unknown') }}
+
+- name: Controlplane | Check CRI socket
+  ansible.builtin.stat:
+    path: "{{ kubernetes_cri_socket | regex_replace('^unix://', '') }}"
+  register: controlplane_cri_socket
+
+- name: Controlplane | Verify CRI socket exists
+  ansible.builtin.assert:
+    that:
+      - controlplane_cri_socket.stat.exists
+    fail_msg: >-
+      Kubernetes CRI socket does not exist:
+      {{ kubernetes_cri_socket | regex_replace('^unix://', '') }}
+
+- name: Controlplane | Verify CRI is responding
+  ansible.builtin.command:
+    cmd: >-
+      crictl
+      --runtime-endpoint={{ kubernetes_cri_socket }}
+      --image-endpoint={{ kubernetes_cri_socket }}
+      info
+  register: controlplane_cri_info
+  changed_when: false
+  failed_when: false
+
+- name: Controlplane | Verify CRI is healthy
+  ansible.builtin.assert:
+    that:
+      - controlplane_cri_info.rc == 0
+    fail_msg: >-
+      Containerd CRI is not responding on
+      {{ kubernetes_cri_socket }}.
+      crictl output:
+      {{ controlplane_cri_info.stderr | default(controlplane_cri_info.stdout, true) }}
+
+- name: Controlplane | Resolve Kubernetes API endpoint
+  ansible.builtin.command:
+    cmd: >-
+      getent hosts
+      {{ kubernetes_control_plane_endpoint
+         | regex_replace(':6443$', '') }}
+  register: controlplane_api_dns
+  changed_when: false
+
+- name: Controlplane | Verify Kubernetes API endpoint resolves
+  ansible.builtin.assert:
+    that:
+      - controlplane_api_dns.rc == 0
+      - controlplane_api_dns.stdout | length > 0
+    fail_msg: >-
+      Kubernetes API endpoint does not resolve:
+      {{ kubernetes_control_plane_endpoint }}
+
+- name: Controlplane | Resolve etcd endpoints
+  ansible.builtin.command:
+    cmd: "getent hosts {{ item }}"
+  loop: "{{ groups['etcd'] | map('extract', hostvars, 'etcd_fqdn') | list }}"
+  register: controlplane_etcd_dns
+  changed_when: false
+
+- name: Controlplane | Verify etcd endpoints resolve
+  ansible.builtin.assert:
+    that:
+      - item.rc == 0
+      - item.stdout | length > 0
+    fail_msg: >-
+      etcd endpoint does not resolve:
+      {{ item.item }}
+  loop: "{{ controlplane_etcd_dns.results }}"

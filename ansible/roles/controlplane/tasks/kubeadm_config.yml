@@ -1,0 +1,18 @@
+---
+- name: Controlplane | Render kubeadm init configuration
+  ansible.builtin.template:
+    src: kubeadm_init.yml.j2
+    dest: /etc/kubernetes/kubeadm-config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  when: controlplane_operation == "bootstrap"
+
+- name: Controlplane | Render kubeadm join configuration
+  ansible.builtin.template:
+    src: kubeadm_join.yml.j2
+    dest: /etc/kubernetes/kubeadm-config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  when: controlplane_operation == "join"

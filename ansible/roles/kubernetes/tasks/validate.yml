@@ -1,0 +1,54 @@
+---
+- name: Kubernetes | Validate runc
+  ansible.builtin.command:
+    cmd: /usr/local/sbin/runc --version
+  register: runc_validate
+  changed_when: false
+
+- name: Kubernetes | Validate containerd
+  ansible.builtin.command:
+    cmd: /usr/local/bin/containerd --version
+  register: containerd_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubeadm
+  ansible.builtin.command:
+    cmd: kubeadm version -o short
+  register: kubeadm_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubelet
+  ansible.builtin.command:
+    cmd: kubelet --version
+  register: kubelet_validate
+  changed_when: false
+
+- name: Kubernetes | Validate kubectl
+  ansible.builtin.command:
+    cmd: kubectl version --client -o yaml
+  register: kubectl_validate
+  changed_when: false
+
+- name: Kubernetes | Validate systemd cgroup
+  ansible.builtin.command:
+    cmd: grep -E 'SystemdCgroup = true' /etc/containerd/config.toml
+  register: containerd_cgroup_validate
+  changed_when: false
+
+- name: Kubernetes | Validate containerd service
+  ansible.builtin.command:
+    cmd: systemctl is-active containerd
+  register: containerd_service_validate
+  changed_when: false
+  failed_when: containerd_service_validate.stdout != 'active'
+
+- name: Kubernetes | Display installed component versions
+  ansible.builtin.debug:
+    msg:
+      - "runc: {{ runc_validate.stdout_lines[0] }}"
+      - "containerd: {{ containerd_validate.stdout }}"
+      - "kubeadm: {{ kubeadm_validate.stdout }}"
+      - "kubelet: {{ kubelet_validate.stdout }}"
+      - "kubectl: {{ kubectl_validate.stdout }}"
+      - "containerd SystemdCgroup: enabled"
+      - "containerd service: {{ containerd_service_validate.stdout }}"

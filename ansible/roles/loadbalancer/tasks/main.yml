@@ -1,0 +1,24 @@
+---
+- name: Loadbalancer | Load OS specific variables
+  ansible.builtin.include_vars:
+    file: "{{ ansible_os_family }}.yml"
+
+- name: Loadbalancer | Configure prerequisites
+  ansible.builtin.include_tasks:
+    file: prerequisites.yml
+
+- name: Loadbalancer | Install packages
+  ansible.builtin.include_tasks:
+    file: install.yml
+
+- name: Loadbalancer | Configure HAProxy
+  ansible.builtin.include_tasks:
+    file: haproxy.yml
+
+- name: Loadbalancer | Configure Keepalived
+  ansible.builtin.include_tasks:
+    file: keepalived.yml
+
+- name: Loadbalancer | Validate configuration
+  ansible.builtin.include_tasks:
+    file: validation.yml

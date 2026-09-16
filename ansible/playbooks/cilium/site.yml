@@ -1,0 +1,31 @@
+---
+- name: Install and validate Cilium
+  hosts: kubeadm_bootstrap
+  become: false
+  gather_facts: false
+
+  roles:
+    - role: cilium
+
+- name: Configure VyOS BGP peers for Cilium
+  hosts: vyos_routers
+  gather_facts: false
+  connection: ansible.netcommon.network_cli
+  tasks:
+    - name: Cilium | Configure VyOS BGP peers
+      ansible.builtin.include_role:
+        name: cilium
+        tasks_from: bgp_vyos.yml
+      when:
+        - cilium_enabled | bool
+        - cilium_bgp_enabled | bool
+
+- name: Validate Cilium networking
+  hosts: kubeadm_control_plane
+  become: true
+  tasks:
+    - name: Cilium | Validate
+      ansible.builtin.include_role:
+        name: cilium
+        tasks_from: validate.yml
+      when: cilium_enabled | bool

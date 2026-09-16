@@ -1,0 +1,62 @@
+---
+- name: Cilium BGP | Configure VyOS eBGP peers
+  vyos.vyos.vyos_config:
+    lines: |
+      {% for host in groups['kubernetes_bgp_nodes'] %}
+      set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} remote-as {{ cilium_bgp_local_as }}
+      set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} description "eBGP to Cilium {{ host }}"
+      set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} address-family ipv4-unicast
+      {% endfor %}
+    save: false
+
+- name: Cilium BGP | Commit VyOS configuration
+  vyos.vyos.vyos_config:
+    save: true
+
+- name: Cilium BGP | Show VyOS IPv4 BGP summary
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast summary"'
+  register: cilium_bgp_vyos_summary
+  changed_when: false
+
+- name: Cilium BGP | Display VyOS BGP summary
+  ansible.builtin.debug:
+    var: cilium_bgp_vyos_summary.stdout_lines
+
+- name: Cilium BGP | Show BGP summary JSON
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast summary json"'
+  register: cilium_bgp_vyos_summary_json
+  changed_when: false
+
+- name: Cilium BGP | Verify Kubernetes BGP neighbors
+  ansible.builtin.assert:
+    that:
+      - >
+        hostvars[item]['ansible_host']
+        in cilium_bgp_vyos_summary_json.stdout
+    fail_msg: >-
+      Kubernetes BGP neighbor {{ item }}
+      ({{ hostvars[item]['ansible_host'] }})
+      is missing from the VyOS BGP summary.
+  loop: "{{ groups['kubernetes_bgp_nodes'] }}"
+
+- name: Cilium BGP | Show BGP routes
+  ansible.netcommon.cli_command:
+    command: 'vtysh -c "show bgp ipv4 unicast"'
+  register: cilium_bgp_vyos_routes
+  changed_when: false
+
+- name: Cilium BGP | Display BGP routes
+  ansible.builtin.debug:
+    var: cilium_bgp_vyos_routes.stdout_lines
+
+- name: Cilium BGP | Show BGP routes installed in routing table
+  ansible.netcommon.cli_command:
+    command: "show ip route bgp"
+  register: cilium_bgp_vyos_rib
+  changed_when: false
+
+- name: Cilium BGP | Display BGP routing table
+  ansible.builtin.debug:
+    var: cilium_bgp_vyos_rib.stdout_lines

@@ -1,0 +1,34 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+
+localAPIEndpoint:
+  advertiseAddress: "{{ ansible_host }}"
+  bindPort: {{ kubernetes_api_port }}
+
+nodeRegistration:
+  criSocket: "{{ kubernetes_cri_socket }}"
+
+---
+
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfigurationa
+
+clusterName: "kubernetes"
+
+kubernetesVersion: "{{ kubernetes_version }}"
+
+controlPlaneEndpoint: "{{ kubernetes_control_plane_endpoint }}"
+
+networking:
+  serviceSubnet: "{{ kubernetes_service_cidr }}"
+
+etcd:
+  external:
+    endpoints:
+{% for endpoint in kubernetes_etcd_endpoints %}
+      - "{{ endpoint }}"
+{% endfor %}
+    caFile: "{{ kubernetes_etcd_ca_cert }}"
+    certFile: "{{ kubernetes_etcd_client_cert }}"
+    keyFile: "{{ kubernetes_etcd_client_key }}"

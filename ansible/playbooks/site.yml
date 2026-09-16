@@ -1,0 +1,21 @@
+---
+- name: Deploy etcd
+  ansible.builtin.import_playbook: etcd/site.yml
+
+- name: Deploy load balancers
+  ansible.builtin.import_playbook: loadbalancer/site.yml
+
+- name: Prepare Kubernetes nodes
+  ansible.builtin.import_playbook: kubernetes/site.yml
+
+- name: Bootstrap Kubernetes control plane
+  ansible.builtin.import_playbook: controlplane/bootstrap.yml
+
+- name: Join Kubernetes control planes
+  ansible.builtin.import_playbook: controlplane/join.yml
+
+- name: Deploy Cilium
+  ansible.builtin.import_playbook: cilium/site.yml
+
+- name: Validate Kubernetes control plane
+  ansible.builtin.import_playbook: controlplane/validate.yml

@@ -1,0 +1,31 @@
+dns_search:
+  - k8s.prod.platform.internal
+  - platform.internal
+
+proxy_enabled: false
+repo_use_internal_repos: true
+common_upgrade_packages: true
+
+# ============================================================
+# Kubernetes API
+# ============================================================
+
+kubernetes_api_endpoint: "api.k8s.prod.platform.internal"
+kubernetes_api_port: 6443
+loadbalancer_vip: "10.50.20.10"
+
+# Keepalived
+keepalived_interface: "ens192"
+keepalived_router_id: 51
+keepalived_auth_type: "PASS"
+keepalived_auth_password: "{{ vault_keepalived_auth_password }}"
+
+# HAProxy
+haproxy_bind_address: "0.0.0.0"
+#"{{ loadbalancer_vip }}"
+haproxy_bind_port: "{{ kubernetes_api_port }}"
+haproxy_mode: "tcp"
+haproxy_balance_method: "roundrobin"
+
+haproxy_user: "haproxy"
+haproxy_group: "haproxy"

@@ -1,0 +1,17 @@
+---
+- name: Loadbalancer | Deploy Keepalived configuration
+  ansible.builtin.template:
+    src: keepalived.conf.j2
+    dest: "{{ keepalived_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify:
+    - Restart Keepalived
+
+- name: Loadbalancer | Enable and start Keepalived
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service }}"
+    enabled: true
+    state: started

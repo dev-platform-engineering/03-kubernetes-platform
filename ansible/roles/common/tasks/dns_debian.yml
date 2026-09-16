@@ -1,9 +1,27 @@
 ---
-- name: Configure systemd-resolved
-  ansible.builtin.template:
-    src: debian_resolved.conf.j2
-    dest: /etc/systemd/resolved.conf
+- name: DNS | Configure bootstrap resolv.conf
+  ansible.builtin.copy:
+    dest: /etc/resolv.conf
     owner: root
     group: root
     mode: "0644"
-  notify: Restart systemd-resolved
+    content: |
+      {% for dns_server in dns_servers %}
+      nameserver {{ dns_server }}
+      {% endfor %}
+      {% if dns_search | length > 0 %}
+      search {{ dns_search | join(' ') }}
+      {% endif %}
+  register: resolv_changed
+
+- name: DNS | Pause to let system apply resolv.conf
+  ansible.builtin.pause:
+    seconds: 2
+  when: resolv_changed.changed
+
+- name: DNS | Verify repository hostname resolution
+  ansible.builtin.command:
+    cmd: getent hosts repo-01.infra.platform.internal
+  register: repo_dns_check
+  changed_when: false
+  failed_when: repo_dns_check.rc != 0

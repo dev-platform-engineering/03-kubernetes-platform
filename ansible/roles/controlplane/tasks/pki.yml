@@ -1,0 +1,211 @@
+---
+# =============================================================================
+# Kubernetes Control Plane TLS / PKI
+#
+# Purpose:
+#
+#   - Reuse existing etcd CA
+#   - etcd CA private key exists ONLY on Ansible controller
+#   - API server private keys are generated on control-plane nodes
+#   - CSRs are generated on control-plane nodes
+#   - CSRs are signed on Ansible controller
+#   - signed certificates are copied back to control-plane nodes
+#
+# =============================================================================
+
+# =============================================================================
+# DIRECTORIES
+# =============================================================================
+
+- name: PKI | Create Kubernetes PKI directory
+  ansible.builtin.file:
+    path: "{{ kubernetes_pki_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: PKI | Create Kubernetes etcd PKI directory
+  ansible.builtin.file:
+    path: "{{ kubernetes_etcd_pki_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: PKI | Create local controlplane PKI directory
+  ansible.builtin.file:
+    path: "{{ controlplane_tls_controller_pki_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: PKI | Create local node PKI directory
+  ansible.builtin.file:
+    path: "{{ controlplane_tls_controller_pki_dir }}/{{ inventory_hostname }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+
+# =============================================================================
+# VERIFY EXISTING ETCD CA
+# =============================================================================
+
+- name: PKI | Verify etcd CA certificate exists on controller
+  ansible.builtin.stat:
+    path: "{{ controlplane_etcd_ca_cert_local }}"
+  register: controlplane_etcd_ca_cert_stat
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: PKI | Verify etcd CA private key exists on controller
+  ansible.builtin.stat:
+    path: "{{ controlplane_etcd_ca_key_local }}"
+  register: controlplane_etcd_ca_key_stat
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: PKI | Assert etcd CA exists
+  ansible.builtin.assert:
+    that:
+      - controlplane_etcd_ca_cert_stat.stat.exists
+      - controlplane_etcd_ca_key_stat.stat.exists
+    fail_msg: >-
+      Existing etcd CA certificate/private key was not found on the
+      Ansible controller.
+
+# =============================================================================
+# INSTALL ETCD CA CERTIFICATE
+# =============================================================================
+
+- name: PKI | Install etcd CA certificate
+  ansible.builtin.copy:
+    src: "{{ controlplane_etcd_ca_cert_local }}"
+    dest: "{{ kubernetes_etcd_ca_cert }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+# =============================================================================
+# API SERVER ETCD CLIENT KEY
+# =============================================================================
+
+- name: PKI | Generate API server etcd client private key
+  community.crypto.openssl_privatekey:
+    path: "{{ kubernetes_etcd_client_key }}"
+    type: RSA
+    size: 4096
+    mode: "0600"
+    owner: root
+    group: root
+
+# =============================================================================
+# API SERVER ETCD CLIENT CSR
+# =============================================================================
+
+- name: PKI | Generate API server etcd client CSR
+  community.crypto.openssl_csr:
+    path: "{{ kubernetes_etcd_client_csr }}"
+    privatekey_path: "{{ kubernetes_etcd_client_key }}"
+    common_name: "kube-apiserver-etcd-client"
+    digest: sha256
+
+    basic_constraints:
+      - "CA:FALSE"
+
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+
+    extended_key_usage:
+      - clientAuth
+
+# =============================================================================
+# FETCH CSR TO CONTROLLER
+# =============================================================================
+
+- name: PKI | Fetch API server etcd client CSR
+  ansible.builtin.fetch:
+    src: "{{ kubernetes_etcd_client_csr }}"
+    dest: "{{ controlplane_etcd_client_csr_local }}"
+    flat: true
+
+# =============================================================================
+# SIGN CERTIFICATE ON CONTROLLER
+# =============================================================================
+
+- name: PKI | Sign API server etcd client certificate
+  community.crypto.x509_certificate:
+    path: "{{ controlplane_etcd_client_cert_local }}"
+    csr_path: "{{ controlplane_etcd_client_csr_local }}"
+    ownca_path: "{{ controlplane_etcd_ca_cert_local }}"
+    ownca_privatekey_path: "{{ controlplane_etcd_ca_key_local }}"
+    provider: ownca
+    ownca_not_after: "+{{ controlplane_etcd_client_cert_validity_days }}d"
+    ownca_digest: sha256
+  delegate_to: localhost
+  become: false
+
+# =============================================================================
+# INSTALL SIGNED CERTIFICATE
+# =============================================================================
+
+- name: PKI | Install API server etcd client certificate
+  ansible.builtin.copy:
+    src: "{{ controlplane_etcd_client_cert_local }}"
+    dest: "{{ kubernetes_etcd_client_cert }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+
+- name: PKI | Verify API server etcd client certificate
+  ansible.builtin.command:
+    cmd: >
+      openssl verify
+      -CAfile {{ kubernetes_etcd_ca_cert }}
+      {{ kubernetes_etcd_client_cert }}
+  register: controlplane_etcd_client_cert_verify
+  changed_when: false
+  failed_when: controlplane_etcd_client_cert_verify.rc != 0
+
+- name: PKI | Display API server etcd client certificate information
+  ansible.builtin.command:
+    cmd: >
+      openssl x509
+      -in {{ kubernetes_etcd_client_cert }}
+      -noout
+      -subject
+      -issuer
+      -dates
+      -ext extendedKeyUsage
+  register: controlplane_etcd_client_cert_info
+  changed_when: false
+
+- name: PKI | Debug API server etcd client certificate information
+  ansible.builtin.debug:
+    var: controlplane_etcd_client_cert_info.stdout_lines
+
+- name: PKI | Verify API server etcd client certificate matches private key
+  ansible.builtin.shell:
+    cmd: |
+      cert_pub=$(openssl x509 \
+        -in "{{ kubernetes_etcd_client_cert }}" \
+        -pubkey -noout)
+
+      key_pub=$(openssl pkey \
+        -in "{{ kubernetes_etcd_client_key }}" \
+        -pubout)
+
+      test "$cert_pub" = "$key_pub"
+  args:
+    executable: /bin/bash
+  changed_when: false

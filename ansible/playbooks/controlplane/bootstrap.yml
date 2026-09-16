@@ -1,0 +1,13 @@
+---
+- name: Bootstrap Kubernetes control plane
+  hosts: kubeadm_bootstrap
+  become: true
+
+  vars:
+    controlplane_operation: bootstrap
+
+  vars_files:
+    - ../../inventory/production/group_vars/pki.yml
+
+  roles:
+    - role: controlplane

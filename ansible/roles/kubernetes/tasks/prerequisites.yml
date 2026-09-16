@@ -1,0 +1,19 @@
+- name: Kubernetes | Disable swap immediately
+  ansible.builtin.command:
+    cmd: swapoff -a
+  when: ansible_swaptotal_mb | int > 0
+  changed_when: true
+
+- name: Kubernetes | Disable swap permanently
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^\s*([^#].*\s+swap\s+\S+\s+.*)$'
+    replace: '# \1'
+    backup: true
+
+- name: Kubernetes | Install prerequisites
+  ansible.builtin.package:
+    name:
+      - conntrack
+      - socat
+    state: present

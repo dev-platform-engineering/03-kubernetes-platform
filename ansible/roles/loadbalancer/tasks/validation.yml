@@ -1,0 +1,111 @@
+---
+# ============================================================
+# Service validation
+# ============================================================
+
+- name: Loadbalancer | Check HAProxy service
+  ansible.builtin.systemd:
+    name: "{{ haproxy_service }}"
+  register: haproxy_service_status
+  changed_when: false
+  failed_when:
+    - not haproxy_service_status.status.ActiveState == "active"
+
+- name: Loadbalancer | Check Keepalived service
+  ansible.builtin.systemd:
+    name: "{{ keepalived_service }}"
+  register: keepalived_service_status
+  changed_when: false
+  failed_when:
+    - not keepalived_service_status.status.ActiveState == "active"
+
+# ============================================================
+# HAProxy configuration validation
+# ============================================================
+
+- name: Loadbalancer | Validate HAProxy configuration
+  ansible.builtin.command:
+    cmd: "haproxy -c -f {{ haproxy_config_file }}"
+  register: haproxy_config_check
+  changed_when: false
+
+# ============================================================
+# Kubernetes API backend validation
+# ============================================================
+
+- name: Loadbalancer | Check Kubernetes API backends
+  ansible.builtin.wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: "{{ kubernetes_api_port }}"
+    timeout: 5
+    state: started
+  loop: "{{ groups['control_plane'] }}"
+  loop_control:
+    label: "{{ item }}:{{ kubernetes_api_port }}"
+
+# ============================================================
+# HAProxy listener validation
+# ============================================================
+
+- name: Loadbalancer | Check HAProxy listening port
+  ansible.builtin.wait_for:
+    host: "{{ haproxy_bind_address }}"
+    port: "{{ haproxy_bind_port }}"
+    timeout: 5
+    state: started
+
+# ============================================================
+# VIP ownership
+# ============================================================
+
+- name: Loadbalancer | Check VIP ownership
+  ansible.builtin.command:
+    cmd: "ip -4 addr show"
+  register: vip_addresses
+  changed_when: false
+
+- name: Loadbalancer | Determine VIP ownership
+  ansible.builtin.set_fact:
+    loadbalancer_vip_owned: >-
+      {{ loadbalancer_vip in vip_addresses.stdout }}
+
+- name: Loadbalancer | Display VIP ownership
+  ansible.builtin.debug:
+    msg:
+      host: "{{ inventory_hostname }}"
+      vip: "{{ loadbalancer_vip }}"
+      owned: "{{ loadbalancer_vip_owned }}"
+
+# ============================================================
+# Keepalived role validation
+# ============================================================
+
+- name: Loadbalancer | Validate Keepalived state
+  ansible.builtin.command:
+    cmd: "ip -4 addr show dev {{ keepalived_interface }}"
+  register: keepalived_interface_state
+  changed_when: false
+
+- name: Loadbalancer | Validate MASTER owns VIP
+  ansible.builtin.assert:
+    that:
+      - loadbalancer_vip in keepalived_interface_state.stdout
+    fail_msg: >-
+      {{ inventory_hostname }} is configured as MASTER,
+      but VIP {{ loadbalancer_vip }} is not assigned.
+    success_msg: >-
+      {{ inventory_hostname }} is MASTER and owns VIP
+      {{ loadbalancer_vip }}.
+  when: keepalived_state == "MASTER"
+
+- name: Loadbalancer | Validate BACKUP does not own VIP
+  ansible.builtin.assert:
+    that:
+      - loadbalancer_vip not in keepalived_interface_state.stdout
+    fail_msg: >-
+      {{ inventory_hostname }} is configured as BACKUP,
+      but VIP {{ loadbalancer_vip }} is assigned.
+    success_msg: >-
+      {{ inventory_hostname }} is BACKUP and does not own VIP
+      {{ loadbalancer_vip }}.
+  when: keepalived_state == "BACKUP"

@@ -13,7 +13,7 @@ resource "vsphere_virtual_machine" "this" {
   firmware  = var.firmware
   scsi_type = var.scsi_type
 
-  wait_for_guest_net_timeout = 0
+  wait_for_guest_net_timeout = 5
 
   disk {
     label            = var.template_disk_label

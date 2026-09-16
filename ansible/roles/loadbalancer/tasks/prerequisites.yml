@@ -1,0 +1,11 @@
+---
+- name: Loadbalancer | Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Loadbalancer | Ensure /etc/keepalived exists
+  ansible.builtin.file:
+    path: /etc/keepalived
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"

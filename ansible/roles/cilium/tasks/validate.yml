@@ -1,0 +1,118 @@
+---
+# ==========================================================
+# Cilium DaemonSet
+# ==========================================================
+
+- name: Cilium | Wait for DaemonSet to become ready
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: DaemonSet
+    name: cilium
+    namespace: "{{ cilium_namespace }}"
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: cilium_daemonset
+  delegate_to: localhost
+  until:
+    - cilium_daemonset.resources | length > 0
+    - cilium_daemonset.resources[0].status.numberReady ==
+      cilium_daemonset.resources[0].status.desiredNumberScheduled
+  retries: 30
+  delay: 10
+
+- name: Cilium | Verify DaemonSet exists
+  ansible.builtin.assert:
+    that:
+      - cilium_daemonset.resources | length == 1
+    fail_msg: "Cilium DaemonSet was not found."
+
+- name: Cilium | Verify DaemonSet is ready
+  ansible.builtin.assert:
+    that:
+      - cilium_daemonset.resources[0].status.numberReady | default(0)
+        ==
+        cilium_daemonset.resources[0].status.desiredNumberScheduled | default(0)
+    fail_msg: >-
+      Cilium DaemonSet is not ready:
+      ready={{ cilium_daemonset.resources[0].status.numberReady | default(0) }},
+      desired={{ cilium_daemonset.resources[0].status.desiredNumberScheduled | default(0) }}
+
+# ==========================================================
+# Cilium Operator
+# ==========================================================
+
+- name: Cilium | Wait for operator to become ready
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ cilium_namespace }}"
+    name: cilium-operator
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: cilium_operator
+  delegate_to: localhost
+  run_once: true
+  retries: "{{ cilium_validation_retries }}"
+  delay: "{{ cilium_validation_delay }}"
+  until:
+    - cilium_operator.resources | length == 1
+    - cilium_operator.resources[0].status.readyReplicas | default(0) >= 1
+
+- name: Cilium | Verify operator exists
+  ansible.builtin.assert:
+    that:
+      - cilium_operator.resources | length == 1
+    fail_msg: "Cilium operator Deployment was not found."
+
+- name: Cilium | Verify operator is ready
+  ansible.builtin.assert:
+    that:
+      - cilium_operator.resources[0].status.readyReplicas | default(0) >= 1
+    fail_msg: >-
+      Cilium operator is not ready:
+      ready={{ cilium_operator.resources[0].status.readyReplicas | default(0) }},
+      desired={{ cilium_operator.resources[0].status.replicas | default(0) }}
+
+# ==========================================================
+# Kubernetes Nodes
+# ==========================================================
+
+- name: Cilium | Wait for all Kubernetes nodes to become Ready
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: kubernetes_nodes
+  delegate_to: localhost
+  run_once: true
+  retries: "{{ cilium_validation_retries }}"
+  delay: "{{ cilium_validation_delay }}"
+  until:
+    - kubernetes_nodes.resources | length > 0
+    - >
+      kubernetes_nodes.resources
+      | map(attribute='status.conditions')
+      | map('selectattr', 'type', 'equalto', 'Ready')
+      | map('selectattr', 'status', 'equalto', 'True')
+      | map('list')
+      | map('length')
+      | list
+      | min == 1
+
+- name: Cilium | Verify Kubernetes nodes were found
+  ansible.builtin.assert:
+    that:
+      - kubernetes_nodes.resources | length > 0
+    fail_msg: "No Kubernetes nodes were found."
+
+- name: Cilium | Verify all Kubernetes nodes are Ready
+  ansible.builtin.assert:
+    that:
+      - >
+        kubernetes_nodes.resources
+        | map(attribute='status.conditions')
+        | map('selectattr', 'type', 'equalto', 'Ready')
+        | map('selectattr', 'status', 'equalto', 'True')
+        | map('list')
+        | map('length')
+        | list
+        | min == 1
+    fail_msg: "Not all Kubernetes nodes are Ready."

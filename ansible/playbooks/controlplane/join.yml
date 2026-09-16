@@ -1,0 +1,13 @@
+---
+- name: Join Kubernetes control planes
+  hosts: kubeadm_control_plane:!kubeadm_bootstrap
+  become: true
+
+  vars:
+    controlplane_operation: join
+
+  vars_files:
+    - ../../inventory/production/group_vars/pki.yml
+
+  roles:
+    - role: controlplane
