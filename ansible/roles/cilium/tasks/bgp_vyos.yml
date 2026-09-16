@@ -24,13 +24,22 @@
     var: cilium_bgp_vyos_summary.stdout_lines
 
 - name: Cilium BGP | Verify Kubernetes BGP neighbors
+  ansible.netcommon.cli_command:
+    command: >-
+      vtysh -c "show bgp ipv4 unicast neighbor
+      {{ hostvars[item]['ansible_host'] }}"
+  loop: "{{ groups['kubeadm_control_plane'] }}"
+  register: cilium_bgp_vyos_neighbors
+  changed_when: false
+
+- name: Cilium BGP | Assert Kubernetes BGP neighbors are Established
   ansible.builtin.assert:
     that:
-      - item in cilium_bgp_vyos_summary.stdout
+      - "'BGP state = Established' in item.stdout"
     fail_msg: >-
-      Kubernetes BGP neighbor {{ hostvars[item]['ansible_host'] }}
-      ({{ item }}) is not present in the VyOS BGP summary.
-  loop: "{{ groups['kubeadm_control_plane'] }}"
+      Kubernetes BGP neighbor {{ item.item }}
+      ({{ hostvars[item.item]['ansible_host'] }}) is not Established.
+  loop: "{{ cilium_bgp_vyos_neighbors.results }}"
 
 - name: Cilium BGP | Show BGP routes
   ansible.netcommon.cli_command:
