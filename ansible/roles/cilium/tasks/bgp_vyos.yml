@@ -2,7 +2,7 @@
 - name: Cilium BGP | Configure VyOS eBGP peers
   vyos.vyos.vyos_config:
     lines: |
-      {% for host in groups['kubeadm_control_plane'] %}
+      {% for host in groups['kubernetes_bgp_nodes'] %}
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} remote-as {{ cilium_bgp_local_as }}
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} description "eBGP to Cilium {{ host }}"
       set protocols bgp neighbor {{ hostvars[host]['ansible_host'] }} address-family ipv4-unicast
@@ -39,7 +39,7 @@
       Kubernetes BGP neighbor {{ item }}
       ({{ hostvars[item]['ansible_host'] }})
       is missing from the VyOS BGP summary.
-  loop: "{{ groups['kubeadm_control_plane'] }}"
+  loop: "{{ groups['kubernetes_bgp_nodes'] }}"
 
 - name: Cilium BGP | Show BGP routes
   ansible.netcommon.cli_command:
