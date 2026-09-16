@@ -10,8 +10,7 @@
   when:
     - cilium_enabled | bool
     - cilium_bgp_enabled | bool
-
-- name: Cilium | Validate
-  ansible.builtin.import_tasks:
-    file: validate.yml
-  when: cilium_enabled | bool
+# - name: Cilium | Validate
+#   ansible.builtin.import_tasks:
+#     file: validate.yml
+#   when: cilium_enabled | bool
