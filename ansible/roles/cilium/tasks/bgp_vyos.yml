@@ -26,14 +26,20 @@
 - name: Cilium BGP | Verify Kubernetes BGP neighbors
   ansible.builtin.assert:
     that:
-      - hostvars[item]['ansible_host'] in cilium_bgp_vyos_summary.stdout
       - >
         (
-          cilium_bgp_vyos_summary.stdout
-          | regex_search(
-              '^' ~ hostvars[item]['ansible_host'] ~ '.*eBGP to Cilium ' ~ item ~ '$',
-              multiline=True
-            )
+          cilium_bgp_vyos_summary.stdout_lines
+          | select('match', '^' ~ hostvars[item]['ansible_host'] ~ '[[:space:]]')
+          | list
+          | length
+        ) == 1
+      - >
+        (
+          cilium_bgp_vyos_summary.stdout_lines
+          | select('match', '^' ~ hostvars[item]['ansible_host'] ~ '[[:space:]]')
+          | list
+          | first
+          | regex_search('[[:space:]]([0-9]+|Idle|Active|Connect|OpenSent|OpenConfirm)[[:space:]]+[0-9]+[[:space:]]+eBGP to Cilium')
         ) is not none
     fail_msg: >-
       Kubernetes BGP neighbor {{ item }}
