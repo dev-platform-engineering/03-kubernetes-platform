@@ -442,10 +442,9 @@
     label: "{{ item.item.name }}"
   when: item.status == 404
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Kubernetes APT proxy repositories
-# ---------------------------------------------------------------------------
-
+# -----------------------------------------------------------------------------
 - name: Check Kubernetes APT repositories
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/apt/proxy/{{ item.name }}"
@@ -457,11 +456,13 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies | selectattr('format', 'equalto', 'apt') | list }}"
+  loop: "{{ repo_nexus_k8s_proxies }}"
   loop_control:
-    label: "{{ item.name }}"
-  register: repo_nexus_k8s_apt_checks
-  no_log: false
+    label: "{{ item.name | default('undefined') }}"
+  register: repo_nexus_k8s_checks
+  when:
+    - item.format == "apt"
+  no_log: true
 
 - name: Create Kubernetes APT proxy repositories
   ansible.builtin.uri:
@@ -504,11 +505,10 @@
 
     status_code: 201
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_apt_checks.results }}"
+  loop: "{{ repo_nexus_k8s_checks.results }}"
   loop_control:
     label: "{{ item.item.name }}"
   when: item.status == 404
-  no_log: true
 
 # ---------------------------------------------------------------------------
 # Kubernetes YUM proxy repositories
@@ -571,8 +571,7 @@
   loop_control:
     label: "{{ item.item.name }}"
   when: item.status == 404
-  no_log: true
-
+  no_log: false
 # ---------------------------------------------------------------------------
 # Platform artifacts - RAW hosted repository
 # ---------------------------------------------------------------------------
