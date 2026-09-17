@@ -456,13 +456,17 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies }}"
+  loop: >-
+    {{
+      repo_nexus_k8s_proxies
+      | selectattr('format', 'defined')
+      | selectattr('format', 'equalto', 'apt')
+      | list
+    }}
   loop_control:
-    label: "{{ item.name | default('undefined') }}"
+    label: "{{ item.name }}"
   register: repo_nexus_k8s_checks
-  when:
-    - item.format == "apt"
-  no_log: false
+  no_log: true
 
 - name: Create Kubernetes APT proxy repositories
   ansible.builtin.uri:
@@ -525,11 +529,17 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies | selectattr('format', 'equalto', 'yum') | list }}"
+  loop: >-
+    {{
+      repo_nexus_k8s_proxies
+      | selectattr('format', 'defined')
+      | selectattr('format', 'equalto', 'yum')
+      | list
+    }}
   loop_control:
     label: "{{ item.name }}"
   register: repo_nexus_k8s_yum_checks
-  no_log: false
+  no_log: true
 
 - name: Create Kubernetes YUM proxy repositories
   ansible.builtin.uri:
