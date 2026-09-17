@@ -73,7 +73,7 @@
             kubernetes.io/hostname: "{{ host }}"
         bgpInstances:
           - name: "{{ host }}"
-            localASN: "{{ hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) | int }}"
+            localASN: "{{ hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) }}"
             peers: "{{ cilium_bgp_peer_config }}"
   loop: "{{ groups['kubernetes_bgp_nodes'] }}"
   loop_control:
