@@ -1,0 +1,20 @@
+---
+- name: Kubernetes | Configure Kubernetes YUM repository
+  ansible.builtin.yum_repository:
+    name: kubernetes
+    description: Kubernetes
+    baseurl: "http://repo-01.infra.platform.internal:8081/repository/kubernetes-1.30/"
+    enabled: true
+    gpgcheck: false
+
+- name: Kubernetes | Install Kubernetes packages
+  ansible.builtin.dnf:
+    name:
+      - kubeadm
+      - kubelet
+    state: present
+
+- name: Kubernetes | Enable kubelet
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
