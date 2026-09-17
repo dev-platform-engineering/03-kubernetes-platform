@@ -462,7 +462,7 @@
   register: repo_nexus_k8s_checks
   when:
     - item.format == "apt"
-  no_log: true
+  no_log: false
 
 - name: Create Kubernetes APT proxy repositories
   ansible.builtin.uri:
