@@ -45,7 +45,6 @@ cilium_cluster_pool_ipv4_mask_size: 24
 # ==========================================================
 
 cilium_bgp_enabled: true
-cilium_bgp_local_as: 65100
 
 # ==========================================================
 # BGP advertisements

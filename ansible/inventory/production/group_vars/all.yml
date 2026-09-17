@@ -66,4 +66,3 @@ repo_nexus_k8s_proxies:
 
 cilium_enabled: true
 cilium_bgp_enabled: true
-cilium_bgp_local_as: 65100
