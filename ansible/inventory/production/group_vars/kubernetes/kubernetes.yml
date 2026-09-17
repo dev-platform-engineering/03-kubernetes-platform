@@ -67,3 +67,5 @@ kubernetes_registry_quay_docker_endpoint: >-
   http://repo-01.infra.platform.internal:8084
 
 kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
+kubernetes_crictl_timeout: 10
+kubernetes_crictl_debug: false
