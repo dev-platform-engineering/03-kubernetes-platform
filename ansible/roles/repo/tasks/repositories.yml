@@ -442,9 +442,10 @@
     label: "{{ item.item.name }}"
   when: item.status == 404
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Kubernetes APT proxy repositories
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 - name: Check Kubernetes APT repositories
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/apt/proxy/{{ item.name }}"
@@ -456,13 +457,11 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies }}"
+  loop: "{{ repo_nexus_k8s_proxies | selectattr('format', 'equalto', 'apt') | list }}"
   loop_control:
-    label: "{{ item.name | default('undefined') }}"
-  register: repo_nexus_k8s_checks
-  when:
-    - item.format == "apt"
-  no_log: true
+    label: "{{ item.name }}"
+  register: repo_nexus_k8s_apt_checks
+  no_log: false
 
 - name: Create Kubernetes APT proxy repositories
   ansible.builtin.uri:
@@ -505,14 +504,15 @@
 
     status_code: 201
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_checks.results }}"
+  loop: "{{ repo_nexus_k8s_apt_checks.results }}"
   loop_control:
     label: "{{ item.item.name }}"
   when: item.status == 404
+  no_log: true
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Kubernetes YUM proxy repositories
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 - name: Check Kubernetes YUM repositories
   ansible.builtin.uri:
@@ -525,13 +525,11 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies }}"
+  loop: "{{ repo_nexus_k8s_proxies | selectattr('format', 'equalto', 'yum') | list }}"
   loop_control:
     label: "{{ item.name }}"
   register: repo_nexus_k8s_yum_checks
-  when:
-    - item.format == "yum"
-  no_log: true
+  no_log: false
 
 - name: Create Kubernetes YUM proxy repositories
   ansible.builtin.uri:
@@ -541,7 +539,7 @@
     password: "{{ repo_nexus_admin_password }}"
     force_basic_auth: true
     headers:
-      Content-Type: application/json
+      Content-Type: "application/json"
     body_format: json
     body:
       name: "{{ item.item.name }}"
@@ -572,8 +570,7 @@
   loop: "{{ repo_nexus_k8s_yum_checks.results }}"
   loop_control:
     label: "{{ item.item.name }}"
-  when:
-    - item.status == 404
+  when: item.status == 404
   no_log: true
 
 # ---------------------------------------------------------------------------
