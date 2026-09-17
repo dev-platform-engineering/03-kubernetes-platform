@@ -72,7 +72,7 @@
         bgpInstances:
         {% for host in groups['kubernetes_bgp_nodes'] %}
           - name: "{{ host }}"
-            localASN: {{ hostvars[host][cilium_bgp_local_as] }}
+            localASN: {{ hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) }}
             nodeSelector:
               matchLabels:
                 kubernetes.io/hostname: "{{ host }}"
