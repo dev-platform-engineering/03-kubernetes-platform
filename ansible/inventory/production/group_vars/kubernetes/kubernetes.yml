@@ -65,3 +65,5 @@ kubernetes_registry_k8s_docker_endpoint: >-
 # Docker/OCI registry connector for quay.io
 kubernetes_registry_quay_docker_endpoint: >-
   http://repo-01.infra.platform.internal:8084
+
+kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
