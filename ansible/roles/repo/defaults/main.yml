@@ -115,18 +115,6 @@ repo_nexus_raw_proxies:
     url: "https://github.com"
     format: "raw"
 
-repo_nexus_k8s_proxies:
-  - name: "k8s-deb-1.30"
-    url: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
-    format: "apt"
-    distribution: "/"
-    flat: true
-    enforce_distribution: false
-
-  - name: "k8s-rpm-1.30"
-    format: "yum"
-    url: "https://pkgs.k8s.io/core:/stable:/v1.30/rpm/"
-
 repo_nexus_platform_artifacts_enabled: true
 
 repo_nexus_platform_artifacts:
