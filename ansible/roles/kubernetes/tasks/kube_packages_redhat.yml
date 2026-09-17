@@ -3,7 +3,7 @@
   ansible.builtin.yum_repository:
     name: kubernetes
     description: Kubernetes
-    baseurl: "http://repo-01.infra.platform.internal:8081/repository/kubernetes-1.30/"
+    baseurl: "http://repo-01.infra.platform.internal:8081/repository/k8s-rpm-1.30/"
     enabled: true
     gpgcheck: false
 
