@@ -66,26 +66,18 @@
       apiVersion: cilium.io/v2
       kind: CiliumBGPClusterConfig
       metadata:
-        name: kubernetes-bgp
-        namespace: kube-system
+        name: "kubernetes-bgp-{{ host }}"
       spec:
-        bgpInstances: "{{ instances | from_json }}"
-  vars:
-    instances: |-
-      {% set res = [] %}
-      {% for host in groups['kubernetes_bgp_nodes'] %}
-      {%   set _ = res.append({
-             'name': host,
-             'localASN': hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) | int,
-             'nodeSelector': {
-               'matchLabels': {
-                 'kubernetes.io/hostname': host
-               }
-             },
-             'peers': cilium_bgp_peer_config
-           }) %}
-      {% endfor %}
-      {{ res | to_json }}
+        nodeSelector:
+          matchLabels:
+            kubernetes.io/hostname: "{{ host }}"
+        bgpInstances:
+          - name: "{{ host }}"
+            localASN: "{{ hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) | int }}"
+            peers: "{{ cilium_bgp_peer_config }}"
+  loop: "{{ groups['kubernetes_bgp_nodes'] }}"
+  loop_control:
+    loop_var: host
   delegate_to: localhost
   run_once:
     true
