@@ -69,3 +69,10 @@ kubernetes_registry_quay_docker_endpoint: >-
 kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
 kubernetes_crictl_timeout: 10
 kubernetes_crictl_debug: false
+
+#for RedHat
+kubernetes_crictl_version: "1.30.1"
+kubernetes_crictl_download_url: >-
+  http://repo-01:8081/repository/platform-artifacts/
+  crictl/{{ kubernetes_crictl_version }}/
+  crictl-v{{ kubernetes_crictl_version }}-linux-amd64.tar.gz
