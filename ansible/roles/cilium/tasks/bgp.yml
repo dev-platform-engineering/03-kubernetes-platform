@@ -58,26 +58,44 @@
 # BGP cluster configuration
 # ----------------------------------------------------------
 
-- name: Cilium BGP | Configure BGP cluster
+- name: Cilium BGP | Configure node-specific BGP clusters
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_local_path }}"
     state: present
-    definition:
-      apiVersion: cilium.io/v2
-      kind: CiliumBGPClusterConfig
-      metadata:
-        name: "kubernetes-bgp-{{ host }}"
-      spec:
-        nodeSelector:
-          matchLabels:
-            kubernetes.io/hostname: "{{ host }}"
-        bgpInstances:
-          - name: "{{ host }}"
-            localASN: "{{ hostvars[host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) }}"
-            peers: "{{ cilium_bgp_peer_config }}"
+    definition: "{{ bgp_cluster | from_json }}"
   loop: "{{ groups['kubernetes_bgp_nodes'] }}"
   loop_control:
     loop_var: host
+  vars:
+    bgp_cluster: |-
+      {{
+        {
+          "apiVersion": "cilium.io/v2",
+          "kind": "CiliumBGPClusterConfig",
+          "metadata": {
+            "name": "kubernetes-bgp-" ~ host
+          },
+          "spec": {
+            "nodeSelector": {
+              "matchLabels": {
+                "kubernetes.io/hostname": host
+              }
+            },
+            "bgpInstances": [
+              {
+                "name": host,
+                "localASN": (
+                  hostvars[host]["cilium_bgp_local_as"]
+                  | default(cilium_bgp_local_as)
+                  | int
+                ),
+                "peers": cilium_bgp_peer_config
+              }
+            ]
+          }
+        }
+        | to_json
+      }}
   delegate_to: localhost
   run_once:
     true
