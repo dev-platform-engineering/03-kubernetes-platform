@@ -228,18 +228,19 @@
   delegate_to: localhost
   run_once: true
 
+# <<< ADD
 - name: Cilium BGP | Verify peer ASNs
   ansible.builtin.assert:
     that:
-      - peer.peerASN | int == cilium_bgp_peer_as | int
+      - item.spec.bgpInstances[0].peers[0].peerASN | int
+        == cilium_bgp_peer_as | int
+      - item.spec.bgpInstances[0].peers[1].peerASN | int
+        == cilium_bgp_peer_as | int
     fail_msg: >-
-      Invalid peer ASN {{ peer.peerASN }} for
-      {{ item.metadata.name }}.
-      Expected {{ cilium_bgp_peer_as }}.
-  loop: "{{ cilium_bgp_node_configs.resources | subelements('spec.bgpInstances.0.peers') }}"
+      Invalid peer ASN configuration on {{ item.metadata.name }}.
+      Expected all peers to use ASN {{ cilium_bgp_peer_as }}.
+  loop: "{{ cilium_bgp_node_configs.resources }}"
   loop_control:
-    label: "{{ item.0.metadata.name }} -> {{ item.1.peerAddress }}"
-  vars:
-    peer: "{{ item.1 }}"
+    label: "{{ item.metadata.name }}"
   delegate_to: localhost
   run_once: true
