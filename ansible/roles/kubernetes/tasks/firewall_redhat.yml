@@ -1,41 +1,25 @@
-# ---
-# - name: Kubernetes | Ensure firewalld is installed
-#   ansible.builtin.dnf:
-#     name: firewalld
-#     state: present
-
-# - name: Kubernetes | Ensure firewalld is enabled and running
-#   ansible.builtin.systemd:
-#     name: firewalld
-#     enabled: true
-#     state: started
-
-# - name: Kubernetes | Add firewall rules
-#   ansible.posix.firewalld:
-#     zone: public
-#     rich_rule: >-
-#       rule family="ipv4"
-#       source address="{{ item.from_cidr }}"
-#       port port="{{ item.port }}"
-#       protocol="{{ item.proto }}"
-#       accept
-#     permanent: true
-#     immediate: true
-#     state: enabled
-#   loop: "{{ kubernetes_firewall_rules | default([]) }}"
-
 ---
 # ----------------------------------------------------------
 # Kubernetes | RedHat firewall
+# ----------------------------------------------------------
 #
-# Applies to Rocky/RHEL-based Kubernetes nodes.
+# Applies to:
+#   - Rocky Linux
+#   - RHEL
 #
 # Responsibilities:
-#   - Host access
-#   - Cilium health connectivity
+#   - Control Plane -> Kubelet
+#   - Control Plane -> Cilium health
+#   - Worker -> Worker Cilium health
 #   - Cilium native-routing Pod forwarding
 #
-# Debian nodes use firewall_debian.yml.
+# Cilium:
+#   Native routing CIDR: 10.60.0.0/16
+#   Cluster pool CIDR:   10.60.0.0/16
+#
+# Kubernetes worker network:
+#   10.50.50.0/24
+#
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------
@@ -98,73 +82,75 @@
 
 # ----------------------------------------------------------
 # Cilium forwarding policy
+# ----------------------------------------------------------
 #
-# Native routing:
+# We use a firewalld policy because Cilium Pod traffic is
+# forwarded through the worker host.
 #
-#   Worker network
-#       10.50.50.0/24
-#              |
-#              | forwarded traffic
-#              v
-#       Cilium Pod network
-#       10.60.0.0/16
+# The diagnostic policy that proved the problem was:
 #
-# The policy uses:
+#   public -> ANY
+#   target ACCEPT
 #
-#   ingress: public
-#   egress:  ANY
-#   target:   CONTINUE
+# We do NOT keep that broad ACCEPT policy.
 #
-# This is intentionally NOT a blanket ACCEPT policy.
-# Only the explicit source/destination rich rules below
-# are accepted.
+# Instead:
+#
+#   public -> ANY
+#   target CONTINUE
+#
+# and explicitly allow:
+#
+#   worker CIDR -> Pod CIDR
+#   Pod CIDR    -> worker CIDR
+#
 # ----------------------------------------------------------
 
-- name: Kubernetes | Check Cilium firewalld policy
+- name: Kubernetes | Check firewalld policies
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --get-policies
-  register: kubernetes_cilium_policy_list
+  register: kubernetes_firewalld_policies
   changed_when: false
 
-- name: Kubernetes | Create Cilium firewalld policy
+- name: Kubernetes | Create Cilium forwarding policy
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --new-policy cilium-forward
-  when: "'cilium-forward' not in kubernetes_cilium_policy_list.stdout"
+  when: "'cilium-forward' not in kubernetes_firewalld_policies.stdout.split()"
   changed_when: true
+
+# ----------------------------------------------------------
+# Get current policy configuration
+# ----------------------------------------------------------
+
+- name: Kubernetes | Get Cilium forwarding policy
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --list-all
+  register: kubernetes_cilium_policy
+  changed_when: false
 
 # ----------------------------------------------------------
 # Policy zones
 # ----------------------------------------------------------
 
-- name: Kubernetes | Check Cilium policy ingress zones
-  ansible.builtin.command:
-    cmd: firewall-cmd --permanent --policy cilium-forward --get-ingress-zones
-  register: kubernetes_cilium_policy_ingress_zones
-  changed_when: false
-
 - name: Kubernetes | Add public ingress zone to Cilium policy
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --policy cilium-forward --add-ingress-zone public
-  when: "'public' not in kubernetes_cilium_policy_ingress_zones.stdout"
+  when: >-
+    'ingress-zones: public' not in kubernetes_cilium_policy.stdout
   changed_when: true
-
-- name: Kubernetes | Check Cilium policy egress zones
-  ansible.builtin.command:
-    cmd: firewall-cmd --permanent --policy cilium-forward --get-egress-zones
-  register: kubernetes_cilium_policy_egress_zones
-  changed_when: false
 
 - name: Kubernetes | Add ANY egress zone to Cilium policy
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --policy cilium-forward --add-egress-zone ANY
-  when: "'ANY' not in kubernetes_cilium_policy_egress_zones.stdout"
+  when: >-
+    'egress-zones: ANY' not in kubernetes_cilium_policy.stdout
   changed_when: true
 
 # ----------------------------------------------------------
 # Policy target
 # ----------------------------------------------------------
 
-- name: Kubernetes | Check Cilium policy target
+- name: Kubernetes | Get Cilium policy target
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --policy cilium-forward --get-target
   register: kubernetes_cilium_policy_target
@@ -173,18 +159,23 @@
 - name: Kubernetes | Set Cilium policy target to CONTINUE
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --policy cilium-forward --set-target CONTINUE
-  when: kubernetes_cilium_policy_target.stdout | trim != "CONTINUE"
+  when:
+    - kubernetes_cilium_policy_target.stdout | trim != "CONTINUE"
   changed_when: true
 
 # ----------------------------------------------------------
-# Worker network -> Pod network
+# Policy rich rules
 # ----------------------------------------------------------
 
-- name: Kubernetes | Check Worker -> Pod forwarding rule
+- name: Kubernetes | Get Cilium policy rich rules
   ansible.builtin.command:
     cmd: firewall-cmd --permanent --policy cilium-forward --list-rich-rules
   register: kubernetes_cilium_policy_rules
   changed_when: false
+
+# ----------------------------------------------------------
+# Worker -> Pod
+# ----------------------------------------------------------
 
 - name: Kubernetes | Allow Worker network -> Cilium Pod network
   ansible.builtin.command:
@@ -196,22 +187,15 @@
       destination address="{{ cilium_cluster_pool_ipv4_cidr }}"
       accept'
   when: >-
-    ('source address="' ~ kubernetes_worker_cidr ~ '"')
-    not in kubernetes_cilium_policy_rules.stdout
-    or
-    ('destination address="' ~ cilium_cluster_pool_ipv4_cidr ~ '"')
+    ('source address="' ~ kubernetes_worker_cidr ~
+    '" destination address="' ~ cilium_cluster_pool_ipv4_cidr ~
+    '" accept')
     not in kubernetes_cilium_policy_rules.stdout
   changed_when: true
 
 # ----------------------------------------------------------
-# Pod network -> Worker network
+# Pod -> Worker
 # ----------------------------------------------------------
-
-- name: Kubernetes | Check Pod -> Worker forwarding rule
-  ansible.builtin.command:
-    cmd: firewall-cmd --permanent --policy cilium-forward --list-rich-rules
-  register: kubernetes_cilium_policy_rules_reverse
-  changed_when: false
 
 - name: Kubernetes | Allow Cilium Pod network -> Worker network
   ansible.builtin.command:
@@ -223,11 +207,10 @@
       destination address="{{ kubernetes_worker_cidr }}"
       accept'
   when: >-
-    ('source address="' ~ cilium_cluster_pool_ipv4_cidr ~ '"')
-    not in kubernetes_cilium_policy_rules_reverse.stdout
-    or
-    ('destination address="' ~ kubernetes_worker_cidr ~ '"')
-    not in kubernetes_cilium_policy_rules_reverse.stdout
+    ('source address="' ~ cilium_cluster_pool_ipv4_cidr ~
+    '" destination address="' ~ kubernetes_worker_cidr ~
+    '" accept')
+    not in kubernetes_cilium_policy_rules.stdout
   changed_when: true
 
 # ----------------------------------------------------------
