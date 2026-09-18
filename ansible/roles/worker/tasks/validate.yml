@@ -30,7 +30,7 @@
 - name: Worker | Validate Kubernetes node
   ansible.builtin.command:
     cmd: kubectl get node {{ ansible_hostname }} -o json
-  delegate_to: "{{ localhost }}"
+  delegate_to: "{{ kubeadm_bootstrap_host }}"
   register: worker_node
   changed_when: false
 
