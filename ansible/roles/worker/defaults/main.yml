@@ -1,6 +1,4 @@
 ---
-worker_bootstrap_host: "{{ kubeadm_bootstrap_host }}"
-
 worker_cri_socket: "unix:///run/containerd/containerd.sock"
 
 worker_join_timeout: 120

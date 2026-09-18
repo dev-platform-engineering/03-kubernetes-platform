@@ -2,6 +2,8 @@ dns_search:
   - k8s.prod.platform.internal
   - platform.internal
 
+kubeadm_bootstrap_host: "cp-01"
+
 proxy_enabled: false
 repo_use_internal_repos: true
 common_upgrade_packages: true
