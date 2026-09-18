@@ -19,7 +19,7 @@
 
 - name: Worker | Remove temporary JoinConfiguration
   ansible.builtin.file:
-    path: "{{ worker_kubeadm_config }}"
+    path: "{{ kubeadm_bootstrap_host }}"
     state: absent
   when:
     - worker_kubeadm_join is defined
