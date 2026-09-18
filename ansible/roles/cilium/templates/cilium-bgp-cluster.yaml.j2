@@ -10,10 +10,10 @@ spec:
     - name: {{ bgp_host }}
       localASN: {{ hostvars[bgp_host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) | int }}
       peers:
-{% for peer in hostvars[bgp_host]['cilium_bgp_peer_config'] %}
+{% for peer in hostvars[bgp_host]['kubernetes_bgp_peers'] %}
         - name: {{ peer.name }}
-          peerASN: {{ peer.peerASN }}
-          peerAddress: {{ peer.peerAddress }}
+          peerASN: {{ peer.as | int }}
+          peerAddress: {{ peer.address }}
           peerConfigRef:
-            name: {{ peer.peerConfigRef.name }}
+            name: kubernetes-bgp-peer
 {% endfor %}
