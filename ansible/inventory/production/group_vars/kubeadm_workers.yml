@@ -12,10 +12,15 @@ worker_kubeadm_config: "/etc/kubernetes/kubeadm-join.yaml"
 kubernetes_firewall_rules:
   - proto: tcp
     from_cidr: "{{ kubernetes_control_plane_cidr }}"
-    port: "{{ kubernetes_kubelet_port }}"
-    comment: "Kubelet API from Control Plane"
+    port: 4240
+    comment: "Cilium health from Control Plane"
 
   - proto: tcp
     from_cidr: "{{ kubernetes_worker_cidr }}"
     port: 4240
     comment: "Cilium health from Workers"
+
+  - proto: tcp
+    from_cidr: "{{ kubernetes_control_plane_cidr }}"
+    port: "{{ kubernetes_kubelet_port }}"
+    comment: "Kubelet API from Control Plane"
