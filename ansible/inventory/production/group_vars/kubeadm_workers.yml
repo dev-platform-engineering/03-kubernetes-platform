@@ -14,3 +14,8 @@ kubernetes_firewall_rules:
     from_cidr: "{{ kubernetes_control_plane_cidr }}"
     port: "{{ kubernetes_kubelet_port }}"
     comment: "Kubelet API from Control Plane"
+
+  - proto: tcp
+    from_cidr: "{{ kubernetes_worker_cidr }}"
+    port: 4240
+    comment: "Cilium health from Workers"

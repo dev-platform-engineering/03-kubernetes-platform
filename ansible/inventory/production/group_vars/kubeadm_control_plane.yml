@@ -19,3 +19,8 @@ kubernetes_firewall_rules:
     from_cidr: "{{ kubernetes_api_lb_cidr }}"
     port: "{{ kubernetes_api_port }}"
     comment: "Kubernetes API from API Load Balancers"
+
+  - proto: tcp
+    from_cidr: "{{ kubernetes_worker_cidr }}"
+    port: 4240
+    comment: "Cilium health from Workers"
