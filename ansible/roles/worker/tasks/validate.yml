@@ -39,12 +39,10 @@
 - name: Worker | Validate Kubernetes node Ready
   ansible.builtin.command:
     cmd: >-
-      kubectl
-      --kubeconfig "{{ kubernetes_kubeconfig }}"
-      get node {{ inventory_hostname }}
+      kubectl get node {{ inventory_hostname }}
       -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  delegate_to: localhost
   register: worker_node_ready
   changed_when: false
