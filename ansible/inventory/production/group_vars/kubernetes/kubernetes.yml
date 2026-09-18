@@ -3,6 +3,7 @@ dns_search:
   - platform.internal
 
 kubeadm_bootstrap_host: "cp-01"
+kubernetes_control_plane_endpoint: "api.k8s.prod.platform.internal:6443"
 
 proxy_enabled: false
 repo_use_internal_repos: true
