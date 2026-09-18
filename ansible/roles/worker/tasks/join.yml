@@ -7,7 +7,7 @@
     group: root
     mode: "0600"
   when: not worker_kubelet_conf.stat.exists
-  no_log: true
+  #no_log: true
 
 - name: Worker | Join Kubernetes cluster
   ansible.builtin.command:
@@ -15,7 +15,7 @@
   when: not worker_kubelet_conf.stat.exists
   register: worker_kubeadm_join
   changed_when: true
-  no_log: true
+  #no_log: true
 
 - name: Worker | Remove temporary JoinConfiguration
   ansible.builtin.file:
