@@ -1,13 +1,13 @@
 ---
 worker_cri_socket: "unix:///run/containerd/containerd.sock"
-
 worker_join_timeout: 120
-
 worker_join_token_ttl: "30m"
-
 worker_kubelet_config: "/etc/kubernetes/kubelet.conf"
-
 worker_kubeadm_config: "/etc/kubernetes/kubeadm-join.yaml"
+
+kubernetes_bgp_peer_addresses:
+  - "10.50.50.1"
+  - "10.50.50.2"
 
 kubernetes_firewall_rules:
   - proto: tcp

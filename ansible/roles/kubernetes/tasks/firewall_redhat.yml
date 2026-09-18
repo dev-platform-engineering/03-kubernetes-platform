@@ -80,7 +80,7 @@
     immediate: true
     state: enabled
 
-- name: Kubernetes | Allow VyOS -> Cilium BGP
+- name: Kubernetes | Allow BGP from VyOS peers
   ansible.posix.firewalld:
     zone: public
     rich_rule: >-
@@ -92,9 +92,7 @@
     permanent: true
     immediate: true
     state: enabled
-  loop:
-    - "10.50.30.1"
-    - "10.50.30.2"
+  loop: "{{ kubernetes_bgp_peer_addresses }}"
 
 # ----------------------------------------------------------
 # Cilium native-routing forwarding
