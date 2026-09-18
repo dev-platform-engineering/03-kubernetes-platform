@@ -29,11 +29,10 @@
 
 - name: Worker | Validate Kubernetes node
   ansible.builtin.command:
-    cmd: >-
-      kubectl
-      --kubeconfig "{{ kubernetes_kubeconfig }}"
-      get node {{ inventory_hostname }} -o json
+    cmd: kubectl get node {{ inventory_hostname }} -o json
   delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   register: worker_node
   changed_when: false
 
@@ -44,6 +43,8 @@
       --kubeconfig "{{ kubernetes_kubeconfig }}"
       get node {{ inventory_hostname }}
       -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   delegate_to: localhost
   register: worker_node_ready
   changed_when: false
