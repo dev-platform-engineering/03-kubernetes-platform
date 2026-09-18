@@ -1,0 +1,26 @@
+---
+- name: Worker | Create kubeadm JoinConfiguration
+  ansible.builtin.template:
+    src: kubeadm-join.yaml.j2
+    dest: "{{ worker_kubeadm_config }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: not worker_kubelet_conf.stat.exists
+  no_log: true
+
+- name: Worker | Join Kubernetes cluster
+  ansible.builtin.command:
+    cmd: kubeadm join --config "{{ worker_kubeadm_config }}"
+  when: not worker_kubelet_conf.stat.exists
+  register: worker_kubeadm_join
+  changed_when: true
+  no_log: true
+
+- name: Worker | Remove temporary JoinConfiguration
+  ansible.builtin.file:
+    path: "{{ worker_kubeadm_config }}"
+    state: absent
+  when:
+    - worker_kubeadm_join is defined
+    - worker_kubeadm_join is succeeded

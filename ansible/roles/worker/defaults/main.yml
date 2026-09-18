@@ -1,0 +1,12 @@
+---
+worker_bootstrap_host: "{{ kubeadm_bootstrap_host }}"
+
+worker_cri_socket: "unix:///run/containerd/containerd.sock"
+
+worker_join_timeout: 120
+
+worker_join_token_ttl: "30m"
+
+worker_kubelet_config: "/etc/kubernetes/kubelet.conf"
+
+worker_kubeadm_config: "/etc/kubernetes/kubeadm-join.yaml"

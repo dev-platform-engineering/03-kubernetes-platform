@@ -1,0 +1,29 @@
+---
+- name: Worker | Check whether node is already joined
+  ansible.builtin.stat:
+    path: "{{ worker_kubelet_config }}"
+  register: worker_kubelet_conf
+
+- name: Worker | Validate containerd service
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+    enabled: true
+
+- name: Worker | Validate kubeadm
+  ansible.builtin.command:
+    cmd: kubeadm version -o short
+  register: worker_kubeadm_version
+  changed_when: false
+
+- name: Worker | Validate kubelet
+  ansible.builtin.command:
+    cmd: kubelet --version
+  register: worker_kubelet_version
+  changed_when: false
+
+- name: Worker | Display node state
+  ansible.builtin.debug:
+    msg: >-
+      Worker {{ inventory_hostname }} is
+      {{ 'already joined' if worker_kubelet_conf.stat.exists else 'ready to join' }}
