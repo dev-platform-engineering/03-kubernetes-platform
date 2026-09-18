@@ -22,6 +22,19 @@
     seconds: 30
   when: worker_kubeadm_join.changed
 
+- name: Worker | Label Kubernetes node
+  kubernetes.core.k8s:
+    state: present
+    kind: Node
+    name: "{{ inventory_hostname }}"
+    definition:
+      metadata:
+        labels:
+          node-role.kubernetes.io/worker: ""
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  delegate_to: localhost
+
 - name: Worker | Remove temporary JoinConfiguration
   ansible.builtin.file:
     path: "{{ kubeadm_bootstrap_host }}"
