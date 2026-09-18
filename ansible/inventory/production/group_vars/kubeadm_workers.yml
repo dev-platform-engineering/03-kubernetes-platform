@@ -24,3 +24,12 @@ kubernetes_firewall_rules:
     from_cidr: "{{ kubernetes_control_plane_cidr }}"
     port: "{{ kubernetes_kubelet_port }}"
     comment: "Kubelet API from Control Plane"
+
+kubernetes_firewall_forward_rules:
+  - from_cidr: "{{ kubernetes_worker_cidr }}"
+    to_cidr: "{{ cilium_native_routing_cidr }}"
+    comment: "Kubernetes worker to Pod network"
+
+  - from_cidr: "{{ cilium_native_routing_cidr }}"
+    to_cidr: "{{ kubernetes_worker_cidr }}"
+    comment: "Pod network to Kubernetes worker"
