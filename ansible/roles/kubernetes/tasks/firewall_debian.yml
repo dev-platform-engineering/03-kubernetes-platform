@@ -1,0 +1,6 @@
+---
+# Debian nodes currently use the iptables-nft backend managed by
+# Kubernetes/Cilium. No host firewall policy is configured by the
+# platform role.
+#
+# Do not modify Cilium/Kubernetes-managed chains here.

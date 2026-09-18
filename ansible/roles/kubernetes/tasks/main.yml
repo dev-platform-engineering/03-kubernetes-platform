@@ -30,6 +30,10 @@
       ansible.builtin.include_tasks:
         file: crictl.yml
 
+    - name: Kubernetes | Configure firewall
+      ansible.builtin.include_tasks:
+        file: firewall.yml
+
     - name: Validate Kubernetes node
       ansible.builtin.include_tasks:
         file: validate.yml

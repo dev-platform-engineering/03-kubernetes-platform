@@ -1,0 +1,25 @@
+---
+- name: Kubernetes | Ensure firewalld is installed
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Kubernetes | Ensure firewalld is enabled and running
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+- name: Kubernetes | Add firewall rules
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ item.from_cidr }}"
+      port port="{{ item.port }}"
+      protocol="{{ item.proto }}"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ kubernetes_firewall_rules | default([]) }}"

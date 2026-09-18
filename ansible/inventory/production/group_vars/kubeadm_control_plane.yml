@@ -13,3 +13,9 @@ kubernetes_etcd_endpoints: >-
     | map('regex_replace', '^(.*)$', 'https://\1:2379')
     | list
   }}
+
+kubernetes_firewall_rules:
+  - proto: tcp
+    from_cidr: "{{ kubernetes_api_lb_cidr }}"
+    port: "{{ kubernetes_api_port }}"
+    comment: "Kubernetes API from API Load Balancers"

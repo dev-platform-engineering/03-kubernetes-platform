@@ -8,3 +8,9 @@ worker_join_token_ttl: "30m"
 worker_kubelet_config: "/etc/kubernetes/kubelet.conf"
 
 worker_kubeadm_config: "/etc/kubernetes/kubeadm-join.yaml"
+
+kubernetes_firewall_rules:
+  - proto: tcp
+    from_cidr: "{{ kubernetes_control_plane_cidr }}"
+    port: "{{ kubernetes_kubelet_port }}"
+    comment: "Kubelet API from Control Plane"
