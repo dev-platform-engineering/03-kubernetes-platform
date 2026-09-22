@@ -39,9 +39,13 @@ $StartupGroups = @(
     ),
     @(
         "worker-01",
-        "worker-02"
+        "worker-02",
+        "worker-03"
     )
 )
 
 # Delay between groups
 $StartupGroupDelaySeconds = 60
+
+# Delay between VMs
+$StartupVMDelaySeconds = 15
