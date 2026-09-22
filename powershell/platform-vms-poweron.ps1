@@ -38,6 +38,8 @@ foreach ($group in $StartupGroups) {
                     -VM $vmObj `
                     -Confirm:$false
 
+                Start-Sleep -Seconds $StartupVMDelaySeconds
+
                 Write-Host "VM: $($vmObj.Name) is powering on"
             }
             else {
