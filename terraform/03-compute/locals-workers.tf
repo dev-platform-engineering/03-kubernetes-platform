@@ -29,6 +29,16 @@ locals {
       gateway = "10.50.50.254"
       network = "workers"
     }
+
+    worker-03 = {
+      os            = "debian"
+      template_name = "template-debian-12.15.0"
+
+      ip      = "10.50.50.13"
+      gateway = "10.50.50.254"
+      network = "workers"
+    }
+
   }
 
   kubernetes_worker_vms = {
