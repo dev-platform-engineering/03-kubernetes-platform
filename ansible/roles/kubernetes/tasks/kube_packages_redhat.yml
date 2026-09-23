@@ -13,6 +13,8 @@
       - "kubeadm-{{ kubernetes_package_versions.kubeadm }}"
       - "kubelet-{{ kubernetes_package_versions.kubelet }}"
     state: present
+    allow_downgrade: true
+  notify: Restart kubelet
 
 - name: Kubernetes | Enable kubelet
   ansible.builtin.systemd:
