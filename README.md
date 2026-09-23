@@ -94,5 +94,52 @@ Kubernetes nodes use dedicated autonomous systems:
 * `worker-02` — AS `65202`
 * `worker-03` — AS `65203`
 
-This provides a routing-based Kubernetes networking design that more closely resembles a datacenter or enterprise platform architecture.
+
+The platform runs on VMware vSphere and consists of a highly available Kubernetes cluster, external etcd, VyOS routing, load balancers, and an internal Nexus Repository.
+
+
+```text
+                         INTERNET
+                             |
+                             |
+                    +------------------+
+                    |   VyOS HA Routers |
+                    |     AS 65000      |
+                    +--------+---------+
+                             |
+              +--------------+--------------+
+              |                             |
+              v                             v
+      +---------------+             +---------------+
+      | HAProxy +     |             |    Nexus      |
+      | Keepalived    |             |  Repository   |
+      | LB-01 / LB-02 |             |    repo-01    |
+      +-------+-------+             +-------+-------+
+              |                             |
+              | Kubernetes API              |
+              v                             |
+    +-----------------------+               |
+    | Kubernetes Cluster    |<--------------+
+    |                       |
+    |  +-----------------+  |
+    |  | Control Plane   |  |
+    |  | cp-01/02/03     |  |
+    |  +--------+--------+  |
+    |           |           |
+    |           v           |
+    |  +-----------------+  |
+    |  | External etcd   |  |
+    |  | etcd-01/02/03   |  |
+    |  +-----------------+  |
+    |                       |
+    |  +-----------------+  |
+    |  | Workers         |  |
+    |  | worker-01/02/03 |  |
+    |  +-----------------+  |
+    |                       |
+    |  Cilium: Native       |
+    |  Routing + BGP        |
+    +-----------------------+
+```
+
 
