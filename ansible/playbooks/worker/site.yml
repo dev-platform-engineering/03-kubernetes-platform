@@ -1,6 +1,3 @@
 ---
 - name: Join Kubernetes worker nodes to the cluster
   ansible.builtin.import_playbook: join.yml
-
-- name: Deploy Cilium
-  ansible.builtin.import_playbook: ../cilium/site.yml
