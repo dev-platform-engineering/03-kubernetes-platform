@@ -10,8 +10,8 @@
 - name: Kubernetes | Install Kubernetes packages
   ansible.builtin.dnf:
     name:
-      - kubeadm
-      - kubelet
+      - "kubeadm-{{ kubernetes_package_versions.kubeadm }}"
+      - "kubelet-{{ kubernetes_package_versions.kubelet }}"
     state: present
 
 - name: Kubernetes | Enable kubelet
