@@ -1,0 +1,12 @@
+---
+- name: Worker | Preflight
+  ansible.builtin.import_tasks: preflight.yml
+
+- name: Worker | Generate join credentials
+  ansible.builtin.import_tasks: credentials.yml
+
+- name: Worker | Join cluster
+  ansible.builtin.import_tasks: join.yml
+
+- name: Worker | Validate
+  ansible.builtin.import_tasks: validate.yml

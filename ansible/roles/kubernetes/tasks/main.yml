@@ -22,13 +22,17 @@
       ansible.builtin.include_tasks:
         file: containerd.yml
 
+    - name: Install Kubernetes packages
+      ansible.builtin.include_tasks:
+        file: kube_packages.yml
+
     - name: Install crictl
       ansible.builtin.include_tasks:
         file: crictl.yml
 
-    - name: Install Kubernetes packages
+    - name: Kubernetes | Configure firewall
       ansible.builtin.include_tasks:
-        file: kube_packages.yml
+        file: firewall.yml
 
     - name: Validate Kubernetes node
       ansible.builtin.include_tasks:

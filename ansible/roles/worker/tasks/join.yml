@@ -1,0 +1,44 @@
+---
+- name: Worker | Create kubeadm JoinConfiguration
+  ansible.builtin.template:
+    src: kubeadm-join.yaml.j2
+    dest: "{{ worker_kubeadm_config }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: not worker_kubelet_conf.stat.exists
+  no_log: true
+
+- name: Worker | Join Kubernetes cluster
+  ansible.builtin.command:
+    cmd: kubeadm join --config "{{ worker_kubeadm_config }}"
+  when: not worker_kubelet_conf.stat.exists
+  register: worker_kubeadm_join
+  changed_when: true
+  no_log: true
+
+- name: Worker | Wait for kubelet and CNI initialization
+  ansible.builtin.pause:
+    seconds: 30
+  when: worker_kubeadm_join.changed
+
+- name: Worker | Label Kubernetes node
+  kubernetes.core.k8s:
+    state: present
+    kind: Node
+    name: "{{ inventory_hostname }}"
+    definition:
+      metadata:
+        labels:
+          node-role.kubernetes.io/worker: ""
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  delegate_to: localhost
+
+- name: Worker | Remove temporary JoinConfiguration
+  ansible.builtin.file:
+    path: "{{ kubeadm_bootstrap_host }}"
+    state: absent
+  when:
+    - worker_kubeadm_join is defined
+    - worker_kubeadm_join is succeeded

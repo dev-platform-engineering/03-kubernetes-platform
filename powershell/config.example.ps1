@@ -19,23 +19,33 @@ $StartupGroups = @(
         "vyos-router-02"
     ),
     @(
+        "ubuntu-route",
+        "ubuntu-test-pr",
         "repo-01"
     ),
     @(
-        "etcd-01",
-        "etcd-02",
+        "etcd-01", 
+        "etcd-02", 
         "etcd-03"
     ),
     @(
-        "k8s-master-01",
-        "k8s-master-02",
-        "k8s-master-03"
+        "lb-01",
+        "lb-02"
     ),
     @(
-        "k8s-worker-01",
-        "k8s-worker-02"
+        "cp-01",
+        "cp-02",
+        "cp-03"
+    ),
+    @(
+        "worker-01",
+        "worker-02",
+        "worker-03"
     )
 )
 
 # Delay between groups
 $StartupGroupDelaySeconds = 60
+
+# Delay between VMs
+$StartupVMDelaySeconds = 15

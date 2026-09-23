@@ -1,12 +1,21 @@
-kubeadm_bootstrap_host: "cp-01"
-kubernetes_control_plane_endpoint: "api.k8s.prod.platform.internal:6443"
 kubernetes_service_cidr: "10.96.0.0/12"
 #kubernetes_pod_cidr: ""
 kubernetes_api_port: 6443
-kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
+#kubernetes_cri_socket: "unix:///run/containerd/containerd.sock"
 
-kubernetes_crictl_timeout: 10
-kubernetes_crictl_debug: false
+kubernetes_bgp_peers:
+  - name: vyos-router-01
+    address: "10.50.30.1"
+    as: 65000
+
+  - name: vyos-router-02
+    address: "10.50.30.2"
+    as: 65000
+
+kubernetes_bgp_peer_addresses:
+  - "10.50.30.1"
+  - "10.50.30.2"
+
 kubernetes_kube_proxy_enabled: false
 kubeconfig_local_path: "{{ lookup('env', 'HOME') }}/.kube/k8s-platform-prod.config"
 
@@ -17,3 +26,14 @@ kubernetes_etcd_endpoints: >-
     | map('regex_replace', '^(.*)$', 'https://\1:2379')
     | list
   }}
+
+kubernetes_firewall_rules:
+  - proto: tcp
+    from_cidr: "{{ kubernetes_api_lb_cidr }}"
+    port: "{{ kubernetes_api_port }}"
+    comment: "Kubernetes API from API Load Balancers"
+
+  - proto: tcp
+    from_cidr: "{{ kubernetes_worker_cidr }}"
+    port: 4240
+    comment: "Cilium health from Workers"

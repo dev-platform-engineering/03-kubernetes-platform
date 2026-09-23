@@ -26,8 +26,8 @@
 - name: Kubernetes | Validate kubectl
   ansible.builtin.command:
     cmd: kubectl version --client -o yaml
-  register: kubectl_validate
   changed_when: false
+  when: inventory_hostname in groups['kubeadm_control_plane']
 
 - name: Kubernetes | Validate systemd cgroup
   ansible.builtin.command:
@@ -49,6 +49,11 @@
       - "containerd: {{ containerd_validate.stdout }}"
       - "kubeadm: {{ kubeadm_validate.stdout }}"
       - "kubelet: {{ kubelet_validate.stdout }}"
-      - "kubectl: {{ kubectl_validate.stdout }}"
       - "containerd SystemdCgroup: enabled"
       - "containerd service: {{ containerd_service_validate.stdout }}"
+
+- name: Kubernetes | Display kubectl version
+  ansible.builtin.debug:
+    msg:
+      - "kubectl: {{ kubectl_validate.stdout }}"
+  when: inventory_hostname in groups['kubeadm_control_plane']

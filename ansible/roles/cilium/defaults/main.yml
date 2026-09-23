@@ -2,11 +2,6 @@
 # ==========================================================
 # Cilium BGP topology
 # ==========================================================
-
-kubernetes_bgp_as: 65100
-
-vyos_bgp_as: 65000
-
 kubernetes_bgp_peers:
   - name: vyos-router-01
     address: "10.50.30.1"

@@ -1,0 +1,13 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: "{{ kubernetes_control_plane_endpoint }}"
+    token: "{{ hostvars[kubeadm_bootstrap_host].worker_join_token }}"
+    caCertHashes:
+      - "sha256:{{ hostvars[kubeadm_bootstrap_host].worker_ca_cert_hash }}"
+
+nodeRegistration:
+  criSocket: "{{ kubernetes_cri_socket }}"
+  name: "{{ ansible_hostname }}"

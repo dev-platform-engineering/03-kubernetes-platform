@@ -456,9 +456,15 @@
       - 200
       - 404
     validate_certs: false
-  loop: "{{ repo_nexus_k8s_proxies }}"
+  loop: >-
+    {{
+      repo_nexus_k8s_proxies
+      | selectattr('format', 'defined')
+      | selectattr('format', 'equalto', 'apt')
+      | list
+    }}
   loop_control:
-    label: "{{ item.name | default('undefined') }}"
+    label: "{{ item.name }}"
   register: repo_nexus_k8s_checks
   no_log: true
 
@@ -508,6 +514,74 @@
     label: "{{ item.item.name }}"
   when: item.status == 404
 
+# ---------------------------------------------------------------------------
+# Kubernetes YUM proxy repositories
+# ---------------------------------------------------------------------------
+
+- name: Check Kubernetes YUM repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  loop: >-
+    {{
+      repo_nexus_k8s_proxies
+      | selectattr('format', 'defined')
+      | selectattr('format', 'equalto', 'yum')
+      | list
+    }}
+  loop_control:
+    label: "{{ item.name }}"
+  register: repo_nexus_k8s_yum_checks
+  no_log: true
+
+- name: Create Kubernetes YUM proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ item.item.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ item.item.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 60
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+    status_code: 201
+    validate_certs: false
+  loop: "{{ repo_nexus_k8s_yum_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.status == 404
+  no_log: false
 # ---------------------------------------------------------------------------
 # Platform artifacts - RAW hosted repository
 # ---------------------------------------------------------------------------

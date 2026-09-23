@@ -1,0 +1,19 @@
+apiVersion: cilium.io/v2
+kind: CiliumBGPClusterConfig
+metadata:
+  name: kubernetes-bgp-{{ bgp_host }}
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/hostname: {{ bgp_host }}
+  bgpInstances:
+    - name: {{ bgp_host }}
+      localASN: {{ hostvars[bgp_host]['cilium_bgp_local_as'] | default(cilium_bgp_local_as) | int }}
+      peers:
+{% for peer in hostvars[bgp_host]['kubernetes_bgp_peers'] %}
+        - name: {{ peer.name }}
+          peerASN: {{ peer.as | int }}
+          peerAddress: {{ peer.address }}
+          peerConfigRef:
+            name: kubernetes-bgp-peer
+{% endfor %}

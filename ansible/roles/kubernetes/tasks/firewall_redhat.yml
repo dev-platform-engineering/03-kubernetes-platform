@@ -1,0 +1,212 @@
+---
+# ----------------------------------------------------------
+# Kubernetes | RedHat firewall
+# ----------------------------------------------------------
+#
+# Applies to:
+#   - Rocky Linux
+#   - RHEL
+#
+# Responsibilities:
+#   - Control Plane -> Kubelet
+#   - Control Plane -> Cilium health
+#   - Worker -> Worker Cilium health
+#   - Cilium native-routing Pod -> Pod forwarding
+#
+# Cilium:
+#   Native routing CIDR: 10.60.0.0/16
+#   Cluster pool CIDR:   10.60.0.0/16
+#
+# Kubernetes worker network:
+#   10.50.50.0/24
+#
+# ----------------------------------------------------------
+
+# ----------------------------------------------------------
+# firewalld
+# ----------------------------------------------------------
+
+- name: Kubernetes | Ensure firewalld is installed
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Kubernetes | Ensure firewalld is enabled and running
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+# ----------------------------------------------------------
+# Host access
+# ----------------------------------------------------------
+
+- name: Kubernetes | Allow Control Plane -> Kubelet
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ kubernetes_control_plane_cidr }}"
+      port port="{{ kubernetes_kubelet_port }}"
+      protocol="tcp"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Kubernetes | Allow Control Plane -> Cilium health
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ kubernetes_control_plane_cidr }}"
+      port port="4240"
+      protocol="tcp"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Kubernetes | Allow Worker -> Worker Cilium health
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ kubernetes_worker_cidr }}"
+      port port="4240"
+      protocol="tcp"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Kubernetes | Allow BGP from VyOS peers
+  ansible.posix.firewalld:
+    zone: public
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ item }}/32"
+      port port="179"
+      protocol="tcp"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ kubernetes_bgp_peer_addresses }}"
+
+# ----------------------------------------------------------
+# Cilium native-routing forwarding
+# ----------------------------------------------------------
+#
+# Pod-to-Pod traffic between workers keeps the Pod IPs:
+#
+#   source:      10.60.0.0/16
+#   destination: 10.60.0.0/16
+#
+# Example:
+#
+#   worker-01
+#   Pod 10.60.10.245
+#        |
+#        | 10.60.10.245 -> 10.60.9.101
+#        |
+#        v
+#   worker-02
+#   Pod 10.60.9.101
+#
+# The worker underlay (10.50.50.0/24) is NOT the source
+# network of the forwarded Pod packet.
+#
+# ----------------------------------------------------------
+
+- name: Kubernetes | Check firewalld policies
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --get-policies
+  register: kubernetes_firewalld_policies
+  changed_when: false
+
+- name: Kubernetes | Create Cilium forwarding policy
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --new-policy cilium-forward
+  when: "'cilium-forward' not in kubernetes_firewalld_policies.stdout.split()"
+  changed_when: true
+
+- name: Kubernetes | Get Cilium forwarding policy
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --list-all
+  register: kubernetes_cilium_policy
+  changed_when: false
+
+- name: Kubernetes | Add public ingress zone to Cilium policy
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --add-ingress-zone public
+  when: "'public' not in kubernetes_cilium_policy.stdout"
+  changed_when: true
+
+- name: Kubernetes | Add ANY egress zone to Cilium policy
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --add-egress-zone ANY
+  when: "'ANY' not in kubernetes_cilium_policy.stdout"
+  changed_when: true
+
+# ----------------------------------------------------------
+# Policy target
+# ----------------------------------------------------------
+
+- name: Kubernetes | Get Cilium policy target
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --get-target
+  register: kubernetes_cilium_policy_target
+  changed_when: false
+
+- name: Kubernetes | Set Cilium policy target to ACCEPT
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --set-target ACCEPT
+  when: kubernetes_cilium_policy_target.stdout | trim != "ACCEPT"
+  changed_when: true
+
+# ----------------------------------------------------------
+# Cilium Pod -> Pod forwarding
+# ----------------------------------------------------------
+#
+# This is the critical rule for native routing.
+#
+#   10.60.0.0/16 -> 10.60.0.0/16
+#
+# Both source and destination are Pod IPs.
+#
+# The previous worker-CIDR rules were incorrect for this
+# traffic path.
+#
+# ----------------------------------------------------------
+
+- name: Kubernetes | Get Cilium policy rich rules
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --policy cilium-forward --list-rich-rules
+  register: kubernetes_cilium_policy_rules
+  changed_when: false
+
+- name: Kubernetes | Allow Cilium Pod -> Pod forwarding
+  ansible.builtin.command:
+    cmd: >-
+      firewall-cmd --permanent
+      --policy cilium-forward
+      --add-rich-rule='rule family="ipv4"
+      source address="{{ cilium_cluster_pool_ipv4_cidr }}"
+      destination address="{{ cilium_cluster_pool_ipv4_cidr }}"
+      accept'
+  when: >-
+    ('source address="' ~ cilium_cluster_pool_ipv4_cidr ~
+    '" destination address="' ~ cilium_cluster_pool_ipv4_cidr ~
+    '" accept')
+    not in kubernetes_cilium_policy_rules.stdout
+  changed_when: true
+
+# ----------------------------------------------------------
+# Apply configuration
+# ----------------------------------------------------------
+
+- name: Kubernetes | Reload firewalld
+  ansible.builtin.command:
+    cmd: firewall-cmd --reload
+  changed_when: true

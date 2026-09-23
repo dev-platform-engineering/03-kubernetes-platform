@@ -116,3 +116,138 @@
         | list
         | min == 1
     fail_msg: "Not all Kubernetes nodes are Ready."
+
+# ==========================================================
+# Cilium BGP | Cluster Configuration
+# ==========================================================
+
+- name: Cilium BGP | Get BGP cluster configurations
+  kubernetes.core.k8s_info:
+    api_version: cilium.io/v2
+    kind: CiliumBGPClusterConfig
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: cilium_bgp_cluster_configs
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify expected cluster configurations exist
+  ansible.builtin.assert:
+    that:
+      - cilium_bgp_cluster_configs.resources | length == groups['kubernetes_bgp_nodes'] | length
+    fail_msg: >-
+      Expected {{ groups['kubernetes_bgp_nodes'] | length }}
+      CiliumBGPClusterConfig resources, found
+      {{ cilium_bgp_cluster_configs.resources | length }}.
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify node-specific cluster configurations
+  ansible.builtin.assert:
+    that:
+      - item.metadata.name == 'kubernetes-bgp-' ~ item.spec.nodeSelector.matchLabels['kubernetes.io/hostname']
+      - item.spec.bgpInstances | length == 1
+    fail_msg: >-
+      Invalid BGP cluster configuration:
+      {{ item.metadata.name }}.
+      Expected exactly one BGP instance and node-specific configuration.
+  loop: "{{ cilium_bgp_cluster_configs.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  delegate_to: localhost
+  run_once: true
+
+# ==========================================================
+# Cilium BGP | Node Configuration
+# ==========================================================
+
+- name: Cilium BGP | Get BGP node configurations
+  kubernetes.core.k8s_info:
+    api_version: cilium.io/v2
+    kind: CiliumBGPNodeConfig
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: cilium_bgp_node_configs
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify all BGP node configurations exist
+  ansible.builtin.assert:
+    that:
+      - cilium_bgp_node_configs.resources | length == groups['kubernetes_bgp_nodes'] | length
+    fail_msg: >-
+      Expected {{ groups['kubernetes_bgp_nodes'] | length }}
+      CiliumBGPNodeConfig resources, found
+      {{ cilium_bgp_node_configs.resources | length }}.
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify one BGP instance per node
+  ansible.builtin.assert:
+    that:
+      - item.spec.bgpInstances | length == 1
+    fail_msg: >-
+      {{ item.metadata.name }} contains
+      {{ item.spec.bgpInstances | length }} BGP instances.
+      Expected exactly 1.
+  loop: "{{ cilium_bgp_node_configs.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify two peers per node
+  ansible.builtin.assert:
+    that:
+      - item.spec.bgpInstances[0].peers | length == 2
+    fail_msg: >-
+      {{ item.metadata.name }} has
+      {{ item.spec.bgpInstances[0].peers | length }} BGP peers.
+      Expected 2.
+  loop: "{{ cilium_bgp_node_configs.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  delegate_to: localhost
+  run_once: true
+
+# ==========================================================
+# Cilium BGP | Cluster Configuration
+# ==========================================================
+
+- name: Cilium BGP | Get BGP cluster configurations
+  kubernetes.core.k8s_info:
+    api_version: cilium.io/v2
+    kind: CiliumBGPClusterConfig
+    kubeconfig: "{{ kubeconfig_local_path }}"
+  register: cilium_bgp_cluster_configs
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify expected cluster configurations exist
+  ansible.builtin.assert:
+    that:
+      - cilium_bgp_cluster_configs.resources | length == groups['kubernetes_bgp_nodes'] | length
+    fail_msg: >-
+      Expected {{ groups['kubernetes_bgp_nodes'] | length }}
+      CiliumBGPClusterConfig resources, found
+      {{ cilium_bgp_cluster_configs.resources | length }}.
+  delegate_to: localhost
+  run_once: true
+
+- name: Cilium BGP | Verify local ASN
+  ansible.builtin.assert:
+    that:
+      - item.spec.bgpInstances[0].localASN | int
+        == hostvars[item.spec.nodeSelector.matchLabels['kubernetes.io/hostname']]['cilium_bgp_local_as'] | int
+    fail_msg: >-
+      Incorrect ASN for
+      {{ item.spec.nodeSelector.matchLabels['kubernetes.io/hostname'] }}:
+      configured={{ item.spec.bgpInstances[0].localASN }},
+      expected={{
+        hostvars[
+          item.spec.nodeSelector.matchLabels['kubernetes.io/hostname']
+        ]['cilium_bgp_local_as']
+      }}.
+  loop: "{{ cilium_bgp_cluster_configs.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  delegate_to: localhost
+  run_once: true

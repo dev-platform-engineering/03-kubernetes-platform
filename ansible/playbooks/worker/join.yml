@@ -1,0 +1,10 @@
+---
+- name: Join Kubernetes worker nodes to the cluster
+  hosts: kubeadm_workers
+  become: true
+
+  tasks:
+    - name: Worker | Join cluster
+      ansible.builtin.import_role:
+        name: worker
+        #tasks_from: join

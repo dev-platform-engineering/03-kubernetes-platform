@@ -17,5 +17,11 @@
 - name: Deploy Cilium
   ansible.builtin.import_playbook: cilium/site.yml
 
-- name: Validate Kubernetes control plane
-  ansible.builtin.import_playbook: controlplane/validate.yml
+# - name: Initilize Kubernetes cluster worker nodes
+#   ansible.builtin.import_playbook: worker/site.yml
+
+- name: Join Kubernetes worker nodes to the cluster
+  ansible.builtin.import_playbook: worker/join.yml
+
+- name: Deploy Cilium
+  ansible.builtin.import_playbook: cilium/site.yml
