@@ -1,4 +1,8 @@
 ---
+proxy_enabled: false
+repo_use_internal_repos: true
+common_upgrade_packages: true
+
 # Vault version
 vault_version: "2.1.1"
 
