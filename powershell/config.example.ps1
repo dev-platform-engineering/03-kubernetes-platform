@@ -24,6 +24,11 @@ $StartupGroups = @(
         "repo-01"
     ),
     @(
+        "vault-01",
+        "vault-02",
+        "vault-03"
+    ),
+    @(
         "etcd-01", 
         "etcd-02", 
         "etcd-03"
