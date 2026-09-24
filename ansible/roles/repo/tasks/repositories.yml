@@ -629,7 +629,7 @@
 
   no_log: true
 
-- import_tasks: hashicorp.yml
+- import_tasks: repo-hashicorp.yml
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
