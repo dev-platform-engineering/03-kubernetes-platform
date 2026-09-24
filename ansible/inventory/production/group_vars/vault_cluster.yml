@@ -1,0 +1,40 @@
+---
+# Vault version
+vault_version: "2.1.1"
+
+# Cluster
+vault_cluster_name: "vault-prod"
+
+# DNS names
+vault_domain: "infra.platform.internal"
+
+vault_api_addr: "https://{{ inventory_hostname }}.{{ vault_domain }}:8200"
+vault_cluster_addr: "https://{{ inventory_hostname }}.{{ vault_domain }}:8201"
+
+vault_yum_repo_url: "http://{{ repo_fqdn }}:8081/repository/hashicorp-yum/"
+
+# Vault directories
+vault_config_dir: "/etc/vault.d"
+vault_data_dir: "/opt/vault/data"
+vault_tls_dir: "{{ vault_config_dir }}/tls"
+
+# Vault service
+vault_user: "vault"
+vault_group: "vault"
+
+# Network
+vault_api_port: 8200
+vault_cluster_port: 8201
+
+# Storage
+vault_storage_path: "{{ vault_data_dir }}"
+
+# Listener
+vault_listener_address: "0.0.0.0:8200"
+vault_cluster_listener_address: "0.0.0.0:8201"
+
+# UI
+vault_ui_enabled: true
+
+# TLS
+vault_tls_enabled: true

@@ -69,5 +69,10 @@ repo_nexus_k8s_proxies:
     format: "yum"
     url: "https://pkgs.k8s.io/core:/stable:/v1.30/rpm/"
 
+repo_nexus_hashicorp_proxies:
+  - name: "hashicorp-yum"
+    format: "yum"
+    url: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable/"
+
 cilium_enabled: true
 cilium_bgp_enabled: true

@@ -1,0 +1,6 @@
+---
+- name: Configure Vault Cluster
+  hosts: vault_cluster
+  roles:
+    - common
+    - vault
