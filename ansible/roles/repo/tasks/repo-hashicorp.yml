@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# HashiCorp YUM proxy repositories
+# ---------------------------------------------------------------------------
+
+- name: Check HashiCorp YUM repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy/{{ item.name }}"
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  loop: "{{ repo_nexus_hashicorp_proxies }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: repo_nexus_hashicorp_checks
+  no_log: true
+
+- name: Create HashiCorp YUM proxy repositories
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/yum/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ item.item.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ item.item.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 60
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+    status_code: 201
+    validate_certs: false
+
+  loop: "{{ repo_nexus_hashicorp_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.status == 404
+  no_log: true

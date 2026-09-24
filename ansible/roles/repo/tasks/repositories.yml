@@ -582,10 +582,10 @@
     label: "{{ item.item.name }}"
   when: item.status == 404
   no_log: false
+
 # ---------------------------------------------------------------------------
 # Platform artifacts - RAW hosted repository
 # ---------------------------------------------------------------------------
-
 - name: Check platform artifacts repository
   ansible.builtin.uri:
     url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/raw/hosted/{{ repo_nexus_platform_artifacts.name }}"
@@ -628,6 +628,8 @@
     - repo_nexus_platform_artifacts_check.status == 404
 
   no_log: true
+
+- import_tasks: hashicorp.yml
 
 - name: Configure Nexus anonymous access
   ansible.builtin.uri:
