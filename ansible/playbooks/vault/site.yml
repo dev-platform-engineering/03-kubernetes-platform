@@ -2,5 +2,7 @@
 - name: Configure Vault Cluster
   hosts: vault_cluster
   roles:
-    - common
-    - vault
+    - role: common
+      tags: common
+    - role: vault
+      tags: vault
