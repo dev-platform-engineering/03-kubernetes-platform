@@ -14,7 +14,7 @@ locals {
 
     netmask = 24
     gateway = "10.50.20.254"
-    network = "management"
+    network = "infrastructure"
   }
 
   vault_vms = {
