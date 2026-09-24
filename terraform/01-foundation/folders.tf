@@ -18,6 +18,7 @@ module "k8s_subfolders" {
     control_plane = { path = "Kubernetes/ControlPlane", type = "vm" }
     workers       = { path = "Kubernetes/Workers", type = "vm" }
     etcd          = { path = "Kubernetes/Etcd", type = "vm" }
+    vault         = { path = "Infrastructure/Vault", type = "vm" }
   }
 
   depends_on = [
