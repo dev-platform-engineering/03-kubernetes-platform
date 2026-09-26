@@ -21,3 +21,8 @@
 - name: Display available Vault packages
   ansible.builtin.debug:
     var: vault_package_check.stdout_lines
+
+- name: Install Vault
+  ansible.builtin.dnf:
+    name: "vault-{{ vault_version }}"
+    state: present
