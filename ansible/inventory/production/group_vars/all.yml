@@ -72,7 +72,8 @@ repo_nexus_k8s_proxies:
 repo_nexus_hashicorp_proxies:
   - name: "hashicorp-yum"
     format: "yum"
-    url: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable/"
+    #url: "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable/"
+    url: "https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/"
 
 cilium_enabled: true
 cilium_bgp_enabled: true
