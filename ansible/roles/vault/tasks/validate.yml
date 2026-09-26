@@ -1,0 +1,15 @@
+---
+- name: Gather Vault service facts
+  ansible.builtin.service_facts:
+
+- name: Verify Vault service exists
+  ansible.builtin.assert:
+    that:
+      - "'vault.service' in ansible_facts.services"
+    fail_msg: "Vault systemd service was not found."
+
+- name: Display Vault service state
+  ansible.builtin.debug:
+    msg:
+      - "Vault service: {{ ansible_facts.services['vault.service'].state }}"
+      - "Vault status: {{ ansible_facts.services['vault.service'].status }}"

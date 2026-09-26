@@ -1,0 +1,32 @@
+---
+- name: Create Vault TLS directory
+  ansible.builtin.file:
+    path: "{{ vault_tls_dir }}"
+    state: directory
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "0750"
+
+- name: Check Vault TLS certificate
+  ansible.builtin.stat:
+    path: "{{ vault_tls_cert_file }}"
+  register: vault_tls_cert
+
+- name: Check Vault TLS private key
+  ansible.builtin.stat:
+    path: "{{ vault_tls_key_file }}"
+  register: vault_tls_key
+
+- name: Verify Vault TLS certificate exists
+  ansible.builtin.assert:
+    that:
+      - vault_tls_cert.stat.exists
+    fail_msg: >-
+      Vault TLS certificate {{ vault_tls_cert_file }} does not exist.
+
+- name: Verify Vault TLS private key exists
+  ansible.builtin.assert:
+    that:
+      - vault_tls_key.stat.exists
+    fail_msg: >-
+      Vault TLS private key {{ vault_tls_key_file }} does not exist.

@@ -1,0 +1,23 @@
+---
+- name: Configure HashiCorp YUM repository
+  ansible.builtin.yum_repository:
+    name: "{{ vault_yum_repo_name }}"
+    description: "Internal HashiCorp YUM repository"
+    baseurl: "{{ vault_yum_repo_url }}"
+    enabled: true
+    gpgcheck: false
+    state: present
+
+- name: Refresh DNF repository metadata
+  ansible.builtin.dnf:
+    update_cache: true
+
+- name: Check available Vault packages
+  ansible.builtin.command:
+    cmd: dnf list --showduplicates vault
+  register: vault_package_check
+  changed_when: false
+
+- name: Display available Vault packages
+  ansible.builtin.debug:
+    var: vault_package_check.stdout_lines

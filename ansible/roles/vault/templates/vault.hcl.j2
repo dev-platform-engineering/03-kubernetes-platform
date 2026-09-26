@@ -1,0 +1,32 @@
+ui = {{ vault_ui_enabled | lower }}
+
+disable_mlock = false
+
+storage "raft" {
+  path    = "{{ vault_storage_path }}"
+  node_id = "{{ inventory_hostname }}"
+
+  retry_join {
+    leader_api_addr = "https://vault-01.infra.platform.internal:8200"
+  }
+
+  retry_join {
+    leader_api_addr = "https://vault-02.infra.platform.internal:8200"
+  }
+
+  retry_join {
+    leader_api_addr = "https://vault-03.infra.platform.internal:8200"
+  }
+}
+
+listener "tcp" {
+  address         = "{{ vault_listener_address }}"
+  cluster_address = "{{ vault_cluster_listener_address }}"
+
+  tls_disable     = false
+  tls_cert_file   = "{{ vault_tls_cert_file }}"
+  tls_key_file    = "{{ vault_tls_key_file }}"
+}
+
+api_addr     = "{{ vault_api_addr }}"
+cluster_addr = "{{ vault_cluster_addr }}"

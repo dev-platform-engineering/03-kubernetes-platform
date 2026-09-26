@@ -11,10 +11,16 @@ vault_tls_dir: "/etc/vault.d/tls"
 vault_api_port: 8200
 vault_cluster_port: 8201
 
-vault_ui_enabled: true
-vault_tls_enabled: true
-
 vault_listener_address: "0.0.0.0:8200"
 vault_cluster_listener_address: "0.0.0.0:8201"
 
+vault_ui_enabled: true
+
+vault_tls_enabled: true
+vault_tls_cert_file: "{{ vault_tls_dir }}/vault.crt"
+vault_tls_key_file: "{{ vault_tls_dir }}/vault.key"
+
 vault_storage_path: "/opt/vault/data"
+
+vault_yum_repo_name: "hashicorp-yum"
+vault_yum_repo_url: "http://{{ repo_fqdn }}:8081/repository/{{ vault_yum_repo_name }}/"
