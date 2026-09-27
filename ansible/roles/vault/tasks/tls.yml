@@ -215,21 +215,17 @@
 # 13. Install Vault CA certificate
 # -----------------------------------------------------------------------------
 
-- name: TLS | Install Vault CA certificate
+- name: Install Vault CA certificate
   ansible.builtin.copy:
     src: "{{ vault_tls_ca_cert_local }}"
     dest: "{{ vault_tls_ca_cert }}"
     owner: root
-    group: "{{ vault_group }}"
+    group: root
     mode: "0644"
 
 # =============================================================================
 # VALIDATION
 # =============================================================================
-
-# -----------------------------------------------------------------------------
-# 14. Verify Vault server certificate
-# -----------------------------------------------------------------------------
 
 - name: TLS | Verify Vault server certificate
   ansible.builtin.command:
@@ -240,10 +236,6 @@
   register: vault_server_cert_verify
   changed_when: false
   failed_when: vault_server_cert_verify.rc != 0
-
-# -----------------------------------------------------------------------------
-# 15. Display Vault certificate information
-# -----------------------------------------------------------------------------
 
 - name: TLS | Display Vault server certificate information
   ansible.builtin.command:
