@@ -24,8 +24,8 @@ listener "tcp" {
   cluster_address = "{{ vault_cluster_listener_address }}"
 
   tls_disable     = false
-  tls_cert_file   = "{{ vault_tls_cert_file }}"
-  tls_key_file    = "{{ vault_tls_key_file }}"
+  tls_cert_file = "{{ vault_tls_server_cert }}"
+  tls_key_file  = "{{ vault_tls_server_key }}"
 }
 
 api_addr     = "{{ vault_api_addr }}"
