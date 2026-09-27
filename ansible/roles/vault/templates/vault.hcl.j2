@@ -6,17 +6,14 @@ storage "raft" {
   path    = "{{ vault_storage_path }}"
   node_id = "{{ inventory_hostname }}"
 
+{% for host in groups['vault_cluster'] %}
   retry_join {
-    leader_api_addr = "https://vault-01.infra.platform.internal:8200"
+    leader_api_addr         = "https://{{ host }}.{{ vault_domain }}:{{ vault_api_port }}"
+    leader_ca_cert_file     = "{{ vault_tls_ca_cert }}"
+    leader_client_cert_file = "{{ vault_tls_server_cert }}"
+    leader_client_key_file  = "{{ vault_tls_server_key }}"
   }
-
-  retry_join {
-    leader_api_addr = "https://vault-02.infra.platform.internal:8200"
-  }
-
-  retry_join {
-    leader_api_addr = "https://vault-03.infra.platform.internal:8200"
-  }
+{% endfor %}
 }
 
 listener "tcp" {
