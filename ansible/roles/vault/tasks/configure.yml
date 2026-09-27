@@ -36,7 +36,6 @@
     dest: "/home/ansible/.vault_env"
     content: |
       export VAULT_ADDR="https://{{ vault_fqdn }}:{{ vault_api_port }}"
-      export VAULT_CACERT="{{ vault_tls_ca_cert }}"
     owner: ansible
     group: ansible
     mode: "0640"

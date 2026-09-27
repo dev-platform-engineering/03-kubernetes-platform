@@ -223,6 +223,15 @@
     group: root
     mode: "0644"
 
+- name: Install Vault CA certificate into system trust store
+  ansible.builtin.copy:
+    src: "{{ vault_tls_ca_cert_local }}"
+    dest: "/etc/pki/ca-trust/source/anchors/platform-vault-ca.crt"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Update system CA trust
+
 # =============================================================================
 # VALIDATION
 # =============================================================================
