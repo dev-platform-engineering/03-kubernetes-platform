@@ -5,6 +5,9 @@
 - name: Configure Vault TLS
   ansible.builtin.import_tasks: tls.yml
 
+- name: Configure Vault firewall
+  ansible.builtin.import_tasks: firewall.yml
+
 - name: Configure Vault
   ansible.builtin.import_tasks: configure.yml
 
