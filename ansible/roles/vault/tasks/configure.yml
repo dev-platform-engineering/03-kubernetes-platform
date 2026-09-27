@@ -30,3 +30,23 @@
     enabled: true
     state: started
     daemon_reload: true
+
+- name: Configure Vault CLI environment
+  ansible.builtin.copy:
+    dest: "/home/ansible/.vault_env"
+    content: |
+      export VAULT_ADDR="https://{{ vault_fqdn }}:{{ vault_api_port }}"
+      export VAULT_CACERT="{{ vault_tls_ca_cert }}"
+    owner: ansible
+    group: ansible
+    mode: "0640"
+
+- name: Configure Vault CLI environment in bash profile
+  ansible.builtin.lineinfile:
+    path: "/home/ansible/.bash_profile"
+    line: "source /home/ansible/.vault_env"
+    state: present
+    create: true
+    owner: ansible
+    group: ansible
+    mode: "0640"
