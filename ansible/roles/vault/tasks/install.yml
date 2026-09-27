@@ -22,6 +22,12 @@
   ansible.builtin.debug:
     var: vault_package_check.stdout_lines
 
+- name: Install Python cryptography dependency
+  ansible.builtin.dnf:
+    name:
+      - python3-cryptography
+    state: present
+
 - name: Install Vault
   ansible.builtin.dnf:
     name: "vault-{{ vault_version }}"
