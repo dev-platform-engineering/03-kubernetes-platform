@@ -7,19 +7,26 @@
 #   1. Start vault-01
 #   2. Check initialization
 #   3. Initialize vault-01
-#   4. Keep unseal keys in Ansible memory only
+#   4. Keep unseal keys + root token in Ansible memory only
 #   5. Unseal vault-01
-#   6. Start vault-02 and vault-03 in parallel
-#   7. retry_join automatically joins them to vault-01
-#   8. Wait for both nodes to appear in Raft
+#   6. Verify vault-01 is unsealed
+#   7. Start vault-02 and vault-03 in parallel
+#   8. Wait for secondary Vault APIs
 #   9. Unseal vault-02 and vault-03 in parallel
-#  10. Validate final 3-node Raft cluster
+#  10. retry_join completes automatically
+#  11. Wait for both nodes to appear in Raft
+#  12. Validate all Vault nodes are unsealed
+#  13. Display final 3-node Raft cluster
 #
 # IMPORTANT:
 #
 #   - Unseal keys are never written to disk.
-#   - Root token is not stored.
+#   - Root token is never written to disk.
+#   - Both exist only as Ansible facts during this playbook run.
 #   - Secondary nodes use retry_join from vault.hcl.
+#
+# With Raft + Shamir seal, the secondary must be unsealed so it can
+# complete the Raft join challenge.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -84,8 +91,8 @@
 # -----------------------------------------------------------------------------
 # 4. Safety check
 #
-# If Vault is already initialized, this run cannot recover the unseal keys.
-# We intentionally fail instead of creating an unsafe automation path.
+# If Vault is already initialized, this run cannot recover the generated
+# unseal keys because they were intentionally never persisted.
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Refuse already initialized Vault
@@ -106,7 +113,7 @@
 # -----------------------------------------------------------------------------
 # 5. Initialize Vault
 #
-# This is executed ONLY on vault-01.
+# This executes only on vault-01.
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Initialize Vault
@@ -121,23 +128,27 @@
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
   register: vault_init
   changed_when: true
-  #no_log: true
+  no_log: true
   when:
     - inventory_hostname == vault_bootstrap_node
     - not vault_bootstrap_initialized | bool
 
 # -----------------------------------------------------------------------------
-# 6. Store unseal keys in memory on vault-01
+# 6. Store bootstrap credentials in memory
 #
-# No delegation.
-# No run_once.
+# Nothing is written to disk.
 #
-# vault_init belongs to vault-01, so this task also executes on vault-01.
+# vault_unseal_keys:
+#   Used to unseal all three nodes.
+#
+# vault_root_token:
+#   Used only for authenticated Raft validation.
 # -----------------------------------------------------------------------------
 
-- name: Bootstrap | Store Vault unseal keys in memory
+- name: Bootstrap | Store Vault bootstrap credentials in memory
   ansible.builtin.set_fact:
     vault_unseal_keys: "{{ (vault_init.stdout | from_json).unseal_keys_b64 }}"
+    vault_root_token: "{{ (vault_init.stdout | from_json).root_token }}"
   no_log: true
   when:
     - inventory_hostname == vault_bootstrap_node
@@ -172,9 +183,7 @@
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
   register: vault_bootstrap_status
   changed_when: false
-  failed_when:
-    - vault_bootstrap_status.rc != 0
-    - vault_bootstrap_status.rc != 2
+  failed_when: vault_bootstrap_status.rc not in [0, 2]
   when: inventory_hostname == vault_bootstrap_node
 
 - name: Bootstrap | Verify bootstrap Vault is unsealed
@@ -187,7 +196,7 @@
 # -----------------------------------------------------------------------------
 # 9. Start secondary nodes
 #
-# These tasks run in parallel on vault-02 and vault-03.
+# vault-02 and vault-03 start in parallel.
 #
 # Their vault.hcl contains retry_join pointing to vault-01.
 # -----------------------------------------------------------------------------
@@ -223,33 +232,14 @@
   when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 11. Wait for retry_join
+# 11. Unseal secondary nodes
 #
-# vault-02 and vault-03 should now appear in the Raft peer list.
-# -----------------------------------------------------------------------------
-
-- name: Bootstrap | Wait for secondary nodes to join Raft
-  ansible.builtin.command:
-    cmd: vault operator raft list-peers
-  environment:
-    VAULT_ADDR: "{{ vault_api_addr }}"
-    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
-  register: vault_raft_peers
-  changed_when: false
-  failed_when: false
-  until:
-    - vault_raft_peers.rc == 0
-    - "'vault-02' in vault_raft_peers.stdout"
-    - "'vault-03' in vault_raft_peers.stdout"
-  retries: 30
-  delay: 2
-  when: inventory_hostname == vault_bootstrap_node
-
-# -----------------------------------------------------------------------------
-# 12. Unseal secondary nodes
+# IMPORTANT:
 #
-# hostvars[vault_bootstrap_node].vault_unseal_keys contains the keys generated
-# on vault-01 during this same Ansible run.
+# Do this BEFORE waiting for retry_join.
+#
+# With Raft + Shamir seal, the joining node needs the unseal key material
+# to complete the encrypted Raft join challenge.
 #
 # vault-02 and vault-03 execute in parallel.
 # -----------------------------------------------------------------------------
@@ -269,7 +259,62 @@
   when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 13. Verify every Vault node is unsealed
+# 12. Verify secondary nodes are unsealed
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Check secondary Vault status
+  ansible.builtin.command:
+    cmd: vault status -format=json
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_secondary_status
+  changed_when: false
+  failed_when: vault_secondary_status.rc not in [0, 2]
+  when: inventory_hostname != vault_bootstrap_node
+
+- name: Bootstrap | Verify secondary Vault is unsealed
+  ansible.builtin.assert:
+    that:
+      - not (vault_secondary_status.stdout | from_json).sealed
+    fail_msg: >-
+      {{ inventory_hostname }} is still sealed.
+  when: inventory_hostname != vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# 13. Wait for retry_join to complete
+#
+# retry_join runs inside Vault itself.
+#
+# Once vault-02 and vault-03 have been unsealed, Vault can complete the
+# Raft challenge/response and add them to the cluster.
+#
+# The check is executed only against vault-01.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Wait for secondary nodes to join Raft
+  ansible.builtin.command:
+    cmd: vault operator raft list-peers
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+    VAULT_TOKEN: "{{ vault_root_token }}"
+  register: vault_raft_peers
+  changed_when: false
+  failed_when: false
+  until:
+    - vault_raft_peers.rc == 0
+    - "'vault-02' in vault_raft_peers.stdout"
+    - "'vault-03' in vault_raft_peers.stdout"
+  retries: 30
+  delay: 2
+  no_log: true
+  when: inventory_hostname == vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# 14. Final Vault status
+#
+# Check every node independently.
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Check Vault node status
@@ -280,9 +325,7 @@
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
   register: vault_node_status
   changed_when: false
-  failed_when:
-    - vault_node_status.rc != 0
-    - vault_node_status.rc != 2
+  failed_when: vault_node_status.rc not in [0, 2]
 
 - name: Bootstrap | Verify Vault node is unsealed
   ansible.builtin.assert:
@@ -292,7 +335,9 @@
       {{ inventory_hostname }} is still sealed.
 
 # -----------------------------------------------------------------------------
-# 14. Final Raft validation
+# 15. Final Raft validation
+#
+# Authenticated with the root token generated during this bootstrap run.
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Get final Raft peer list
@@ -301,11 +346,25 @@
   environment:
     VAULT_ADDR: "{{ vault_api_addr }}"
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+    VAULT_TOKEN: "{{ vault_root_token }}"
   register: vault_final_raft_peers
   changed_when: false
+  no_log: true
   when: inventory_hostname == vault_bootstrap_node
 
-- name: Bootstrap | Display final Raft cluster
+# -----------------------------------------------------------------------------
+# 16. Display final Raft cluster
+#
+# The actual peer output is hidden because the command was executed with
+# no_log. Instead display a simple success message.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Display final Raft cluster status
   ansible.builtin.debug:
-    var: vault_final_raft_peers.stdout_lines
+    msg:
+      - "Vault bootstrap completed successfully."
+      - "Bootstrap node: {{ vault_bootstrap_node }}"
+      - "Raft cluster expected members: {{ groups['vault_cluster'] | join(', ') }}"
+      - "All Vault nodes are initialized and unsealed."
+      - "Raft peer validation completed successfully."
   when: inventory_hostname == vault_bootstrap_node
