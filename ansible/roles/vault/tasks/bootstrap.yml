@@ -1,140 +1,304 @@
 ---
 # =============================================================================
-# Bootstrap vault-01
+# Vault bootstrap
+#
+# Bootstrap flow:
+#
+#   1. Start vault-01 only
+#   2. Wait for Vault API
+#   3. Initialize Vault if necessary
+#   4. Keep unseal keys in Ansible memory only
+#   5. Unseal vault-01
+#   6. Start vault-02 and vault-03 in parallel
+#   7. retry_join automatically joins them to vault-01
+#   8. Wait until both nodes appear in Raft
+#   9. Unseal vault-02 and vault-03 in parallel
+#  10. Validate final 3-node Raft cluster
+#
+# IMPORTANT:
+#
+#   - Unseal keys are NEVER written to disk.
+#   - Root token is not stored.
+#   - vault-02/03 use retry_join from vault.hcl.
 # =============================================================================
 
-- name: Start Vault bootstrap node
+# -----------------------------------------------------------------------------
+# Bootstrap node
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Start Vault on bootstrap node
   ansible.builtin.systemd:
     name: vault
     state: started
+    enabled: true
+    daemon_reload: true
   when: inventory_hostname == vault_bootstrap_node
 
-- name: Wait for Vault bootstrap API
+- name: Bootstrap | Wait for Vault API on bootstrap node
   ansible.builtin.uri:
     url: "{{ vault_api_addr }}/v1/sys/health"
     method: GET
     ca_path: "{{ vault_tls_ca_cert }}"
-    validate_certs: true
     status_code:
       - 200
-      - 429
-      - 472
-      - 473
       - 501
       - 503
+      - 472
+      - 473
+    return_content: false
   register: vault_bootstrap_health
   until: vault_bootstrap_health.status is defined
+  retries: 30
+  delay: 2
+  when: inventory_hostname == vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Check initialization state
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Check Vault initialization status
+  ansible.builtin.command:
+    cmd: >
+      vault operator init
+      -status
+      -format=json
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_init_status
+  changed_when: false
+  failed_when: false
+  when: inventory_hostname == vault_bootstrap_node
+
+- name: Bootstrap | Determine whether Vault is already initialized
+  ansible.builtin.set_fact:
+    vault_bootstrap_initialized: >-
+      {{
+        (vault_init_status.rc == 0)
+        and
+        (
+          (vault_init_status.stdout | from_json).initialized | default(false)
+        )
+      }}
+  when: inventory_hostname == vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Safety check
+#
+# If Vault is already initialized but this playbook does not have the
+# unseal keys, do NOT attempt to continue blindly.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Refuse initialized Vault without unseal keys
+  ansible.builtin.fail:
+    msg: >-
+      Vault on {{ vault_bootstrap_node }} is already initialized, but this
+      automation run does not have the unseal keys.
+
+      Use the clean Vault snapshot for automated first bootstrap, or implement
+      a secure external unseal-key source before running this playbook again.
+  when:
+    - inventory_hostname == vault_bootstrap_node
+    - vault_bootstrap_initialized | bool
+
+# -----------------------------------------------------------------------------
+# Initialize Vault
+#
+# HashiCorp defaults are already 5 shares / 3 threshold, but we specify them
+# explicitly so the configuration is deterministic.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Initialize Vault
+  ansible.builtin.command:
+    cmd: >
+      vault operator init
+      -key-shares={{ vault_init_key_shares }}
+      -key-threshold={{ vault_init_key_threshold }}
+      -format=json
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_init
+  changed_when: true
+  no_log: true
+  when:
+    - inventory_hostname == vault_bootstrap_node
+    - not vault_bootstrap_initialized | bool
+
+# -----------------------------------------------------------------------------
+# Store generated unseal keys on vault-01 Ansible facts only.
+#
+# delegate_facts=true makes the facts belong to vault-01 explicitly.
+# They are NOT written to disk.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Store Vault unseal keys in memory
+  ansible.builtin.set_fact:
+    vault_unseal_keys: >-
+      {{
+        (vault_init.stdout | from_json).unseal_keys_b64
+      }}
+  delegate_to: "{{ vault_bootstrap_node }}"
+  delegate_facts: true
+  run_once: true
+  no_log: true
+
+# -----------------------------------------------------------------------------
+# Unseal vault-01
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Unseal bootstrap node
+  ansible.builtin.command:
+    cmd: >
+      vault operator unseal
+      {{ hostvars[vault_bootstrap_node].vault_unseal_keys[item] }}
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  loop: "{{ range(0, vault_init_key_threshold | int) | list }}"
+  register: vault_bootstrap_unseal
+  changed_when: true
+  no_log: true
+  when:
+    - inventory_hostname == vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Verify vault-01 is unsealed
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Verify bootstrap node is unsealed
+  ansible.builtin.command:
+    cmd: vault status -format=json
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_bootstrap_status
+  changed_when: false
+  failed_when: >-
+    vault_bootstrap_status.rc != 0
+    or
+    (vault_bootstrap_status.stdout | from_json).sealed | bool
+  when: inventory_hostname == vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Start secondary nodes
+#
+# vault-02 and vault-03 start in parallel.
+#
+# Their vault.hcl contains retry_join pointing to vault-01.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Start secondary Vault nodes
+  ansible.builtin.systemd:
+    name: vault
+    state: started
+    enabled: true
+    daemon_reload: true
+  when: inventory_hostname != vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Wait for secondary APIs
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Wait for secondary Vault APIs
+  ansible.builtin.uri:
+    url: "{{ vault_api_addr }}/v1/sys/health"
+    method: GET
+    ca_path: "{{ vault_tls_ca_cert }}"
+    status_code:
+      - 200
+      - 501
+      - 503
+      - 472
+      - 473
+    return_content: false
+  register: vault_secondary_health
+  until: vault_secondary_health.status is defined
+  retries: 30
+  delay: 2
+  when: inventory_hostname != vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Wait for retry_join to complete.
+#
+# The secondary nodes are still sealed at this point.
+# retry_join is expected to add them to the Raft peer set.
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Wait for secondary nodes to join Raft
+  ansible.builtin.command:
+    cmd: vault operator raft list-peers
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_raft_peers
+  changed_when: false
+  failed_when: false
+  until:
+    - vault_raft_peers.rc == 0
+    - "'vault-02' in vault_raft_peers.stdout"
+    - "'vault-03' in vault_raft_peers.stdout"
   retries: 30
   delay: 2
   delegate_to: "{{ vault_bootstrap_node }}"
   run_once: true
 
-# =============================================================================
-# Check initialization state
-# =============================================================================
-
-- name: Check Vault initialization state
-  ansible.builtin.command:
-    cmd: >
-      vault status
-      -address={{ vault_api_addr }}
-      -ca-cert={{ vault_tls_ca_cert }}
-      -format=json
-  register: vault_status
-  changed_when: false
-  failed_when: false
-  delegate_to: "{{ vault_bootstrap_node }}"
-  run_once: true
-
-- name: Parse Vault initialization state
-  ansible.builtin.set_fact:
-    vault_bootstrap_initialized: >-
-      {{ (vault_status.stdout | from_json).initialized | default(false) }}
-  run_once: true
-
-# =============================================================================
-# Initialize vault-01
-# =============================================================================
-
-- name: Initialize Vault
-  ansible.builtin.command:
-    cmd: >
-      vault operator init
-      -format=json
-      -address={{ vault_api_addr }}
-      -ca-cert={{ vault_tls_ca_cert }}
-  register: vault_init
-  no_log: true
-  when: not vault_bootstrap_initialized
-  delegate_to: "{{ vault_bootstrap_node }}"
-  run_once: true
-
-- name: Store Vault initialization data
-  ansible.builtin.set_fact:
-    vault_init_data: "{{ vault_init.stdout | from_json }}"
-  no_log: true
-  when:
-    - not vault_bootstrap_initialized
-    - vault_init is defined
-    - vault_init.stdout is defined
-  run_once: true
-
-# =============================================================================
-# Unseal vault-01
-# =============================================================================
-
-- name: Get Vault unseal keys
-  ansible.builtin.set_fact:
-    vault_unseal_keys: "{{ vault_init_data.unseal_keys_b64 }}"
-    vault_root_token: "{{ vault_init_data.root_token }}"
-  no_log: true
-  when: vault_init_data is defined
-  run_once: true
-
-- name: Unseal Vault bootstrap node
-  ansible.builtin.command:
-    cmd: >
-      vault operator unseal
-      -address={{ vault_api_addr }}
-      -ca-cert={{ vault_tls_ca_cert }}
-      {{ item }}
-  loop: "{{ vault_unseal_keys[0:3] }}"
-  no_log: true
-  delegate_to: "{{ vault_bootstrap_node }}"
-  run_once: true
-
-# =============================================================================
-# Start secondary nodes
-# =============================================================================
-
-- name: Start Vault secondary nodes
-  ansible.builtin.systemd:
-    name: vault
-    state: started
-  when: inventory_hostname != vault_bootstrap_node
-
-# =============================================================================
-# Wait for secondary nodes
-# =============================================================================
-
-- name: Wait for Vault secondary API
-  ansible.builtin.wait_for:
-    host: "{{ ansible_host }}"
-    port: 8200
-    timeout: 60
-  when: inventory_hostname != vault_bootstrap_node
-
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Unseal secondary nodes
-# =============================================================================
+#
+# Each secondary uses the same unseal keys generated during initialization
+# of the Raft cluster.
+#
+# vault-02 and vault-03 execute these tasks in parallel.
+# -----------------------------------------------------------------------------
 
-- name: Unseal Vault secondary nodes
+- name: Bootstrap | Unseal secondary nodes
   ansible.builtin.command:
     cmd: >
       vault operator unseal
-      -address={{ vault_api_addr }}
-      -ca-cert={{ vault_tls_ca_cert }}
-      {{ item }}
-  loop: "{{ vault_unseal_keys[0:3] }}"
+      {{ hostvars[vault_bootstrap_node].vault_unseal_keys[item] }}
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  loop: "{{ range(0, vault_init_key_threshold | int) | list }}"
+  register: vault_secondary_unseal
+  changed_when: true
   no_log: true
   when: inventory_hostname != vault_bootstrap_node
+
+# -----------------------------------------------------------------------------
+# Verify all Vault nodes are unsealed
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Verify Vault nodes are unsealed
+  ansible.builtin.command:
+    cmd: vault status -format=json
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_node_status
+  changed_when: false
+  failed_when: >-
+    vault_node_status.rc != 0
+    or
+    (vault_node_status.stdout | from_json).sealed | bool
+
+# -----------------------------------------------------------------------------
+# Final Raft validation
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Get final Raft peer list
+  ansible.builtin.command:
+    cmd: vault operator raft list-peers
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+  register: vault_final_raft_peers
+  changed_when: false
+  delegate_to: "{{ vault_bootstrap_node }}"
+  run_once: true
+
+- name: Bootstrap | Display final Raft cluster
+  ansible.builtin.debug:
+    var: vault_final_raft_peers.stdout_lines
+  run_once: true
