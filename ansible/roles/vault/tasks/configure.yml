@@ -22,14 +22,7 @@
     owner: "{{ vault_user }}"
     group: "{{ vault_group }}"
     mode: "0640"
-  notify: Restart Vault
-
-# - name: Enable and start Vault
-#   ansible.builtin.systemd:
-#     name: vault
-#     enabled: true
-#     state: started
-#     daemon_reload: true
+  #notify: Restart Vault
 
 - name: Configure Vault CLI environment
   ansible.builtin.copy:
