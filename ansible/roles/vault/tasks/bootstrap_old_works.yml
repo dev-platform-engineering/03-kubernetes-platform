@@ -117,23 +117,23 @@
 # Restore the clean snapshot before running the initial bootstrap again.
 # -----------------------------------------------------------------------------
 
-# - name: Bootstrap | Refuse already initialized Vault
-#   ansible.builtin.fail:
-#     msg: >-
-#       Vault on {{ vault_bootstrap_node }} is already initialized.
+- name: Bootstrap | Refuse already initialized Vault
+  ansible.builtin.fail:
+    msg: >-
+      Vault on {{ vault_bootstrap_node }} is already initialized.
 
-#       This bootstrap playbook is for first-time initialization only.
+      This bootstrap playbook is for first-time initialization only.
 
-#       The generated unseal keys and root token are intentionally not stored
-#       anywhere. Restore the clean Vault snapshot before running the initial
-#       bootstrap again, or use a separate secure mechanism for an existing
-#       cluster.
-#   when:
-#     - inventory_hostname == vault_bootstrap_node
-#     - vault_bootstrap_initialized | bool
+      The generated unseal keys and root token are intentionally not stored
+      anywhere. Restore the clean Vault snapshot before running the initial
+      bootstrap again, or use a separate secure mechanism for an existing
+      cluster.
+  when:
+    - inventory_hostname == vault_bootstrap_node
+    - vault_bootstrap_initialized | bool
 
 # -----------------------------------------------------------------------------
-# 4. Initialize Vault
+# 5. Initialize Vault
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Initialize Vault
@@ -213,12 +213,10 @@
   register: vault_bootstrap_unseal
   changed_when: true
   no_log: true
-  when:
-    - inventory_hostname == vault_bootstrap_node
-    - not vault_bootstrap_initialized | bool
+  when: inventory_hostname == vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 7. Verify bootstrap node
+# 8. Verify bootstrap node
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Check bootstrap Vault status
@@ -230,9 +228,7 @@
   register: vault_bootstrap_status
   changed_when: false
   failed_when: vault_bootstrap_status.rc not in [0, 2]
-  when:
-    - inventory_hostname == vault_bootstrap_node
-    - not vault_bootstrap_initialized | bool
+  when: inventory_hostname == vault_bootstrap_node
 
 - name: Bootstrap | Verify bootstrap Vault
   ansible.builtin.assert:
@@ -242,12 +238,10 @@
       - (vault_bootstrap_status.stdout | from_json).storage_type == "raft"
     fail_msg: >-
       Bootstrap Vault is not initialized, unsealed, or using Raft storage.
-  when:
-    - inventory_hostname == vault_bootstrap_node
-    - not vault_bootstrap_initialized | bool
+  when: inventory_hostname == vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 8. Start all secondary nodes
+# 9. Start all secondary nodes
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Start secondary Vault nodes
@@ -259,7 +253,7 @@
   when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 9. Wait for secondary APIs
+# 10. Wait for secondary APIs
 #
 # HTTP 429 is expected for a healthy standby Vault node.
 # -----------------------------------------------------------------------------
@@ -286,7 +280,7 @@
   when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 10. Unseal secondary nodes
+# 11. Unseal secondary nodes
 #
 # retry_join in vault.hcl will complete the Raft join after the nodes are
 # initialized and unsealed.
@@ -304,12 +298,10 @@
   register: vault_secondary_unseal
   changed_when: true
   no_log: true
-  when:
-    - inventory_hostname != vault_bootstrap_node
-    - not (hostvars[vault_bootstrap_node].vault_bootstrap_initialized | bool)
+  when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 11. Wait for secondary nodes to become initialized and unsealed
+# 12. Wait for secondary nodes to become initialized and unsealed
 #
 # The nodes may need several seconds to:
 #
@@ -336,12 +328,10 @@
     - (vault_secondary_status.stdout | from_json).storage_type == "raft"
   retries: 30
   delay: 2
-  when:
-    - inventory_hostname != vault_bootstrap_node
-    - not (hostvars[vault_bootstrap_node].vault_bootstrap_initialized | bool)
+  when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 12. Validate secondary nodes
+# 13. Validate secondary nodes
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Verify secondary Vault nodes
@@ -353,12 +343,10 @@
     fail_msg: >-
       Vault on {{ inventory_hostname }} did not reach the expected
       initialized, unsealed, Raft state.
-  when:
-    - inventory_hostname != vault_bootstrap_node
-    - not (hostvars[vault_bootstrap_node].vault_bootstrap_initialized | bool)
+  when: inventory_hostname != vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 13. Wait for all inventory nodes to appear in Raft
+# 14. Wait for all inventory nodes to appear in Raft
 #
 # The Raft peer list is checked from the bootstrap node.
 #
@@ -388,12 +376,10 @@
   retries: 30
   delay: 2
   no_log: true
-  when:
-    - inventory_hostname == vault_bootstrap_node
-    - not vault_bootstrap_initialized | bool
+  when: inventory_hostname == vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 14. Final Vault status on every node
+# 15. Final Vault status on every node
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Get final Vault status
@@ -407,7 +393,7 @@
   failed_when: vault_final_status.rc != 0
 
 # -----------------------------------------------------------------------------
-# 15. Validate final Vault state
+# 16. Validate final Vault state
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Verify final Vault state
@@ -420,7 +406,7 @@
       Vault on {{ inventory_hostname }} is not in the expected final state.
 
 # -----------------------------------------------------------------------------
-# 16. Get final Raft peer list
+# 17. Get final Raft peer list
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Get final Raft peer list
@@ -433,12 +419,10 @@
   register: vault_final_raft_peers
   changed_when: false
   no_log: true
-  when:
-    - inventory_hostname == vault_bootstrap_node
-    - not vault_bootstrap_initialized | bool
+  when: inventory_hostname == vault_bootstrap_node
 
 # -----------------------------------------------------------------------------
-# 17. Display final cluster status
+# 18. Display final cluster status
 # -----------------------------------------------------------------------------
 
 - name: Bootstrap | Display final Vault cluster status
