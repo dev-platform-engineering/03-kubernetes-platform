@@ -312,5 +312,27 @@
 # The root token is used only in memory for this authenticated validation.
 # -----------------------------------------------------------------------------
 
-- name: Bootstrap | Wait for secondary nodes to join Raft
-  ansible.builtin.command:
+- name: Bootstrap | Build expected Vault Raft peer list
+  ansible.builtin.set_fact:
+    vault_expected_raft_peers: "{{ groups['vault_cluster'] }}"
+  when: inventory_hostname == vault_bootstrap_node
+
+- name: Bootstrap | Wait for all Vault nodes to join Raft
+  ansible.builtin.command: vault operator raft list-peers
+  environment:
+    VAULT_ADDR: "{{ vault_api_addr }}"
+    VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+    VAULT_TOKEN: "{{ vault_root_token }}"
+  register: vault_raft_peers
+  changed_when: false
+  failed_when: false
+  until:
+    - vault_raft_peers.rc == 0
+    - vault_expected_raft_peers
+      | select('in', vault_raft_peers.stdout)
+      | list
+      | length == vault_expected_raft_peers | length
+  retries: 30
+  delay: 2
+  no_log: true
+  when: inventory_hostname == vault_bootstrap_node
