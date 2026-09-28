@@ -25,4 +25,4 @@ vault_tls_enabled: true
 vault_raft_enabled: true
 vault_raft_cluster_name: "vault-prod"
 
-# vault_bootstrap_node: "vault-01"
+vault_bootstrap_node: "vault-01"
