@@ -24,12 +24,12 @@
     mode: "0640"
   notify: Restart Vault
 
-- name: Enable and start Vault
-  ansible.builtin.systemd:
-    name: vault
-    enabled: true
-    state: started
-    daemon_reload: true
+# - name: Enable and start Vault
+#   ansible.builtin.systemd:
+#     name: vault
+#     enabled: true
+#     state: started
+#     daemon_reload: true
 
 - name: Configure Vault CLI environment
   ansible.builtin.copy:
@@ -49,3 +49,9 @@
     owner: ansible
     group: ansible
     mode: "0640"
+
+- name: Enable Vault service
+  ansible.builtin.systemd:
+    name: vault
+    enabled: true
+    daemon_reload: true

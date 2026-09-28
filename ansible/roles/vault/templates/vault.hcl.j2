@@ -6,14 +6,14 @@ storage "raft" {
   path    = "{{ vault_storage_path }}"
   node_id = "{{ inventory_hostname }}"
 
-{% for host in groups['vault_cluster'] %}
+{% if inventory_hostname != vault_bootstrap_node %}
   retry_join {
-    leader_api_addr         = "https://{{ host }}.{{ vault_domain }}:{{ vault_api_port }}"
+    leader_api_addr         = "https://{{ vault_bootstrap_node }}.{{ vault_domain }}:{{ vault_api_port }}"
     leader_ca_cert_file     = "{{ vault_tls_ca_cert }}"
     leader_client_cert_file = "{{ vault_tls_server_cert }}"
     leader_client_key_file  = "{{ vault_tls_server_key }}"
   }
-{% endfor %}
+{% endif %}
 }
 
 listener "tcp" {
@@ -21,8 +21,8 @@ listener "tcp" {
   cluster_address = "{{ vault_cluster_listener_address }}"
 
   tls_disable     = false
-  tls_cert_file = "{{ vault_tls_server_cert }}"
-  tls_key_file  = "{{ vault_tls_server_key }}"
+  tls_cert_file   = "{{ vault_tls_server_cert }}"
+  tls_key_file    = "{{ vault_tls_server_key }}"
 }
 
 api_addr     = "{{ vault_api_addr }}"

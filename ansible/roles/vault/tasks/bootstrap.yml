@@ -1,0 +1,140 @@
+---
+# =============================================================================
+# Bootstrap vault-01
+# =============================================================================
+
+- name: Start Vault bootstrap node
+  ansible.builtin.systemd:
+    name: vault
+    state: started
+  when: inventory_hostname == vault_bootstrap_node
+
+- name: Wait for Vault bootstrap API
+  ansible.builtin.uri:
+    url: "{{ vault_api_addr }}/v1/sys/health"
+    method: GET
+    ca_path: "{{ vault_tls_ca_cert }}"
+    validate_certs: true
+    status_code:
+      - 200
+      - 429
+      - 472
+      - 473
+      - 501
+      - 503
+  register: vault_bootstrap_health
+  until: vault_bootstrap_health.status is defined
+  retries: 30
+  delay: 2
+  delegate_to: "{{ vault_bootstrap_node }}"
+  run_once: true
+
+# =============================================================================
+# Check initialization state
+# =============================================================================
+
+- name: Check Vault initialization state
+  ansible.builtin.command:
+    cmd: >
+      vault status
+      -address={{ vault_api_addr }}
+      -ca-cert={{ vault_tls_ca_cert }}
+      -format=json
+  register: vault_status
+  changed_when: false
+  failed_when: false
+  delegate_to: "{{ vault_bootstrap_node }}"
+  run_once: true
+
+- name: Parse Vault initialization state
+  ansible.builtin.set_fact:
+    vault_bootstrap_initialized: >-
+      {{ (vault_status.stdout | from_json).initialized | default(false) }}
+  run_once: true
+
+# =============================================================================
+# Initialize vault-01
+# =============================================================================
+
+- name: Initialize Vault
+  ansible.builtin.command:
+    cmd: >
+      vault operator init
+      -format=json
+      -address={{ vault_api_addr }}
+      -ca-cert={{ vault_tls_ca_cert }}
+  register: vault_init
+  no_log: true
+  when: not vault_bootstrap_initialized
+  delegate_to: "{{ vault_bootstrap_node }}"
+  run_once: true
+
+- name: Store Vault initialization data
+  ansible.builtin.set_fact:
+    vault_init_data: "{{ vault_init.stdout | from_json }}"
+  no_log: true
+  when:
+    - not vault_bootstrap_initialized
+    - vault_init is defined
+    - vault_init.stdout is defined
+  run_once: true
+
+# =============================================================================
+# Unseal vault-01
+# =============================================================================
+
+- name: Get Vault unseal keys
+  ansible.builtin.set_fact:
+    vault_unseal_keys: "{{ vault_init_data.unseal_keys_b64 }}"
+    vault_root_token: "{{ vault_init_data.root_token }}"
+  no_log: true
+  when: vault_init_data is defined
+  run_once: true
+
+- name: Unseal Vault bootstrap node
+  ansible.builtin.command:
+    cmd: >
+      vault operator unseal
+      -address={{ vault_api_addr }}
+      -ca-cert={{ vault_tls_ca_cert }}
+      {{ item }}
+  loop: "{{ vault_unseal_keys[0:3] }}"
+  no_log: true
+  delegate_to: "{{ vault_bootstrap_node }}"
+  run_once: true
+
+# =============================================================================
+# Start secondary nodes
+# =============================================================================
+
+- name: Start Vault secondary nodes
+  ansible.builtin.systemd:
+    name: vault
+    state: started
+  when: inventory_hostname != vault_bootstrap_node
+
+# =============================================================================
+# Wait for secondary nodes
+# =============================================================================
+
+- name: Wait for Vault secondary API
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: 8200
+    timeout: 60
+  when: inventory_hostname != vault_bootstrap_node
+
+# =============================================================================
+# Unseal secondary nodes
+# =============================================================================
+
+- name: Unseal Vault secondary nodes
+  ansible.builtin.command:
+    cmd: >
+      vault operator unseal
+      -address={{ vault_api_addr }}
+      -ca-cert={{ vault_tls_ca_cert }}
+      {{ item }}
+  loop: "{{ vault_unseal_keys[0:3] }}"
+  no_log: true
+  when: inventory_hostname != vault_bootstrap_node

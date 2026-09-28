@@ -11,5 +11,8 @@
 - name: Configure Vault
   ansible.builtin.import_tasks: configure.yml
 
+- name: Bootstrap Vault cluster
+  ansible.builtin.import_tasks: bootstrap.yml
+
 - name: Validate Vault
   ansible.builtin.import_tasks: validate.yml
