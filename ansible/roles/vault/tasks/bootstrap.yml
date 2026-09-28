@@ -168,8 +168,8 @@
   when:
     - inventory_hostname == vault_bootstrap_node
     - vault_init is defined
-    - vault_init.rc == 0
-  no_log: false
+    - vault_init.rc | default(1) == 0
+  no_log: true
 
 - name: Bootstrap | Save Vault bootstrap credentials
   ansible.builtin.copy:
