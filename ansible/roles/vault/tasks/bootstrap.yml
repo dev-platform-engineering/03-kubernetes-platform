@@ -154,6 +154,38 @@
     - not vault_bootstrap_initialized | bool
 
 # -----------------------------------------------------------------------------
+# Save Vault bootstrap credentials on Ansible controller
+# -----------------------------------------------------------------------------
+
+- name: Bootstrap | Create local credentials directory
+  ansible.builtin.file:
+    path: "{{ vault_tls_controller_pki_dir }}/bootstrap"
+    state: directory
+    owner: "{{ lookup('env', 'USER') }}"
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  when:
+    - inventory_hostname == vault_bootstrap_node
+    - vault_init is defined
+    - vault_init.rc == 0
+  no_log: true
+
+- name: Bootstrap | Save Vault bootstrap credentials
+  ansible.builtin.copy:
+    content: "{{ vault_init.stdout }}"
+    dest: "{{ vault_bootstrap_credentials_file }}"
+    owner: "{{ lookup('env', 'USER') }}"
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+  when:
+    - inventory_hostname == vault_bootstrap_node
+    - vault_init is defined
+    - vault_init.rc == 0
+  no_log: true
+
+# -----------------------------------------------------------------------------
 # 6. Store bootstrap credentials in memory
 # -----------------------------------------------------------------------------
 
