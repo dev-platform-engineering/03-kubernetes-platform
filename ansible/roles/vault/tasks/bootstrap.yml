@@ -121,7 +121,7 @@
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
   register: vault_init
   changed_when: true
-  no_log: true
+  #no_log: true
   when:
     - inventory_hostname == vault_bootstrap_node
     - not vault_bootstrap_initialized | bool
