@@ -478,20 +478,24 @@
   ansible.builtin.set_fact:
     vault_final_status_json: "{{ vault_final_status.stdout | from_json }}"
 
-- name: Bootstrap | Verify final Vault status
+- name: Bootstrap | Verify final Vault state
   ansible.builtin.assert:
     that:
-      - vault_final_status_json.initialized | bool
-      - vault_final_status_json.storage_type == "raft"
-      - vault_final_status_json.ha_enabled | bool
+      - (vault_final_status.stdout | from_json).initialized | bool
+      - (vault_final_status.stdout | from_json).storage_type == "raft"
+      - (vault_final_status.stdout | from_json).ha_enabled | bool
     fail_msg: >-
-      Final Vault validation failed on {{ inventory_hostname }}:
-      initialized={{ vault_final_status_json.initialized }},
-      sealed={{ vault_final_status_json.sealed }},
-      storage={{ vault_final_status_json.storage_type }},
-      ha_enabled={{ vault_final_status_json.ha_enabled }}
+      Vault on {{ inventory_hostname }} is not in the expected final state.
+      initialized={{ (vault_final_status.stdout | from_json).initialized }},
+      sealed={{ (vault_final_status.stdout | from_json).sealed }},
+      storage_type={{ (vault_final_status.stdout | from_json).storage_type }},
+      ha_enabled={{ (vault_final_status.stdout | from_json).ha_enabled }}
     success_msg: >-
-      Final Vault validation passed on {{ inventory_hostname }}.
+      Vault on {{ inventory_hostname }} passed final validation.
+      initialized=true,
+      sealed={{ (vault_final_status.stdout | from_json).sealed }},
+      storage_type=raft,
+      ha_enabled=true.
 
 - name: Bootstrap | Report successful bootstrap
   ansible.builtin.debug:
