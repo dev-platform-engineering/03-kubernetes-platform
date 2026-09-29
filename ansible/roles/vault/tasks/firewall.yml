@@ -43,7 +43,7 @@
   ansible.posix.firewalld:
     rich_rule: >-
       rule family="ipv4"
-      source address="{{ hostvars[item].ansible_host }}"
+      source address="{{ hostvars[item].vault_backend_source_ip }}"
       port port="{{ vault_api_port }}"
       protocol="tcp"
       accept
@@ -51,3 +51,5 @@
     immediate: true
     state: enabled
   loop: "{{ groups['vyos_routers'] }}"
+  loop_control:
+    label: "{{ item }} -> {{ hostvars[item].vault_backend_source_ip }}"
