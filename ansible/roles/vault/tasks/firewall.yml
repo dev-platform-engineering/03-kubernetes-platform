@@ -1,21 +1,31 @@
 ---
 - name: Allow Vault API from Vault cluster
   ansible.posix.firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_host }}" port port="8200" protocol="tcp" accept'
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ hostvars[item].ansible_host }}"
+      port port="{{ vault_api_port }}"
+      protocol="tcp"
+      accept
     permanent: true
     immediate: true
     state: enabled
   loop: "{{ groups['vault_cluster'] }}"
-  when: hostvars[item].inventory_hostname != inventory_hostname
+  when: item != inventory_hostname
 
 - name: Allow Vault cluster communication from Vault cluster
   ansible.posix.firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_host }}" port port="8201" protocol="tcp" accept'
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ hostvars[item].ansible_host }}"
+      port port="{{ vault_cluster_port }}"
+      protocol="tcp"
+      accept
     permanent: true
     immediate: true
     state: enabled
   loop: "{{ groups['vault_cluster'] }}"
-  when: hostvars[item].inventory_hostname != inventory_hostname
+  when: item != inventory_hostname
 
 - name: Allow Vault API from management network
   ansible.posix.firewalld:
@@ -28,3 +38,16 @@
     permanent: true
     immediate: true
     state: enabled
+
+- name: Allow Vault API from VyOS routers
+  ansible.posix.firewalld:
+    rich_rule: >-
+      rule family="ipv4"
+      source address="{{ hostvars[item].ansible_host }}"
+      port port="{{ vault_api_port }}"
+      protocol="tcp"
+      accept
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ groups['vyos_routers'] }}"
