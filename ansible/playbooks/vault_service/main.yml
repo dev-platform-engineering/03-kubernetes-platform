@@ -1,0 +1,7 @@
+---
+- name: Configure Vault HA on VyOS routers
+  hosts: vyos_routers
+  gather_facts: false
+
+  roles:
+    - role: vault_service_vyos

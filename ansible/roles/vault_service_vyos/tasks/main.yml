@@ -1,0 +1,12 @@
+---
+- name: Validate Vault HA configuration
+  ansible.builtin.include_tasks:
+    file: validate.yml
+
+- name: Configure Vault VRRP
+  ansible.builtin.include_tasks:
+    file: vrrp.yml
+
+- name: Configure Vault load balancing
+  ansible.builtin.include_tasks:
+    file: loadbalancer.yml

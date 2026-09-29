@@ -1,0 +1,9 @@
+---
+- name: Configure Vault VRRP
+  vyos_config:
+    lines:
+      - "set high-availability vrrp group {{ vault_service.vrrp.group }} address {{ vault_service.vip }}/24"
+      - "set high-availability vrrp group {{ vault_service.vrrp.group }} interface '{{ vault_service.vrrp.interface }}'"
+      - "set high-availability vrrp group {{ vault_service.vrrp.group }} preempt-delay '{{ vault_service.vrrp.preempt_delay }}'"
+      - "set high-availability vrrp group {{ vault_service.vrrp.group }} priority '{{ vault_service_vrrp_priority }}'"
+      - "set high-availability vrrp group {{ vault_service.vrrp.group }} vrid '{{ vault_service.vrrp.vrid }}'"

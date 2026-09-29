@@ -1,0 +1,11 @@
+---
+vault_service:
+  fqdn: "vault.infra.platform.internal"
+  vip: "10.50.20.20"
+  port: 8200
+
+  vrrp:
+    group: "VaultService"
+    interface: "eth1.20"
+    vrid: 120
+    preempt_delay: 30

@@ -1,0 +1,91 @@
+---
+# -----------------------------------------------------------------------------
+# Validate Vault service configuration
+# -----------------------------------------------------------------------------
+
+- name: Validate Vault service configuration
+  ansible.builtin.assert:
+    that:
+      - vault_service is defined
+      - vault_service is mapping
+    fail_msg: >-
+      vault_service must be defined as a dictionary.
+    success_msg: "Vault service configuration is defined."
+
+- name: Validate Vault service VIP
+  ansible.builtin.assert:
+    that:
+      - vault_service.vip is defined
+      - vault_service.vip | length > 0
+    fail_msg: "vault_service.vip is not defined or empty."
+    success_msg: "Vault service VIP: {{ vault_service.vip }}"
+
+- name: Validate Vault service FQDN
+  ansible.builtin.assert:
+    that:
+      - vault_service.fqdn is defined
+      - vault_service.fqdn | length > 0
+    fail_msg: "vault_service.fqdn is not defined or empty."
+    success_msg: "Vault service FQDN: {{ vault_service.fqdn }}"
+
+- name: Validate Vault service port
+  ansible.builtin.assert:
+    that:
+      - vault_service.port is defined
+      - vault_service.port | int > 0
+      - vault_service.port | int < 65536
+    fail_msg: "vault_service.port is invalid."
+    success_msg: "Vault service port: {{ vault_service.port }}"
+
+- name: Validate Vault VRRP configuration
+  ansible.builtin.assert:
+    that:
+      - vault_service.vrrp is defined
+      - vault_service.vrrp is mapping
+      - vault_service.vrrp.group is defined
+      - vault_service.vrrp.interface is defined
+      - vault_service.vrrp.vrid is defined
+      - vault_service.vrrp.preempt_delay is defined
+    fail_msg: >-
+      Vault VRRP configuration is incomplete.
+    success_msg: >-
+      Vault VRRP configuration is valid:
+      group={{ vault_service.vrrp.group }},
+      interface={{ vault_service.vrrp.interface }},
+      vrid={{ vault_service.vrrp.vrid }}
+
+- name: Validate Vault VRRP priority
+  ansible.builtin.assert:
+    that:
+      - vault_service_vrrp_priority is defined
+      - vault_service_vrrp_priority | int > 0
+      - vault_service_vrrp_priority | int <= 255
+    fail_msg: >-
+      vault_service_vrrp_priority is not correctly defined for
+      {{ inventory_hostname }}.
+    success_msg: >-
+      Vault VRRP priority for {{ inventory_hostname }}:
+      {{ vault_service_vrrp_priority }}
+
+- name: Validate Vault cluster inventory group
+  ansible.builtin.assert:
+    that:
+      - groups['vault_cluster'] is defined
+      - groups['vault_cluster'] | length > 0
+    fail_msg: >-
+      Inventory group 'vault_cluster' is not defined or contains no hosts.
+    success_msg: >-
+      Vault cluster contains {{ groups['vault_cluster'] | length }} host(s).
+
+- name: Validate Vault cluster host addresses
+  ansible.builtin.assert:
+    that:
+      - hostvars[item].ansible_host is defined
+      - hostvars[item].ansible_host | length > 0
+    fail_msg: >-
+      Vault host '{{ item }}' does not have ansible_host defined.
+    success_msg: >-
+      Vault host '{{ item }}' -> {{ hostvars[item].ansible_host }}
+  loop: "{{ groups['vault_cluster'] }}"
+  loop_control:
+    label: "{{ item }}"
