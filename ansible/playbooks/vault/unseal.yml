@@ -271,8 +271,20 @@
           - (vault_status.stdout | from_json).initialized | bool
           - not (vault_status.stdout | from_json).sealed | bool
           - (vault_status.stdout | from_json).ha_enabled | bool
-        fail_msg: >-
-          Vault cluster leader node is not in the expected state.
+        fail_msg: "Vault cluster leader node is not in the expected state."
+
+    - name: Read Vault credentials
+      ansible.builtin.set_fact:
+        vault_credentials: >-
+          {{
+            lookup(
+              'ansible.builtin.file',
+              vault_credentials_file
+            ) | from_json
+          }}
+      delegate_to: localhost
+      become: false
+      no_log: true
 
     - name: Get Vault Raft peers
       ansible.builtin.command:
@@ -284,8 +296,10 @@
       environment:
         VAULT_ADDR: "{{ vault_addr }}"
         VAULT_CACERT: "{{ vault_cacert }}"
+        VAULT_TOKEN: "{{ vault_credentials.root_token }}"
       register: vault_raft_peers
       changed_when: false
+      no_log: true
 
     - name: Display Vault Raft cluster
       ansible.builtin.debug:
