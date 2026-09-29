@@ -1,0 +1,23 @@
+---
+- name: Configure Vault HAProxy backend
+  vyos_config:
+    lines:
+      - "set load-balancing haproxy backend VaultService balance 'round-robin'"
+      - "set load-balancing haproxy backend VaultService mode 'tcp'"
+
+      - "set load-balancing haproxy backend VaultService server {{ item }} address '{{ hostvars[item].ansible_host }}'"
+      - "set load-balancing haproxy backend VaultService server {{ item }} port '{{ vault_service.port }}'"
+      - "set load-balancing haproxy backend VaultService server {{ item }} check"
+  loop: "{{ groups['vault_cluster'] }}"
+  loop_control:
+    label: "{{ item }} -> {{ hostvars[item].ansible_host }}"
+  register: vault_haproxy_backend_config
+
+- name: Configure Vault HAProxy service
+  vyos_config:
+    lines:
+      - "set load-balancing haproxy service VaultService backend 'VaultService'"
+      - "set load-balancing haproxy service VaultService listen-address '{{ vault_service.vip }}'"
+      - "set load-balancing haproxy service VaultService mode 'tcp'"
+      - "set load-balancing haproxy service VaultService port '{{ vault_service.port }}'"
+  register: vault_haproxy_service_config

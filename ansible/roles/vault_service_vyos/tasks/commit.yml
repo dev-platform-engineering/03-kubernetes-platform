@@ -1,0 +1,31 @@
+---
+- name: Determine whether Vault service configuration changed
+  ansible.builtin.set_fact:
+    vault_service_config_changed: >-
+      {{
+        vault_vrrp_config.changed
+        or
+        vault_haproxy_service_config.changed
+        or
+        (
+          vault_haproxy_backend_config.results
+          | selectattr('changed', 'equalto', true)
+          | list
+          | length > 0
+        )
+      }}
+
+- name: Save VyOS configuration
+  vyos_config:
+    save: true
+  when: vault_service_config_changed
+
+- name: Report Vault service configuration state
+  ansible.builtin.debug:
+    msg: >-
+      {{
+        'Vault service configuration changed. Configuration saved.'
+        if vault_service_config_changed
+        else
+        'Vault service configuration unchanged. Save skipped.'
+      }}

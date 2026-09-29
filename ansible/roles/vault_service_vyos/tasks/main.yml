@@ -7,6 +7,10 @@
   ansible.builtin.include_tasks:
     file: vrrp.yml
 
-- name: Configure Vault load balancing
+- name: Configure Vault HA proxy
   ansible.builtin.include_tasks:
-    file: loadbalancer.yml
+    file: haproxy.yml
+
+- name: Commit Vault service configuration
+  ansible.builtin.include_tasks:
+    file: commit.yml

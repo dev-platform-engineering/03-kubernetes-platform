@@ -7,3 +7,4 @@
       - "set high-availability vrrp group {{ vault_service.vrrp.group }} preempt-delay '{{ vault_service.vrrp.preempt_delay }}'"
       - "set high-availability vrrp group {{ vault_service.vrrp.group }} priority '{{ vault_service_vrrp_priority }}'"
       - "set high-availability vrrp group {{ vault_service.vrrp.group }} vrid '{{ vault_service.vrrp.vrid }}'"
+  register: vault_vrrp_config
