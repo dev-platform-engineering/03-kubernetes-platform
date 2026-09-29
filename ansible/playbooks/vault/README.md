@@ -1,0 +1,1 @@
+when we shotdown vault vms after restart we need unsealed vault
