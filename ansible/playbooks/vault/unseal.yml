@@ -1,0 +1,299 @@
+---
+# -----------------------------------------------------------------------------
+# Vault - Unseal cluster
+#
+# Unseals already-initialized Vault nodes using the existing Shamir keys.
+#
+# Requirements:
+#   - Vault must already be initialized.
+#   - Credentials file must exist on the Ansible controller.
+#   - Vault CLI must be installed on Vault nodes.
+#   - Vault CA certificate must be readable by the user executing the command.
+#
+# The unseal keys are never printed to Ansible output.
+# -----------------------------------------------------------------------------
+
+- name: Unseal Vault cluster
+  hosts: vault_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+
+  vars:
+    vault_api_port: 8200
+
+    vault_credentials_file: >-
+      {{ lookup('env', 'HOME') }}/.ansible/pki/vault/bootstrap/vault-credentials.json
+
+    vault_node_fqdn: >-
+      {{ inventory_hostname }}.infra.platform.internal
+
+    vault_addr: >-
+      https://{{ vault_node_fqdn }}:{{ vault_api_port }}
+
+    vault_cacert: /etc/vault.d/tls/ca.crt
+
+  pre_tasks:
+    # -------------------------------------------------------------------------
+    # Load credentials once on the Ansible controller
+    # -------------------------------------------------------------------------
+
+    - name: Check Vault credentials file
+      ansible.builtin.stat:
+        path: "{{ vault_credentials_file }}"
+      delegate_to: localhost
+      become: false
+      run_once: true
+      register: vault_credentials_file_stat
+
+    - name: Fail if Vault credentials file does not exist
+      ansible.builtin.fail:
+        msg: >-
+          Vault credentials file does not exist:
+          {{ vault_credentials_file }}
+      delegate_to: localhost
+      become: false
+      run_once: true
+      when: not vault_credentials_file_stat.stat.exists
+
+    - name: Read Vault credentials
+      ansible.builtin.set_fact:
+        vault_credentials: >-
+          {{
+            lookup(
+              'ansible.builtin.file',
+              vault_credentials_file
+            ) | from_json
+          }}
+      delegate_to: localhost
+      become: false
+      run_once: true
+      no_log: true
+
+    - name: Validate Vault credentials structure
+      ansible.builtin.assert:
+        that:
+          - vault_credentials.unseal_keys_b64 is defined
+          - vault_credentials.unseal_keys_b64 | length >= 3
+          - vault_credentials.unseal_keys_b64[0] | length > 0
+          - vault_credentials.unseal_keys_b64[1] | length > 0
+          - vault_credentials.unseal_keys_b64[2] | length > 0
+        fail_msg: >-
+          Vault credentials file does not contain at least three
+          valid unseal_keys_b64 entries.
+      delegate_to: localhost
+      become: false
+      run_once: true
+      no_log: true
+
+  tasks:
+    # -------------------------------------------------------------------------
+    # Wait for Vault API
+    # -------------------------------------------------------------------------
+
+    - name: Wait for Vault API
+      ansible.builtin.uri:
+        url: "{{ vault_addr }}/v1/sys/health"
+        method: GET
+        ca_path: "{{ vault_cacert }}"
+        status_code:
+          - 200
+          - 429
+          - 472
+          - 473
+          - 501
+          - 503
+        timeout: 5
+      register: vault_health
+      retries: 30
+      delay: 2
+      until: vault_health.status is defined
+      changed_when: false
+
+    # -------------------------------------------------------------------------
+    # Get current state
+    # -------------------------------------------------------------------------
+
+    - name: Check Vault status
+      ansible.builtin.command:
+        argv:
+          - vault
+          - status
+          - -format=json
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_status
+      changed_when: false
+      failed_when: vault_status.rc not in [0, 1, 2]
+
+    - name: Parse Vault status
+      ansible.builtin.set_fact:
+        vault_status_json: "{{ vault_status.stdout | from_json }}"
+      no_log: true
+
+    - name: Display current Vault state
+      ansible.builtin.debug:
+        msg:
+          - "Node: {{ inventory_hostname }}"
+          - "Initialized: {{ vault_status_json.initialized }}"
+          - "Sealed: {{ vault_status_json.sealed }}"
+          - "HA enabled: {{ vault_status_json.ha_enabled | default(false) }}"
+          - "HA mode: {{ vault_status_json.ha_mode | default('unknown') }}"
+
+    - name: Fail if Vault is not initialized
+      ansible.builtin.fail:
+        msg: >-
+          {{ inventory_hostname }} is not initialized.
+          This playbook only unseals an existing Vault cluster.
+      when: not vault_status_json.initialized | bool
+
+    # -------------------------------------------------------------------------
+    # Unseal
+    # -------------------------------------------------------------------------
+
+    - name: Unseal Vault with Shamir key 1
+      ansible.builtin.command:
+        argv:
+          - vault
+          - operator
+          - unseal
+          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[0] }}"
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_unseal_1
+      changed_when: true
+      no_log: true
+      when: vault_status_json.sealed | bool
+
+    - name: Unseal Vault with Shamir key 2
+      ansible.builtin.command:
+        argv:
+          - vault
+          - operator
+          - unseal
+          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[1] }}"
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_unseal_2
+      changed_when: true
+      no_log: true
+      when: vault_status_json.sealed | bool
+
+    - name: Unseal Vault with Shamir key 3
+      ansible.builtin.command:
+        argv:
+          - vault
+          - operator
+          - unseal
+          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[2] }}"
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_unseal_3
+      changed_when: true
+      no_log: true
+      when: vault_status_json.sealed | bool
+
+    # -------------------------------------------------------------------------
+    # Verify node
+    # -------------------------------------------------------------------------
+
+    - name: Check Vault status after unseal
+      ansible.builtin.command:
+        argv:
+          - vault
+          - status
+          - -format=json
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_final_status
+      changed_when: false
+      failed_when: vault_final_status.rc not in [0, 1, 2]
+
+    - name: Parse final Vault status
+      ansible.builtin.set_fact:
+        vault_final_status_json: "{{ vault_final_status.stdout | from_json }}"
+      no_log: true
+
+    - name: Verify Vault node is unsealed
+      ansible.builtin.assert:
+        that:
+          - vault_final_status_json.initialized | bool
+          - not vault_final_status_json.sealed | bool
+          - vault_final_status_json.ha_enabled | bool
+        fail_msg: >-
+          {{ inventory_hostname }} did not reach the expected
+          initialized, unsealed and HA-enabled state.
+        success_msg: >-
+          {{ inventory_hostname }} is initialized, unsealed and HA-enabled.
+
+    - name: Display Vault node result
+      ansible.builtin.debug:
+        msg:
+          - "Vault node: {{ inventory_hostname }}"
+          - "Status: UNSEALED"
+          - "HA mode: {{ vault_final_status_json.ha_mode | default('unknown') }}"
+          - "Active address: {{ vault_final_status_json.active_addr | default('unknown') }}"
+
+# -----------------------------------------------------------------------------
+# Verify complete Raft cluster
+# -----------------------------------------------------------------------------
+
+- name: Verify Vault Raft cluster
+  hosts: vault_cluster[0]
+  become: true
+  gather_facts: false
+
+  vars:
+    vault_api_port: 8200
+
+    vault_node_fqdn: >-
+      {{ inventory_hostname }}.infra.platform.internal
+
+    vault_addr: >-
+      https://{{ vault_node_fqdn }}:{{ vault_api_port }}
+
+    vault_cacert: /etc/vault.d/tls/ca.crt
+
+  tasks:
+    - name: Check Vault status
+      ansible.builtin.command:
+        argv:
+          - vault
+          - status
+          - -format=json
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_status
+      changed_when: false
+      failed_when: vault_status.rc not in [0, 1, 2]
+
+    - name: Verify Vault is unsealed
+      ansible.builtin.assert:
+        that:
+          - (vault_status.stdout | from_json).initialized | bool
+          - not (vault_status.stdout | from_json).sealed | bool
+          - (vault_status.stdout | from_json).ha_enabled | bool
+        fail_msg: "Vault cluster leader node is not in the expected state."
+
+    - name: Get Vault Raft peers
+      ansible.builtin.command:
+        argv:
+          - vault
+          - operator
+          - raft
+          - list-peers
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+      register: vault_raft_peers
+      changed_when: false
+
+    - name: Display Vault Raft cluster
+      ansible.builtin.debug:
+        msg: "{{ vault_raft_peers.stdout }}"
