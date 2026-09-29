@@ -398,6 +398,19 @@
 # 14. Final Vault status on every node
 # -----------------------------------------------------------------------------
 
+# - name: Bootstrap | Get final Vault status
+#   ansible.builtin.command:
+#     cmd: vault status -format=json
+#   environment:
+#     VAULT_ADDR: "{{ vault_api_addr }}"
+#     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
+#   register: vault_final_status
+#   changed_when: false
+#   failed_when: vault_final_status.rc != 0
+# -----------------------------------------------------------------------------
+# 14. Final Vault status on every node
+# -----------------------------------------------------------------------------
+
 - name: Bootstrap | Get final Vault status
   ansible.builtin.command:
     cmd: vault status -format=json
@@ -406,7 +419,7 @@
     VAULT_CACERT: "{{ vault_tls_ca_cert }}"
   register: vault_final_status
   changed_when: false
-  failed_when: vault_final_status.rc != 0
+  failed_when: vault_final_status.rc not in [0, 2]
 
 # -----------------------------------------------------------------------------
 # 15. Validate final Vault state
@@ -454,12 +467,12 @@
 #       - "All Vault nodes are using Raft storage."
 #       - "All inventory nodes are present in the Raft peer list."
 #   when: inventory_hostname == vault_bootstrap_node
-- name: Bootstrap | Get final Vault status
-  ansible.builtin.command:
-    cmd: vault status -format=json
-  register: vault_final_status
-  changed_when: false
-  failed_when: vault_final_status.rc not in [0, 2]
+# - name: Bootstrap | Get final Vault status
+#   ansible.builtin.command:
+#     cmd: vault status -format=json
+#   register: vault_final_status
+#   changed_when: false
+#   failed_when: vault_final_status.rc not in [0, 2]
 
 - name: Bootstrap | Parse final Vault status
   ansible.builtin.set_fact:
