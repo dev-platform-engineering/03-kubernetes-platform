@@ -425,14 +425,32 @@
 # 15. Validate final Vault state
 # -----------------------------------------------------------------------------
 
+# - name: Bootstrap | Verify final Vault state
+#   ansible.builtin.assert:
+#     that:
+#       - (vault_final_status.stdout | from_json).initialized | bool
+#       - not (vault_final_status.stdout | from_json).sealed | bool
+#       - (vault_final_status.stdout | from_json).storage_type == "raft"
+#     fail_msg: >-
+#       Vault on {{ inventory_hostname }} is not in the expected final state.
 - name: Bootstrap | Verify final Vault state
   ansible.builtin.assert:
     that:
       - (vault_final_status.stdout | from_json).initialized | bool
-      - not (vault_final_status.stdout | from_json).sealed | bool
       - (vault_final_status.stdout | from_json).storage_type == "raft"
+      - (vault_final_status.stdout | from_json).ha_enabled | bool
     fail_msg: >-
       Vault on {{ inventory_hostname }} is not in the expected final state.
+      initialized={{ (vault_final_status.stdout | from_json).initialized }},
+      sealed={{ (vault_final_status.stdout | from_json).sealed }},
+      storage_type={{ (vault_final_status.stdout | from_json).storage_type }},
+      ha_enabled={{ (vault_final_status.stdout | from_json).ha_enabled }}
+    success_msg: >-
+      Vault on {{ inventory_hostname }} passed final validation.
+      initialized=true,
+      sealed={{ (vault_final_status.stdout | from_json).sealed }},
+      storage_type=raft,
+      ha_enabled=true.
 
 # -----------------------------------------------------------------------------
 # 16. Get final Raft peer list
