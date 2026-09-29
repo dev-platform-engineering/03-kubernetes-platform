@@ -4,13 +4,10 @@
 #
 # Unseals already-initialized Vault nodes using the existing Shamir keys.
 #
-# Requirements:
-#   - Vault must already be initialized.
-#   - Credentials file must exist on the Ansible controller.
-#   - Vault CLI must be installed on Vault nodes.
-#   - Vault CA certificate must be readable by the user executing the command.
+# The unseal keys are read from the Ansible controller:
+#   ~/.ansible/pki/vault/bootstrap/vault-credentials.json
 #
-# The unseal keys are never printed to Ansible output.
+# Keys are never printed in Ansible output.
 # -----------------------------------------------------------------------------
 
 - name: Unseal Vault cluster
@@ -35,7 +32,7 @@
 
   pre_tasks:
     # -------------------------------------------------------------------------
-    # Load credentials once on the Ansible controller
+    # Credentials - read from Ansible controller
     # -------------------------------------------------------------------------
 
     - name: Check Vault credentials file
@@ -65,9 +62,7 @@
               vault_credentials_file
             ) | from_json
           }}
-      delegate_to: localhost
       become: false
-      run_once: true
       no_log: true
 
     - name: Validate Vault credentials structure
@@ -81,14 +76,11 @@
         fail_msg: >-
           Vault credentials file does not contain at least three
           valid unseal_keys_b64 entries.
-      delegate_to: localhost
-      become: false
-      run_once: true
       no_log: true
 
   tasks:
     # -------------------------------------------------------------------------
-    # Wait for Vault API
+    # Wait for Vault
     # -------------------------------------------------------------------------
 
     - name: Wait for Vault API
@@ -111,7 +103,7 @@
       changed_when: false
 
     # -------------------------------------------------------------------------
-    # Get current state
+    # Current state
     # -------------------------------------------------------------------------
 
     - name: Check Vault status
@@ -158,7 +150,7 @@
           - vault
           - operator
           - unseal
-          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[0] }}"
+          - "{{ vault_credentials.unseal_keys_b64[0] }}"
       environment:
         VAULT_ADDR: "{{ vault_addr }}"
         VAULT_CACERT: "{{ vault_cacert }}"
@@ -173,7 +165,7 @@
           - vault
           - operator
           - unseal
-          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[1] }}"
+          - "{{ vault_credentials.unseal_keys_b64[1] }}"
       environment:
         VAULT_ADDR: "{{ vault_addr }}"
         VAULT_CACERT: "{{ vault_cacert }}"
@@ -188,7 +180,7 @@
           - vault
           - operator
           - unseal
-          - "{{ hostvars['localhost'].vault_credentials.unseal_keys_b64[2] }}"
+          - "{{ vault_credentials.unseal_keys_b64[2] }}"
       environment:
         VAULT_ADDR: "{{ vault_addr }}"
         VAULT_CACERT: "{{ vault_cacert }}"
@@ -198,7 +190,7 @@
       when: vault_status_json.sealed | bool
 
     # -------------------------------------------------------------------------
-    # Verify node
+    # Verify
     # -------------------------------------------------------------------------
 
     - name: Check Vault status after unseal
@@ -279,7 +271,8 @@
           - (vault_status.stdout | from_json).initialized | bool
           - not (vault_status.stdout | from_json).sealed | bool
           - (vault_status.stdout | from_json).ha_enabled | bool
-        fail_msg: "Vault cluster leader node is not in the expected state."
+        fail_msg: >-
+          Vault cluster leader node is not in the expected state.
 
     - name: Get Vault Raft peers
       ansible.builtin.command:
