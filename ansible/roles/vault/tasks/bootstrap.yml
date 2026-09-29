@@ -443,14 +443,51 @@
 # 17. Display final cluster status
 # -----------------------------------------------------------------------------
 
-- name: Bootstrap | Display final Vault cluster status
+# - name: Bootstrap | Display final Vault cluster status
+#   ansible.builtin.debug:
+#     msg:
+#       - "Vault bootstrap completed successfully."
+#       - "Bootstrap node: {{ vault_bootstrap_node }}"
+#       - "Inventory nodes: {{ groups['vault_cluster'] | join(', ') }}"
+#       - "All Vault nodes are initialized."
+#       - "All Vault nodes are unsealed."
+#       - "All Vault nodes are using Raft storage."
+#       - "All inventory nodes are present in the Raft peer list."
+#   when: inventory_hostname == vault_bootstrap_node
+- name: Bootstrap | Get final Vault status
+  ansible.builtin.command:
+    cmd: vault status -format=json
+  register: vault_final_status
+  changed_when: false
+  failed_when: vault_final_status.rc not in [0, 2]
+
+- name: Bootstrap | Parse final Vault status
+  ansible.builtin.set_fact:
+    vault_final_status_json: "{{ vault_final_status.stdout | from_json }}"
+
+- name: Bootstrap | Verify final Vault status
+  ansible.builtin.assert:
+    that:
+      - vault_final_status_json.initialized | bool
+      - vault_final_status_json.storage_type == "raft"
+      - vault_final_status_json.ha_enabled | bool
+    fail_msg: >-
+      Final Vault validation failed on {{ inventory_hostname }}:
+      initialized={{ vault_final_status_json.initialized }},
+      sealed={{ vault_final_status_json.sealed }},
+      storage={{ vault_final_status_json.storage_type }},
+      ha_enabled={{ vault_final_status_json.ha_enabled }}
+    success_msg: >-
+      Final Vault validation passed on {{ inventory_hostname }}.
+
+- name: Bootstrap | Report successful bootstrap
   ansible.builtin.debug:
     msg:
       - "Vault bootstrap completed successfully."
       - "Bootstrap node: {{ vault_bootstrap_node }}"
       - "Inventory nodes: {{ groups['vault_cluster'] | join(', ') }}"
       - "All Vault nodes are initialized."
-      - "All Vault nodes are unsealed."
-      - "All Vault nodes are using Raft storage."
-      - "All inventory nodes are present in the Raft peer list."
+      - "Vault nodes are using Raft storage."
+      - "Vault HA is enabled."
+      - "Vault seal state is managed separately."
   when: inventory_hostname == vault_bootstrap_node
