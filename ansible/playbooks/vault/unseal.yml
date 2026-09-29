@@ -251,6 +251,10 @@
     vault_cacert: /etc/vault.d/tls/ca.crt
 
   tasks:
+    # -------------------------------------------------------------------------
+    # Vault state
+    # -------------------------------------------------------------------------
+
     - name: Check Vault status
       ansible.builtin.command:
         argv:
@@ -271,6 +275,35 @@
           - not (vault_status.stdout | from_json).sealed | bool
           - (vault_status.stdout | from_json).ha_enabled | bool
         fail_msg: "Vault cluster node is not in the expected state."
+
+    # -------------------------------------------------------------------------
+    # Authentication
+    # -------------------------------------------------------------------------
+
+    - name: Verify Vault token authentication
+      ansible.builtin.command:
+        argv:
+          - vault
+          - token
+          - lookup
+          - -format=json
+      environment:
+        VAULT_ADDR: "{{ vault_addr }}"
+        VAULT_CACERT: "{{ vault_cacert }}"
+        VAULT_TOKEN: "{{ hostvars['localhost'].vault_credentials.root_token }}"
+      register: vault_token_lookup
+      changed_when: false
+      no_log: true
+
+    - name: Verify Vault token is valid
+      ansible.builtin.assert:
+        that:
+          - vault_token_lookup.rc == 0
+        fail_msg: "Vault root token authentication failed."
+
+    # -------------------------------------------------------------------------
+    # Raft
+    # -------------------------------------------------------------------------
 
     - name: Get Vault Raft peers
       ansible.builtin.command:
