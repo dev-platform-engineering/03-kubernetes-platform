@@ -58,10 +58,6 @@
           unseal keys and root token.
       no_log: true
 
-# -----------------------------------------------------------------------------
-# Unseal Vault nodes
-# -----------------------------------------------------------------------------
-
 - name: Unseal Vault cluster
   hosts: vault_cluster
   become: true
@@ -80,10 +76,6 @@
     vault_cacert: /etc/vault.d/tls/ca.crt
 
   tasks:
-    # -------------------------------------------------------------------------
-    # Wait for Vault API
-    # -------------------------------------------------------------------------
-
     - name: Wait for Vault API
       ansible.builtin.uri:
         url: "{{ vault_addr }}/v1/sys/health"
@@ -102,10 +94,6 @@
       delay: 2
       until: vault_health.status is defined
       changed_when: false
-
-    # -------------------------------------------------------------------------
-    # Check current state
-    # -------------------------------------------------------------------------
 
     - name: Check Vault status
       ansible.builtin.command:
@@ -140,10 +128,6 @@
           {{ inventory_hostname }} is not initialized.
           This playbook only unseals an existing Vault cluster.
       when: not vault_status_json.initialized | bool
-
-    # -------------------------------------------------------------------------
-    # Unseal
-    # -------------------------------------------------------------------------
 
     - name: Unseal Vault with Shamir key 1
       ansible.builtin.command:
@@ -190,10 +174,6 @@
       no_log: true
       when: vault_status_json.sealed | bool
 
-    # -------------------------------------------------------------------------
-    # Verify node
-    # -------------------------------------------------------------------------
-
     - name: Check Vault status after unseal
       ansible.builtin.command:
         argv:
@@ -230,10 +210,6 @@
           - "Vault node: {{ inventory_hostname }}"
           - "Status: UNSEALED"
 
-# -----------------------------------------------------------------------------
-# Verify complete Raft cluster
-# -----------------------------------------------------------------------------
-
 - name: Verify Vault Raft cluster
   hosts: vault_cluster[0]
   become: true
@@ -251,10 +227,6 @@
     vault_cacert: /etc/vault.d/tls/ca.crt
 
   tasks:
-    # -------------------------------------------------------------------------
-    # Vault state
-    # -------------------------------------------------------------------------
-
     - name: Check Vault status
       ansible.builtin.command:
         argv:
@@ -276,10 +248,6 @@
           - (vault_status.stdout | from_json).ha_enabled | bool
         fail_msg: "Vault cluster node is not in the expected state."
 
-    # -------------------------------------------------------------------------
-    # Authentication
-    # -------------------------------------------------------------------------
-
     - name: Verify Vault token authentication
       ansible.builtin.command:
         argv:
@@ -300,10 +268,6 @@
         that:
           - vault_token_lookup.rc == 0
         fail_msg: "Vault root token authentication failed."
-
-    # -------------------------------------------------------------------------
-    # Raft
-    # -------------------------------------------------------------------------
 
     - name: Get Vault Raft peers
       ansible.builtin.command:
