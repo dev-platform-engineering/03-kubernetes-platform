@@ -5,7 +5,8 @@ locals {
     local.kubernetes_vms,
     local.lb_vms,
     local.kubernetes_worker_linux_vms,
-    local.vault_linux_vms
+    local.vault_linux_vms,
+    local.storage_linux_vms
     # local.monitoring_vms, 
   )
 
