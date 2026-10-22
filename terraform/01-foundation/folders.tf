@@ -19,6 +19,7 @@ module "k8s_subfolders" {
     workers       = { path = "Kubernetes/Workers", type = "vm" }
     etcd          = { path = "Kubernetes/Etcd", type = "vm" }
     vault         = { path = "Infrastructure/Vault", type = "vm" }
+    storage         = { path = "Infrastructure/Storage", type = "vm" }
   }
 
   depends_on = [
