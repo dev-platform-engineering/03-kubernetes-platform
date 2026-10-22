@@ -1,0 +1,12 @@
+---
+- name: Configure NFS storage server
+  hosts: storage_nfs_nodes
+  become: true
+  roles:
+    - role: common
+      tags: 
+        - common
+
+    # - role: nfs_server
+    #   tags: 
+    #     - nfs_server
