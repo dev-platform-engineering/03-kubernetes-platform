@@ -9,3 +9,9 @@ nfs_client_packages_by_os:
     - nfs-utils
   Debian:
     - nfs-common
+
+# Enable only when explicitly testing NFS read/write access.
+nfs_client_run_smoke_test: false
+nfs_client_test_mountpoint: /mnt/nfs-smoke-test
+nfs_client_test_export: /srv/nfs/kubernetes
+nfs_client_test_directory: .nfs-smoke-test

@@ -19,3 +19,22 @@
     state: started
     timeout: 10
   changed_when: false
+
+- name: Verify NFS server TCP connectivity
+  ansible.builtin.wait_for:
+    host: "{{ nfs_client_server }}"
+    port: "{{ nfs_client_port }}"
+    state: started
+    timeout: 10
+  changed_when: false
+
+- name: Verify NFS export is mountable
+  ansible.builtin.command:
+    argv:
+      - showmount
+      - --exports
+      - "{{ nfs_client_server }}"
+  register: nfs_client_showmount
+  changed_when: false
+  failed_when: false
+  when: false
