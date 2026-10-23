@@ -1,0 +1,11 @@
+
+---
+nfs_client_server: nfs-01.infra.platform.internal
+nfs_client_port: 2049
+nfs_client_mount_test: false
+
+nfs_client_packages_by_os:
+  RedHat:
+    - nfs-utils
+  Debian:
+    - nfs-common

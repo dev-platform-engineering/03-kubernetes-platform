@@ -1,0 +1,21 @@
+
+---
+- name: Validate supported operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family in nfs_client_packages_by_os
+    fail_msg: >-
+      Unsupported OS family {{ ansible_os_family }} for NFS client setup.
+
+- name: Install NFS client packages
+  ansible.builtin.package:
+    name: "{{ nfs_client_packages_by_os[ansible_os_family] }}"
+    state: present
+
+- name: Verify connectivity to NFS server
+  ansible.builtin.wait_for:
+    host: "{{ nfs_client_server }}"
+    port: "{{ nfs_client_port }}"
+    state: started
+    timeout: 10
+  changed_when: false
