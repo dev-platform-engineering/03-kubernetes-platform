@@ -8,3 +8,8 @@
   ansible.builtin.systemd:
     name: "{{ nfs_server_service }}"
     state: restarted
+
+- name: Restore NFS export SELinux context
+  ansible.builtin.command:
+    cmd: "restorecon -Rv {{ nfs_server_export_root }}"
+  changed_when: true

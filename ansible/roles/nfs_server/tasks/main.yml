@@ -56,24 +56,12 @@
     - nfs_server_selinux_enabled
 
 - name: Configure SELinux context for NFS export
-  ansible.builtin.command:
-    cmd: >
-      semanage fcontext -a -t public_content_rw_t
-      '{{ nfs_server_export_root }}(/.*)?'
-  register: nfs_server_semanage
-  changed_when: nfs_server_semanage.rc == 0
-  failed_when:
-    - nfs_server_semanage.rc != 0
-    - "'already defined' not in nfs_server_semanage.stderr"
-  when:
-    - nfs_server_selinux_enabled
-
-- name: Restore SELinux context on NFS export
-  ansible.builtin.command:
-    cmd: "restorecon -Rv {{ nfs_server_export_root }}"
-  changed_when: false
-  when:
-    - nfs_server_selinux_enabled
+  community.general.sefcontext:
+    target: "{{ nfs_server_export_root }}(/.*)?"
+    setype: public_content_rw_t
+    state: present
+  notify: Restore NFS export SELinux context
+  when: nfs_server_selinux_enabled
 
 - name: Ensure firewalld is installed
   ansible.builtin.dnf:
