@@ -5,23 +5,25 @@
     that:
       - argocd_helm_chart_version | length > 0
       - argocd_kubeconfig | length > 0
+      - argocd_kubeconfig is match('^/')
     fail_msg: >-
-      Set a pinned Argo CD Helm chart version and a valid kubeconfig path
-      before running the installation.
-  run_once: true
+      Set a pinned Argo CD Helm chart version and an absolute kubeconfig path.
+  tags:
+    - argocd
+    - validate
 
-- name: Verify Helm is installed on the Ansible execution host
+- name: Verify Helm is installed
   ansible.builtin.command:
     argv:
       - helm
       - version
       - --short
-  delegate_to: localhost
-  become: false
   changed_when: false
-  run_once: true
+  tags:
+    - argocd
+    - validate
 
-- name: Verify Kubernetes API connectivity
+- name: Verify Kubernetes API access
   ansible.builtin.command:
     argv:
       - kubectl
@@ -29,19 +31,22 @@
       - "{{ argocd_kubeconfig }}"
       - get
       - nodes
-  delegate_to: localhost
-  become: false
   changed_when: false
-  run_once: true
+  tags:
+    - argocd
+    - validate
 
-- name: Add the official Argo Helm repository
+- name: Add the Argo Helm repository
   kubernetes.core.helm_repository:
     name: "{{ argocd_helm_repo_name }}"
     repo_url: "{{ argocd_helm_repo_url }}"
     state: present
-  delegate_to: localhost
-  become: false
-  run_once: true
+
+- name: Render Argo CD Helm values
+  ansible.builtin.template:
+    src: values.yaml.j2
+    dest: /tmp/argocd-values.yaml
+    mode: "0600"
 
 - name: Install or upgrade Argo CD
   kubernetes.core.helm:
@@ -54,9 +59,6 @@
     state: present
     wait: true
     timeout: "{{ argocd_install_timeout }}"
-  delegate_to: localhost
-  become: false
-  run_once: true
 
 - name: Wait for Argo CD Pods to become Ready
   ansible.builtin.command:
@@ -71,12 +73,9 @@
       - --namespace
       - "{{ argocd_namespace }}"
       - "--timeout={{ argocd_install_timeout }}"
-  delegate_to: localhost
-  become: false
   changed_when: false
-  run_once: true
 
-- name: Display Argo CD installation status
+- name: Get Argo CD Pod status
   ansible.builtin.command:
     argv:
       - kubectl
@@ -88,13 +87,9 @@
       - "{{ argocd_namespace }}"
       - -o
       - wide
-  delegate_to: localhost
-  become: false
   changed_when: false
-  run_once: true
   register: argocd_pod_status
 
-- name: Show Argo CD Pods
+- name: Display Argo CD Pod status
   ansible.builtin.debug:
     var: argocd_pod_status.stdout_lines
-  run_once: true

@@ -7,7 +7,10 @@ argocd_helm_repo_url: https://argoproj.github.io/argo-helm
 argocd_helm_chart_name: argo/argo-cd
 
 # Pin a chart version after checking compatibility.
-argocd_helm_chart_version: ""
+argocd_helm_chart_version: "10.10.5"
+
+argocd_server_service_type: ClusterIP
+argocd_server_insecure: false
 
 # Use the kubeconfig confirmed on the Ansible controller.
 argocd_kubeconfig: "{{ lookup('env', 'KUBECONFIG') | default(lookup('env', 'HOME') ~ '/.kube/config', true) }}"

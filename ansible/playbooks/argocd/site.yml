@@ -1,0 +1,9 @@
+---
+- name: Bootstrap Argo CD
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - role: argocd
+    
