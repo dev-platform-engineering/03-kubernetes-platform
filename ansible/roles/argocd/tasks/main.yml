@@ -60,7 +60,7 @@
       - /tmp/argocd-values.yaml
     state: present
     wait: true
-    timeout: "{{ argocd_install_timeout }}"\
+    timeout: "{{ argocd_install_timeout }}"
 
 - name: Wait for Argo CD Pods to become Ready
   ansible.builtin.command:
