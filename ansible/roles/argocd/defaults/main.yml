@@ -1,19 +1,15 @@
 ---
-# Argo CD installation settings
 argocd_namespace: argocd
 argocd_release_name: argocd
 
-# Official community-maintained Argo CD Helm chart
 argocd_helm_repo_name: argo
 argocd_helm_repo_url: https://argoproj.github.io/argo-helm
 argocd_helm_chart_name: argo/argo-cd
 
-# Pin the chart version after selecting and validating
-# the release against the Kubernetes version in this lab.
+# Pin a chart version after checking compatibility.
 argocd_helm_chart_version: ""
 
-# Kubernetes API access from the Ansible execution host
-argocd_kubeconfig: "{{ lookup('env', 'KUBECONFIG') | default('~/.kube/config', true) }}"
+# Use the kubeconfig confirmed on the Ansible controller.
+argocd_kubeconfig: "{{ lookup('env', 'KUBECONFIG') | default(lookup('env', 'HOME') ~ '/.kube/config', true) }}"
 
-# Installation timeout
 argocd_install_timeout: 600s
