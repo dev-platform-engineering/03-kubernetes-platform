@@ -1,5 +1,38 @@
+global:
+  image:
+    # Указываем ваш локальный Nexus вместо quay.io
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    tag: "{{ argocd_helm_chart_version }}"
+    imagePullPolicy: IfNotPresent
+
 server:
   service:
     type: {{ argocd_server_service_type }}
-
   extraArgs: []
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+repoServer:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+applicationController:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+notifications:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+applicationSet:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+dex:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+
+# Переопределяем образ Redis, так как init-контейнер упал именно на нем
+redis:
+  image:
+    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
