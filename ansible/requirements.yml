@@ -4,6 +4,7 @@ collections:
   - name: community.general
   - name: community.crypto
   - name: pulp.pulp_installer
+  - name: kubernetes.core  
 
 roles:
   - name: geerlingguy.postgresql
