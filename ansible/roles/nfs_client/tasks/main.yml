@@ -37,4 +37,4 @@
   register: nfs_client_showmount
   changed_when: false
   failed_when: false
-  when: false
+  when: nfs_client_mount_test | bool
