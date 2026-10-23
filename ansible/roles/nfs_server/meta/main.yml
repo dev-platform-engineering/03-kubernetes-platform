@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  role_name: nfs_server
+  author: platform-engineering
+  description: Configure an NFSv4 storage server for Kubernetes
+  license: MIT
+  min_ansible_version: "2.15"
+
+dependencies: []

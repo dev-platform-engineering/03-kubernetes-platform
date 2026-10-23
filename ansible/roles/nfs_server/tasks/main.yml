@@ -1,0 +1,107 @@
+---
+- name: Install NFS server packages
+  ansible.builtin.dnf:
+    name: "{{ nfs_server_packages }}"
+    state: present
+
+- name: Ensure NFS export root directory exists
+  ansible.builtin.file:
+    path: "{{ nfs_server_export_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure Kubernetes NFS export directory exists
+  ansible.builtin.file:
+    path: "{{ nfs_server_export_path }}"
+    state: directory
+    owner: "{{ nfs_server_directory_owner }}"
+    group: "{{ nfs_server_directory_group }}"
+    mode: "{{ nfs_server_directory_mode }}"
+
+- name: Ensure NFS application directories exist
+  ansible.builtin.file:
+    path: "{{ nfs_server_export_path }}/{{ item }}"
+    state: directory
+    owner: "{{ nfs_server_directory_owner }}"
+    group: "{{ nfs_server_directory_group }}"
+    mode: "{{ nfs_server_directory_mode }}"
+  loop: "{{ nfs_server_directories }}"
+
+- name: Configure NFS server
+  ansible.builtin.template:
+    src: nfs.conf.j2
+    dest: /etc/nfs.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart NFS server
+
+- name: Configure NFS exports
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports.d/kubernetes.exports
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload NFS exports
+
+- name: Configure SELinux boolean for NFS exports
+  ansible.posix.seboolean:
+    name: nfs_export_all_rw
+    state: true
+    persistent: true
+  when:
+    - nfs_server_selinux_enabled
+
+- name: Configure SELinux context for NFS export
+  ansible.builtin.command:
+    cmd: >
+      semanage fcontext -a -t public_content_rw_t
+      '{{ nfs_server_export_root }}(/.*)?'
+  register: nfs_server_semanage
+  changed_when: nfs_server_semanage.rc == 0
+  failed_when:
+    - nfs_server_semanage.rc != 0
+    - "'already defined' not in nfs_server_semanage.stderr"
+  when:
+    - nfs_server_selinux_enabled
+
+- name: Restore SELinux context on NFS export
+  ansible.builtin.command:
+    cmd: "restorecon -Rv {{ nfs_server_export_root }}"
+  changed_when: false
+  when:
+    - nfs_server_selinux_enabled
+
+- name: Ensure firewalld is installed
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+  when:
+    - nfs_server_firewall_enabled
+
+- name: Ensure firewalld is enabled and running
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+  when:
+    - nfs_server_firewall_enabled
+
+- name: Allow NFS service through firewalld
+  ansible.posix.firewalld:
+    service: nfs
+    zone: "{{ nfs_server_firewall_zone }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  when:
+    - nfs_server_firewall_enabled
+
+- name: Ensure NFS server is enabled and running
+  ansible.builtin.systemd:
+    name: "{{ nfs_server_service }}"
+    enabled: true
+    state: started

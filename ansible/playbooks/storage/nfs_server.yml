@@ -7,6 +7,6 @@
       tags: 
         - common
 
-    # - role: nfs_server
-    #   tags: 
-    #     - nfs_server
+    - role: nfs_server
+      tags: 
+        - nfs_server

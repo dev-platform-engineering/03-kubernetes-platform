@@ -1,0 +1,34 @@
+---
+nfs_server_packages:
+  - nfs-utils
+
+nfs_server_service: nfs-server
+
+nfs_server_export_root: /srv/nfs
+nfs_server_export_path: /srv/nfs/kubernetes
+
+nfs_server_port: 2049
+
+nfs_server_enable_nfsv3: false
+
+nfs_server_allowed_clients: []
+
+nfs_server_export_options:
+  - rw
+  - sync
+  - root_squash
+  - no_subtree_check
+
+nfs_server_directories:
+  - postgres
+  - redis
+  - postgres-test
+
+nfs_server_directory_owner: root
+nfs_server_directory_group: root
+nfs_server_directory_mode: "0755"
+
+nfs_server_selinux_enabled: true
+
+nfs_server_firewall_enabled: true
+nfs_server_firewall_zone: public

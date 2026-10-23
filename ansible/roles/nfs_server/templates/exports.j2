@@ -1,0 +1,9 @@
+# Managed by Ansible.
+# Do not edit manually.
+
+{{ nfs_server_export_path }}{% for client in nfs_server_allowed_clients %} {{ client }}({{ nfs_server_export_options | join(',') }}){% endfor %}
+
+nfs_server_export_path: /srv/nfs
+nfs_server_allowed_clients:
+  - 10.50.50.0/24
+
