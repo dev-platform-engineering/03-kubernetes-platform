@@ -1,7 +1,6 @@
 global:
   image:
-    # Указываем ваш локальный Nexus вместо quay.io
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
     tag: "{{ argocd_image_tag }}"
     imagePullPolicy: IfNotPresent
 
@@ -10,29 +9,29 @@ server:
     type: {{ argocd_server_service_type }}
   extraArgs: []
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
 repoServer:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
 applicationController:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
 notifications:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
 applicationSet:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
 dex:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: quay.io/argoproj/argocd
 
-# Переопределяем образ Redis, так как init-контейнер упал именно на нем
 redis:
   image:
-    repository: repo-01.infra.platform.internal:8084/argoproj/argocd
+    repository: redis
+    tag: "{{ redis_image_tag }}"

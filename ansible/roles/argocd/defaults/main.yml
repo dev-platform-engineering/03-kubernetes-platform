@@ -9,6 +9,7 @@ argocd_helm_chart_name: argo/argo-cd
 # Pin a chart version after checking compatibility.
 argocd_helm_chart_version: "10.10.5"
 argocd_image_tag: "v3.5.5"
+redis_image_tag: "8.10.1-alpine"
 
 argocd_server_service_type: ClusterIP
 argocd_server_insecure: false
