@@ -27,12 +27,8 @@ applicationSet:
   image:
     repository: quay.io/argoproj/argocd
 
-dex:
-  image:
-    repository: quay.io/argoproj/argocd
-    tag: "{{ argocd_image_tag }}"
-
 redis:
   image:
     repository: redis
     tag: "{{ redis_image_tag }}"
+    imagePullPolicy: IfNotPresent
