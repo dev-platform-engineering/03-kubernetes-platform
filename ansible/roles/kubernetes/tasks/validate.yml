@@ -25,7 +25,8 @@
 
 - name: Kubernetes | Validate kubectl
   ansible.builtin.command:
-    cmd: kubectl version --client -o yaml
+    cmd: kubectl version --client --output=yaml
+  register: kubectl_validate
   changed_when: false
   when: inventory_hostname in groups['kubeadm_control_plane']
 
