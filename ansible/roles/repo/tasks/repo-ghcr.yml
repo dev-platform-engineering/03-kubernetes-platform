@@ -1,0 +1,69 @@
+
+# ---------------------------------------------------------------------------
+# GitHub Container Registry (GHCR) Docker proxy repository
+# ---------------------------------------------------------------------------
+
+- name: Check GHCR Docker proxy repository
+  ansible.builtin.uri:
+    url: >-
+      {{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy/docker-ghcr
+    method: GET
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 200
+      - 404
+    validate_certs: false
+  register: repo_nexus_ghcr_check
+  no_log: true
+
+- name: Create GHCR Docker proxy repository
+  ansible.builtin.uri:
+    url: "{{ repo_nexus_api_url }}/service/rest/v1/repositories/docker/proxy"
+    method: POST
+    user: "{{ repo_nexus_admin_user }}"
+    password: "{{ repo_nexus_admin_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+      online: true
+
+      storage:
+        blobStoreName: default
+        strictContentTypeValidation: true
+
+      proxy:
+        remoteUrl: "{{ item.url }}"
+        contentMaxAge: 1440
+        metadataMaxAge: 1440
+
+      negativeCache:
+        enabled: true
+        timeToLive: 1440
+
+      httpClient:
+        blocked: false
+        autoBlock: true
+        connection:
+          retries: 3
+          timeout: 60
+
+      dockerProxy:
+        indexType: "{{ item.index_type }}"
+
+      docker:
+        v1Enabled: false
+        forceBasicAuth: false
+        httpPort: "{{ item.http_port }}"
+
+    status_code: 201
+    validate_certs: false
+  loop: "{{ repo_nexus_docker_proxies | selectattr('name', 'equalto', 'docker-ghcr') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: repo_nexus_ghcr_check.status == 404
+  no_log: true

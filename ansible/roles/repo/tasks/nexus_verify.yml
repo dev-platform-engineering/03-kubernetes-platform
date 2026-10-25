@@ -115,5 +115,5 @@
       - 401
     validate_certs: false
   register: repo_nexus_ghcr_connectivity
-  when: repo_nexus_ghcr_enabled | bool
+  when: repo_nexus_docker_enabled | bool
   changed_when: false

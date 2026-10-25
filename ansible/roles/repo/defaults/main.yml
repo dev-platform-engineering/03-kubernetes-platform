@@ -109,6 +109,11 @@ repo_nexus_docker_proxies:
     url: "https://quay.io"
     index_type: "REGISTRY"
     http_port: 8084
+    
+  - name: docker-ghcr
+    url: https://ghcr.io
+    http_port: 8085
+    index_type: REGISTRY
 
 repo_nexus_raw_proxies:
   - name: "github"
