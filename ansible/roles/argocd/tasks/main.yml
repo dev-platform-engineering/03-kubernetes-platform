@@ -62,36 +62,44 @@
     wait: true
     timeout: "{{ argocd_install_timeout }}"
 
-- name: Wait for Argo CD Pods to become Ready
+
+- name: Wait for Argo CD Deployments to become Available
   ansible.builtin.command:
     argv:
       - kubectl
       - --kubeconfig
       - "{{ argocd_kubeconfig }}"
       - wait
-      - --for=condition=Ready
-      - pod
+      - --for=condition=Available
+      - deployment
       - --all
       - --namespace
       - "{{ argocd_namespace }}"
       - "--timeout={{ argocd_install_timeout }}"
   changed_when: false
+  tags:
+    - argocd
+    - validate
 
-- name: Get Argo CD Pod status
+- name: Verify Argo CD workload status
   ansible.builtin.command:
     argv:
       - kubectl
       - --kubeconfig
       - "{{ argocd_kubeconfig }}"
       - get
-      - pods
+      - deployments,statefulsets
       - --namespace
       - "{{ argocd_namespace }}"
-      - -o
-      - wide
   changed_when: false
-  register: argocd_pod_status
+  register: argocd_workload_status
+  tags:
+    - argocd
+    - validate
 
-- name: Display Argo CD Pod status
+- name: Display Argo CD workload status
   ansible.builtin.debug:
-    var: argocd_pod_status.stdout_lines
+    var: argocd_workload_status.stdout_lines
+  tags:
+    - argocd
+    - validate
