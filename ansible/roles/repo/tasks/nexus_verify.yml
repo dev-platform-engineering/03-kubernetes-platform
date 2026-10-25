@@ -108,12 +108,11 @@
 
 - name: Verify GHCR Docker proxy connector
   ansible.builtin.uri:
-    url: "http://{{ repo_nexus_api_url | urlsplit('hostname') }}:8085/v2/"
+    url: "http://127.0.0.1:8085/v2/"
     method: GET
     status_code:
       - 200
       - 401
-    validate_certs: false
   register: repo_nexus_ghcr_connectivity
   when: repo_nexus_docker_enabled | bool
   changed_when: false
