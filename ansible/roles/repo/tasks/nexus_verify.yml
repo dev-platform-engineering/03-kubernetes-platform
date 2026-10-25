@@ -101,16 +101,19 @@
   register: repo_nexus_api_check
   changed_when: false
   no_log: true
-# - name: Reload systemd daemon
-#   ansible.builtin.systemd:
-#     daemon_reload: true
 
-# - name: Restart Docker
-#   ansible.builtin.systemd:
-#     name: docker
-#     state: restarted
-#     enabled: true
+# -----------------------------------------------------------------------------
+# GitHub Container Registry (GHCR)
+# -----------------------------------------------------------------------------
 
-# - name: Give Nexus extra time to initialize web services
-#   ansible.builtin.pause:
-#     seconds: 20
+- name: Verify GHCR Docker proxy connector
+  ansible.builtin.uri:
+    url: "http://{{ repo_nexus_host }}:8085/v2/"
+    method: GET
+    status_code:
+      - 200
+      - 401
+    validate_certs: false
+  register: repo_nexus_ghcr_connectivity
+  when: repo_nexus_ghcr_enabled | bool
+  changed_when: false

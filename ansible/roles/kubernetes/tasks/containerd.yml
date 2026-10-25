@@ -127,11 +127,7 @@
             capabilities = ["pull", "resolve"]
       notify: Restart containerd
 
-    # =========================================================================
     # quay.io mirror for Cilium
-    # =========================================================================
-
-    # NEW:
     # Cilium images originate from quay.io, so it needs its own hosts.toml.
     - name: Kubernetes | Create quay.io configuration directory
       ansible.builtin.file:
@@ -141,7 +137,6 @@
         group: root
         mode: "0755"
 
-    # NEW:
     # Use the Nexus Docker connector on port 8084.
     - name: Kubernetes | Configure quay.io Nexus mirror
       ansible.builtin.copy:
@@ -156,10 +151,7 @@
             capabilities = ["pull", "resolve"]
       notify: Restart containerd
 
-      # =========================================================================
     # docker.io mirror
-    # =========================================================================
-
     - name: Kubernetes | Create docker.io configuration directory
       ansible.builtin.file:
         path: /etc/containerd/certs.d/docker.io
@@ -187,10 +179,35 @@
       register: docker_io_hosts_file
       changed_when: false
 
-    # -------------------------------------------------------------------------
-    # Systemd
-    # -------------------------------------------------------------------------
+    # ghcr.io mirror
+    - name: Kubernetes | Create ghcr.io configuration directory
+      ansible.builtin.file:
+        path: /etc/containerd/certs.d/ghcr.io
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
 
+    - name: Kubernetes | Configure ghcr.io Nexus mirror
+      ansible.builtin.copy:
+        dest: /etc/containerd/certs.d/ghcr.io/hosts.toml
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server = "https://ghcr.io"
+
+          [host."{{ kubernetes_registry_ghcr_docker_endpoint }}"]
+            capabilities = ["pull", "resolve"]
+      notify: Restart containerd
+
+    - name: Kubernetes | Check ghcr.io hosts configuration
+      ansible.builtin.stat:
+        path: /etc/containerd/certs.d/ghcr.io/hosts.toml
+      register: ghcr_hosts_file
+      changed_when: false
+
+    # Systemd
     - name: Kubernetes | Install containerd systemd unit
       ansible.builtin.copy:
         dest: /etc/systemd/system/containerd.service
@@ -229,10 +246,7 @@
         enabled: true
         state: started
 
-    # -------------------------------------------------------------------------
     # Validation
-    # -------------------------------------------------------------------------
-
     - name: Kubernetes | Check containerd version
       ansible.builtin.command:
         cmd: /usr/local/bin/containerd --version
@@ -242,8 +256,7 @@
     - name: Kubernetes | Display containerd version
       ansible.builtin.debug:
         msg: "{{ containerd_version_output.stdout }}"
-
-    # NEW:
+   
     # Validate that the required registry configuration files exist.
     - name: Kubernetes | Check registry.k8s.io hosts configuration
       ansible.builtin.stat:
@@ -263,6 +276,7 @@
           - registry_k8s_hosts_file.stat.exists
           - quay_hosts_file.stat.exists
           - docker_io_hosts_file.stat.exists
+          - ghcr_hosts_file.stat.exists
         fail_msg: >-
           One or more containerd registry hosts.toml files are missing.
         success_msg: >-

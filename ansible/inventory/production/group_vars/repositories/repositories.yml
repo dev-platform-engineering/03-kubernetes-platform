@@ -8,3 +8,10 @@ repo_storage_path: /srv/nexus
 
 repo_use_internal_repos: false
 repo_nexus_enabled: true
+repo_nexus_ghcr_enabled: true
+
+repo_nexus_ghcr:
+  name: docker-ghcr
+  url: https://ghcr.io
+  http_port: 8085
+  index_type: REGISTRY
