@@ -17,7 +17,7 @@ locals {
     network = "services"
   }
 
-  storage_vms = {
+  gitlab_vms = {
     gitlab = {
       ip = "10.50.60.70"
     }
