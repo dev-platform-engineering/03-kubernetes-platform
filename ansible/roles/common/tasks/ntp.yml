@@ -24,9 +24,14 @@
 
 - name: NTP | Wait for synchronization
   ansible.builtin.command:
-    cmd: chronyc waitsync 120
-  register: chrony_waitsync
+    cmd: chronyc tracking
+  register: chrony_tracking
   changed_when: false
+  retries: 12
+  delay: 5
+  until:
+    - chrony_tracking.rc == 0
+    - "'Leap status     : Normal' in chrony_tracking.stdout"
 
 - name: NTP | Verify synchronization
   ansible.builtin.command:
