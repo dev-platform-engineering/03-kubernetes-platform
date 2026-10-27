@@ -67,6 +67,17 @@
     force: false
   register: gitlab_rpm_download
 
+- name: GitLab | Download package signing key from Nexus
+  ansible.builtin.get_url:
+    url: "{{ gitlab_gpg_key_url }}"
+    dest: /var/tmp/gitlab-package-signing-key.gpg
+    mode: "0644"
+
+- name: GitLab | Import package signing key
+  ansible.builtin.rpm_key:
+    state: present
+    key: /var/tmp/gitlab-package-signing-key.gpg
+
 - name: GitLab | Install Community Edition package
   ansible.builtin.dnf:
     name: "{{ gitlab_rpm_path }}"
