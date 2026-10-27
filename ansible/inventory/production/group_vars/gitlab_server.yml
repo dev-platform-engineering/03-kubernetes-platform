@@ -1,4 +1,13 @@
 ---
+dns_search:
+  - infra.platform.internal
+  - k8s.prod.platform.internal
+  - platform.internal
+
+proxy_enabled: false
+repo_use_internal_repos: true
+common_upgrade_packages: true
+
 gitlab_hostname: "gitlab.infra.platform.internal"
 gitlab_external_url: "http://{{ gitlab_hostname }}"
 
