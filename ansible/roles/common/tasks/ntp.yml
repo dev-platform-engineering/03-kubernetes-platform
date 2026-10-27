@@ -22,6 +22,11 @@
 - name: NTP | Flush handlers
   ansible.builtin.meta: flush_handlers
 
+# - name: NTP | Wait for synchronization
+#   ansible.builtin.command:
+#     cmd: chronyc waitsync 120
+#   register: chrony_waitsync
+#   changed_when: false
 - name: NTP | Wait for synchronization
   ansible.builtin.command:
     cmd: chronyc tracking
