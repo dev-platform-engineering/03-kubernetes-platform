@@ -10,16 +10,21 @@
 - name: GitLab | Verify minimum lab resources
   ansible.builtin.assert:
     that:
-      - ansible_memtotal_mb >= 7168
-      - ansible_processor_vcpus >= 4
-    fail_msg: "GitLab lab deployment requires approximately 8 GiB RAM and 4 vCPU."
+      - ansible_memtotal_mb >= gitlab_min_memory_mb
+      - ansible_processor_vcpus >= gitlab_min_vcpus
+    fail_msg: >-
+      GitLab lab deployment requires at least
+      {{ gitlab_min_vcpus }} vCPU and
+      {{ gitlab_min_memory_mb }} MiB RAM.
 
 - name: GitLab | Verify RPM URL and checksum
   ansible.builtin.assert:
     that:
-      - gitlab_rpm_url | length > 0
+      - gitlab_rpm_url is match('^https?://')
       - gitlab_rpm_sha256 is match('^[a-fA-F0-9]{64}$')
-    fail_msg: "Configure the internal RPM URL and its verified SHA-256 checksum."
+      - gitlab_rpm_filename | length > 0
+    fail_msg: >-
+      Configure the internal Nexus RPM URL and its verified SHA-256 checksum.
 
 - name: GitLab | Check available root filesystem space
   ansible.builtin.assert:
@@ -31,8 +36,11 @@
           | map(attribute='size_available')
           | first
           | default(0)
-        ) >= 40 * 1024 * 1024 * 1024
-    fail_msg: "At least 40 GiB free on the root filesystem is required by this lab baseline."
+        ) >= gitlab_min_root_free_bytes
+    fail_msg: >-
+      At least {{ gitlab_min_root_free_bytes // (1024 * 1024 * 1024) }} GiB
+      must be free on the root filesystem. Check /var storage as well if it
+      uses a separate filesystem.
 
 - name: GitLab | Install operating system dependencies
   ansible.builtin.dnf:
@@ -44,18 +52,27 @@
       - tzdata
     state: present
 
+- name: GitLab | Ensure SSH service is enabled and running
+  ansible.builtin.service:
+    name: sshd
+    state: started
+    enabled: true
+
 - name: GitLab | Download verified RPM from internal Nexus
   ansible.builtin.get_url:
     url: "{{ gitlab_rpm_url }}"
     dest: "{{ gitlab_rpm_path }}"
     checksum: "sha256:{{ gitlab_rpm_sha256 }}"
     mode: "0644"
+    force: false
+  register: gitlab_rpm_download
 
 - name: GitLab | Install Community Edition package
   ansible.builtin.dnf:
     name: "{{ gitlab_rpm_path }}"
     state: present
     disable_gpg_check: false
+  notify: GitLab | Reconfigure
 
 - name: GitLab | Configure external URL
   ansible.builtin.template:
@@ -66,10 +83,10 @@
     mode: "0600"
   notify: GitLab | Reconfigure
 
-- name: GitLab | Apply configuration
+- name: GitLab | Apply pending configuration
   ansible.builtin.meta: flush_handlers
 
-- name: GitLab | Enable and start service
+- name: GitLab | Ensure service is enabled and running
   ansible.builtin.service:
     name: gitlab-runsvdir
     state: started
@@ -82,9 +99,9 @@
     status_code:
       - 200
       - 302
-    timeout: 10
+    timeout: "{{ gitlab_health_timeout }}"
   register: gitlab_health
-  until: gitlab_health.status in [200, 302]
-  retries: 30
-  delay: 10
+  until: gitlab_health.status | default(0) in [200, 302]
+  retries: "{{ gitlab_health_retries }}"
+  delay: "{{ gitlab_health_delay }}"
   changed_when: false

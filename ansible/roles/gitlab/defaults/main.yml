@@ -1,12 +1,25 @@
 ---
+# GitLab CE package and configuration
+gitlab_version: "19.5.1"
+gitlab_rpm_filename: "gitlab-ce-{{ gitlab_version }}-ce.0.el9.x86_64.rpm"
+
+gitlab_rpm_url: >-
+  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts/gitlab/{{ gitlab_rpm_filename }}
+
+gitlab_rpm_sha256: "827b8ea1f109bbbca7b808d5a1d370a8cd1ebb60784973dda3ade0b7aa6bfc36"
+gitlab_rpm_path: "/var/tmp/{{ gitlab_rpm_filename }}"
+
+# GitLab URL
 gitlab_hostname: "gitlab.infra.platform.internal"
 gitlab_external_url: "http://{{ gitlab_hostname }}"
 
-gitlab_rpm_url: >-
-  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts/gitlab/gitlab-ce.rpm
-
-gitlab_rpm_sha256: ""
-
-gitlab_rpm_path: "/var/tmp/gitlab-ce.rpm"
-
+# Runtime
 gitlab_manage_firewall: true
+gitlab_health_retries: 30
+gitlab_health_delay: 10
+gitlab_health_timeout: 10
+
+# Resource requirements for this lab
+gitlab_min_memory_mb: 7168
+gitlab_min_vcpus: 4
+gitlab_min_root_free_bytes: 42949672960

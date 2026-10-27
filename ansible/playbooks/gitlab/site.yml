@@ -7,6 +7,6 @@
       tags: 
         - common
 
-    # - role: gitlab
-    #   tags: 
-    #     - gitlab
+    - role: gitlab
+      tags: 
+        - gitlab
