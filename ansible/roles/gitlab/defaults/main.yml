@@ -16,6 +16,10 @@ gitlab_external_url: "http://{{ gitlab_hostname }}"
 
 # Runtime
 gitlab_manage_firewall: true
+gitlab_firewall_zone: public
+gitlab_firewall_services:
+  - http
+  - https
 gitlab_health_retries: 30
 gitlab_health_delay: 10
 gitlab_health_timeout: 10

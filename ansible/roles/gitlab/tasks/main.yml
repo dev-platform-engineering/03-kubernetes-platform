@@ -116,3 +116,26 @@
   retries: "{{ gitlab_health_retries }}"
   delay: "{{ gitlab_health_delay }}"
   changed_when: false
+
+- name: GitLab | Install firewalld
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+  when: gitlab_manage_firewall | bool
+
+- name: GitLab | Ensure firewalld is enabled and running
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: gitlab_manage_firewall | bool
+
+- name: GitLab | Allow HTTP and HTTPS in firewalld
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    zone: "{{ gitlab_firewall_zone }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ gitlab_firewall_services }}"
+  when: gitlab_manage_firewall | bool
