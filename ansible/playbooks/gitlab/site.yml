@@ -1,0 +1,12 @@
+---
+- name: Configure Internal GitLab Server
+  hosts: gitlab_server
+  become: true
+  roles:
+    - role: common
+      tags: 
+        - common
+
+    # - role: gitlab
+    #   tags: 
+    #     - gitlab

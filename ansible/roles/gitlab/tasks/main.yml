@@ -1,0 +1,90 @@
+---
+- name: GitLab | Verify target OS
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == "Rocky"
+      - ansible_distribution_major_version == "9"
+      - ansible_architecture == "x86_64"
+    fail_msg: "This role supports Rocky Linux 9 x86_64."
+
+- name: GitLab | Verify minimum lab resources
+  ansible.builtin.assert:
+    that:
+      - ansible_memtotal_mb >= 7168
+      - ansible_processor_vcpus >= 4
+    fail_msg: "GitLab lab deployment requires approximately 8 GiB RAM and 4 vCPU."
+
+- name: GitLab | Verify RPM URL and checksum
+  ansible.builtin.assert:
+    that:
+      - gitlab_rpm_url | length > 0
+      - gitlab_rpm_sha256 is match('^[a-fA-F0-9]{64}$')
+    fail_msg: "Configure the internal RPM URL and its verified SHA-256 checksum."
+
+- name: GitLab | Check available root filesystem space
+  ansible.builtin.assert:
+    that:
+      - >-
+        (
+          ansible_mounts
+          | selectattr('mount', 'equalto', '/')
+          | map(attribute='size_available')
+          | first
+          | default(0)
+        ) >= 40 * 1024 * 1024 * 1024
+    fail_msg: "At least 40 GiB free on the root filesystem is required by this lab baseline."
+
+- name: GitLab | Install operating system dependencies
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - openssh-server
+      - policycoreutils
+      - perl
+      - tzdata
+    state: present
+
+- name: GitLab | Download verified RPM from internal Nexus
+  ansible.builtin.get_url:
+    url: "{{ gitlab_rpm_url }}"
+    dest: "{{ gitlab_rpm_path }}"
+    checksum: "sha256:{{ gitlab_rpm_sha256 }}"
+    mode: "0644"
+
+- name: GitLab | Install Community Edition package
+  ansible.builtin.dnf:
+    name: "{{ gitlab_rpm_path }}"
+    state: present
+    disable_gpg_check: false
+
+- name: GitLab | Configure external URL
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
+    owner: root
+    group: root
+    mode: "0600"
+  notify: GitLab | Reconfigure
+
+- name: GitLab | Apply configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: GitLab | Enable and start service
+  ansible.builtin.service:
+    name: gitlab-runsvdir
+    state: started
+    enabled: true
+
+- name: GitLab | Wait for HTTP endpoint
+  ansible.builtin.uri:
+    url: "{{ gitlab_external_url }}/users/sign_in"
+    method: GET
+    status_code:
+      - 200
+      - 302
+    timeout: 10
+  register: gitlab_health
+  until: gitlab_health.status in [200, 302]
+  retries: 30
+  delay: 10
+  changed_when: false
