@@ -53,6 +53,17 @@
       - git
     state: present
 
+- name: Configure GitLab proxy environment
+  ansible.builtin.set_fact:
+    gitlab_proxy_environment:
+      http_proxy: "{{ inet_proxy.http_proxy }}"
+      https_proxy: "{{ inet_proxy.https_proxy }}"
+      no_proxy: "{{ inet_proxy.no_proxy | join(',') }}"
+      HTTP_PROXY: "{{ inet_proxy.http_proxy }}"
+      HTTPS_PROXY: "{{ inet_proxy.https_proxy }}"
+      NO_PROXY: "{{ inet_proxy.no_proxy | join(',') }}"
+  when: gitlab_proxy_enabled | bool
+
 - name: GitLab | Ensure SSH service is enabled and running
   ansible.builtin.service:
     name: sshd

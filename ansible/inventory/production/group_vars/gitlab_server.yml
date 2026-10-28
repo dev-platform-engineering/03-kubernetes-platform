@@ -4,9 +4,14 @@ dns_search:
   - k8s.prod.platform.internal
   - platform.internal
 
-proxy_enabled: true
+proxy_enabled: false
 repo_use_internal_repos: true
 common_upgrade_packages: true
+
+# GitLab-specific setting
+gitlab_proxy_enabled: true
+# Internal Nexus repositories must bypass the proxy.
+#dnf_internal_repo_proxy: "_none_"
 
 gitlab_hostname: "gitlab.infra.platform.internal"
 gitlab_external_url: "http://{{ gitlab_hostname }}"
