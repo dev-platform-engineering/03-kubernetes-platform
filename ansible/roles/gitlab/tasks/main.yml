@@ -51,6 +51,7 @@
       - perl
       - tzdata
       - git
+      - python3-cryptography
     state: present
 
 - name: Configure GitLab proxy environment
