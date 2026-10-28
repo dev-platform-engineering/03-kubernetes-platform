@@ -26,3 +26,15 @@ gitlab_gpg_key_url: >-
   http://repo-01.infra.platform.internal:8081/repository/platform-artifacts/gitlab/gitlab-package-signing-key.gpg
 
 gitlab_rpm_sha256: "827b8ea1f109bbbca7b808d5a1d370a8cd1ebb60784973dda3ade0b7aa6bfc36"
+
+# GitLab TLS
+gitlab_tls_mode: self_signed
+gitlab_tls_certificate_days: 365
+gitlab_tls_key_size: 3072
+
+gitlab_tls_directory: /etc/gitlab/ssl
+gitlab_tls_cert_path: "{{ gitlab_tls_directory }}/{{ gitlab_hostname }}.crt"
+gitlab_tls_key_path: "{{ gitlab_tls_directory }}/{{ gitlab_hostname }}.key"
+gitlab_tls_csr_path: "{{ gitlab_tls_directory }}/{{ gitlab_hostname }}.csr"
+
+gitlab_tls_validate_health_certificate: false

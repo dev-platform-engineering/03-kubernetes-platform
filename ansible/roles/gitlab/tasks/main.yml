@@ -151,3 +151,7 @@
     state: enabled
   loop: "{{ gitlab_firewall_services }}"
   when: gitlab_manage_firewall | bool
+
+- name: GitLab | Configure TLS
+  ansible.builtin.import_tasks: tls.yml
+  when: gitlab_https_enabled | bool

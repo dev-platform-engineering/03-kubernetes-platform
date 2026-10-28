@@ -1,0 +1,55 @@
+
+---
+- name: GitLab TLS | Validate TLS configuration
+  ansible.builtin.assert:
+    that:
+      - gitlab_tls_mode == "self_signed"
+      - gitlab_tls_certificate_days | int > 0
+      - gitlab_tls_key_size | int >= 2048
+      - gitlab_hostname | length > 0
+    fail_msg: "Invalid GitLab TLS configuration."
+  when: gitlab_https_enabled | bool
+
+- name: GitLab TLS | Ensure SSL directory exists
+  ansible.builtin.file:
+    path: "{{ gitlab_tls_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: gitlab_https_enabled | bool
+
+- name: GitLab TLS | Generate private key
+  community.crypto.openssl_privatekey:
+    path: "{{ gitlab_tls_key_path }}"
+    type: RSA
+    size: "{{ gitlab_tls_key_size }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: gitlab_https_enabled | bool
+
+- name: GitLab TLS | Generate certificate signing request
+  community.crypto.openssl_csr:
+    path: "{{ gitlab_tls_csr_path }}"
+    privatekey_path: "{{ gitlab_tls_key_path }}"
+    common_name: "{{ gitlab_hostname }}"
+    subject_alt_name:
+      - "DNS:{{ gitlab_hostname }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: gitlab_https_enabled | bool
+
+- name: GitLab TLS | Generate self-signed certificate
+  community.crypto.x509_certificate:
+    path: "{{ gitlab_tls_cert_path }}"
+    privatekey_path: "{{ gitlab_tls_key_path }}"
+    csr_path: "{{ gitlab_tls_csr_path }}"
+    provider: selfsigned
+    selfsigned_not_after: "+{{ gitlab_tls_certificate_days }}d"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: GitLab | Reconfigure
+  when: gitlab_https_enabled | bool
