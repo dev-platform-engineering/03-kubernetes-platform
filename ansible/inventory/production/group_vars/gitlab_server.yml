@@ -28,6 +28,7 @@ gitlab_gpg_key_url: >-
 gitlab_rpm_sha256: "827b8ea1f109bbbca7b808d5a1d370a8cd1ebb60784973dda3ade0b7aa6bfc36"
 
 # GitLab TLS
+gitlab_https_enabled: true
 gitlab_tls_mode: self_signed
 gitlab_tls_certificate_days: 365
 gitlab_tls_key_size: 3072
