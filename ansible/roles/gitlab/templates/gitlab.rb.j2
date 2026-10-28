@@ -5,3 +5,15 @@ external_url '{{ gitlab_external_url }}'
 
 # TLS will be configured separately.
 letsencrypt['enable'] = false
+
+gitlab_rails['env'] = {
+  'http_proxy' => '{{ inet_proxy.http_proxy }}',
+  'https_proxy' => '{{ inet_proxy.https_proxy }}',
+  'no_proxy' => '{{ inet_proxy.no_proxy | join(",") }}'
+}
+
+gitaly['env'] = {
+  'http_proxy' => '{{ inet_proxy.http_proxy }}',
+  'https_proxy' => '{{ inet_proxy.https_proxy }}',
+  'no_proxy' => '{{ inet_proxy.no_proxy | join(",") }}'
+}

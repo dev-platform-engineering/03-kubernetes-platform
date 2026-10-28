@@ -50,6 +50,7 @@
       - policycoreutils
       - perl
       - tzdata
+      - git
     state: present
 
 - name: GitLab | Ensure SSH service is enabled and running
