@@ -17,3 +17,8 @@ gitaly['env'] = {
   'https_proxy' => '{{ inet_proxy.https_proxy }}',
   'no_proxy' => '{{ inet_proxy.no_proxy | join(",") }}'
 }
+
+{% if gitlab_https_enabled | bool %}
+nginx['ssl_certificate'] = '{{ gitlab_tls_cert_path }}'
+nginx['ssl_certificate_key'] = '{{ gitlab_tls_key_path }}'
+{% endif %}
