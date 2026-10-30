@@ -24,6 +24,11 @@ gitlab_gpg_key_url: >-
 
 gitlab_rpm_sha256: "827b8ea1f109bbbca7b808d5a1d370a8cd1ebb60784973dda3ade0b7aa6bfc36"
 
+gitlab_rpm1953_url: >-
+  http://repo-01.infra.platform.internal:8081/repository/platform-artifacts/gitlab/gitlab-ce-19.5.3-ce.0.el9.x86_64.rpm
+
+gitlab_rpm1953_sha256: "4d9054f84f3ad3596f7039b755970b0ac871141acabd496aad34a7bccdfba2be"
+
 # GitLab TLS
 gitlab_https_enabled: true
 gitlab_tls_mode: self_signed
