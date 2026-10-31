@@ -41,6 +41,7 @@
     owner: root
     group: root
     mode: "0644"
+    trim_blocks: false
   notify: Reload NFS exports
 
 - name: Configure SELinux boolean for NFS exports
