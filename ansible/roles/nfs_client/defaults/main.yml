@@ -2,16 +2,20 @@
 ---
 nfs_client_server: nfs-01.infra.platform.internal
 nfs_client_port: 2049
-nfs_client_mount_test: false
+#nfs_client_mount_test: false
 
+# NFS protocol
+nfs_client_version: "4.2"
+
+# Client packages by OS family
 nfs_client_packages_by_os:
   RedHat:
     - nfs-utils
   Debian:
     - nfs-common
 
-# Enable only when explicitly testing NFS read/write access.
+# Optional NFS read/write smoke test
 nfs_client_run_smoke_test: false
 nfs_client_test_mountpoint: /mnt/nfs-smoke-test
-nfs_client_test_export: /srv/nfs/kubernetes
+nfs_client_test_export: /kubernetes
 nfs_client_test_directory: .nfs-smoke-test

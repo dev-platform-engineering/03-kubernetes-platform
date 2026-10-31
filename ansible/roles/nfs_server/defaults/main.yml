@@ -1,26 +1,39 @@
+
 ---
 nfs_server_packages:
   - nfs-utils
   - policycoreutils-python-utils
-  - firewalld  
+  - firewalld
 
 nfs_server_service: nfs-server
 
+# NFS server configuration
 nfs_server_export_root: /srv/nfs
-nfs_server_export_path: /srv/nfs/kubernetes
-
 nfs_server_port: 2049
-
 nfs_server_enable_nfsv3: false
 
-nfs_server_allowed_clients: []
+# NFS exports
+# The first export defines the NFSv4 pseudo-root.
+nfs_server_exports:
+  - path: "{{ nfs_server_export_root }}"
+    clients:
+      - "10.50.50.0/24"
+    options:
+      - ro
+      - fsid=0
+      - sync
+      - no_subtree_check
 
-nfs_server_export_options:
-  - rw
-  - sync
-  - root_squash
-  - no_subtree_check
+  - path: "{{ nfs_server_export_root }}/kubernetes"
+    clients:
+      - "10.50.50.0/24"
+    options:
+      - rw
+      - sync
+      - root_squash
+      - no_subtree_check
 
+# Directories created under the Kubernetes export
 nfs_server_directories:
   - postgres
   - redis
@@ -30,7 +43,10 @@ nfs_server_directory_owner: root
 nfs_server_directory_group: root
 nfs_server_directory_mode: "0755"
 
+# SELinux
 nfs_server_selinux_enabled: true
 
+# Firewall
 nfs_server_firewall_enabled: true
 nfs_server_firewall_zone: public
+

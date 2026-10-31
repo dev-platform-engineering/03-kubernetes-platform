@@ -1,28 +1,24 @@
+
 ---
 - name: Install NFS server packages
   ansible.builtin.dnf:
     name: "{{ nfs_server_packages }}"
     state: present
 
-- name: Ensure NFS export root directory exists
+- name: Ensure NFS export directories exist
   ansible.builtin.file:
-    path: "{{ nfs_server_export_root }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: Ensure Kubernetes NFS export directory exists
-  ansible.builtin.file:
-    path: "{{ nfs_server_export_path }}"
+    path: "{{ item.path }}"
     state: directory
     owner: "{{ nfs_server_directory_owner }}"
     group: "{{ nfs_server_directory_group }}"
     mode: "{{ nfs_server_directory_mode }}"
+  loop: "{{ nfs_server_exports }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 - name: Ensure NFS application directories exist
   ansible.builtin.file:
-    path: "{{ nfs_server_export_path }}/{{ item }}"
+    path: "{{ nfs_server_exports[1].path }}/{{ item }}"
     state: directory
     owner: "{{ nfs_server_directory_owner }}"
     group: "{{ nfs_server_directory_group }}"
@@ -52,8 +48,7 @@
     name: nfs_export_all_rw
     state: true
     persistent: true
-  when:
-    - nfs_server_selinux_enabled
+  when: nfs_server_selinux_enabled | bool
 
 - name: Configure SELinux context for NFS export
   community.general.sefcontext:
@@ -61,22 +56,20 @@
     setype: public_content_rw_t
     state: present
   notify: Restore NFS export SELinux context
-  when: nfs_server_selinux_enabled
+  when: nfs_server_selinux_enabled | bool
 
 - name: Ensure firewalld is installed
   ansible.builtin.dnf:
     name: firewalld
     state: present
-  when:
-    - nfs_server_firewall_enabled
+  when: nfs_server_firewall_enabled | bool
 
 - name: Ensure firewalld is enabled and running
   ansible.builtin.systemd:
     name: firewalld
     enabled: true
     state: started
-  when:
-    - nfs_server_firewall_enabled
+  when: nfs_server_firewall_enabled | bool
 
 - name: Allow NFS service through firewalld
   ansible.posix.firewalld:
@@ -85,8 +78,7 @@
     permanent: true
     immediate: true
     state: enabled
-  when:
-    - nfs_server_firewall_enabled
+  when: nfs_server_firewall_enabled | bool
 
 - name: Ensure NFS server is enabled and running
   ansible.builtin.systemd:
