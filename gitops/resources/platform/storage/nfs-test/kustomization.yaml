@@ -5,4 +5,3 @@ resources:
   - namespace.yaml
   - persistent-volume.yaml
   - persistent-volume-claim.yaml
-  - test-pod.yaml
