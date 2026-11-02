@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-root
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: git@gitlab.infra.platform.internal:dev-platform-engineering/03-kubernetes-platform.git
+    targetRevision: feature/gitops
+    path: gitops/apps/platform
+    directory:
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
