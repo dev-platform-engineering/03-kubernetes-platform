@@ -199,7 +199,6 @@
 
           [host."{{ kubernetes_registry_ghcr_docker_endpoint }}"]
             capabilities = ["pull", "resolve"]
-            skip_verify = true
       notify: Restart containerd
 
     - name: Kubernetes | Check ghcr.io hosts configuration
