@@ -33,6 +33,19 @@ nfs_server_exports:
       - root_squash
       - no_subtree_check
 
+  # Dedicated PostgreSQL export.
+  # Root-squashed requests are mapped to PostgreSQL UID/GID 26.
+  - path: "{{ nfs_server_export_root }}/kubernetes/postgres"
+    clients:
+      - "10.50.50.0/24"
+    options:
+      - rw
+      - sync
+      - root_squash
+      - anonuid=26
+      - anongid=26
+      - no_subtree_check
+
 # Directories created under the Kubernetes export
 nfs_server_directories:
   - postgres
@@ -42,6 +55,11 @@ nfs_server_directories:
 nfs_server_directory_owner: root
 nfs_server_directory_group: root
 nfs_server_directory_mode: "0755"
+
+# PostgreSQL directory ownership and permissions.
+nfs_server_postgres_uid: 26
+nfs_server_postgres_gid: 26
+nfs_server_postgres_directory_mode: "0770"
 
 # SELinux
 nfs_server_selinux_enabled: true

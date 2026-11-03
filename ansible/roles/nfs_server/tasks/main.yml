@@ -16,6 +16,14 @@
   loop_control:
     label: "{{ item.path }}"
 
+- name: Configure PostgreSQL NFS directory ownership
+  ansible.builtin.file:
+    path: "{{ nfs_server_exports[2].path }}"
+    state: directory
+    owner: "{{ nfs_server_postgres_uid }}"
+    group: "{{ nfs_server_postgres_gid }}"
+    mode: "{{ nfs_server_postgres_directory_mode }}"
+
 - name: Ensure NFS application directories exist
   ansible.builtin.file:
     path: "{{ nfs_server_exports[1].path }}/{{ item }}"
