@@ -16,5 +16,5 @@ spec:
     - nfsvers=4.1
     - hard
   nfs:
-    server: 10.50.90.20
-    path: /kubernetes/postgres-test
+    server: nfs-01.infra.platform.internal
+    path: /postgres-test

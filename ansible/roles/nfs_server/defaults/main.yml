@@ -8,63 +8,51 @@ nfs_server_packages:
 nfs_server_service: nfs-server
 
 # NFS server configuration
-nfs_server_export_root: /srv/nfs
+nfs_server_export_root: /srv/nfs/kubernetes
 nfs_server_port: 2049
 nfs_server_enable_nfsv3: false
 
-# NFS exports
-# The first export defines the NFSv4 pseudo-root.
+# NFSv4 exports.
+# The Kubernetes storage directory is the NFSv4 pseudo-root.
 nfs_server_exports:
   - path: "{{ nfs_server_export_root }}"
     clients:
       - "10.50.50.0/24"
     options:
-      - ro
+      - rw
       - fsid=0
       - sync
-      - no_subtree_check
-
-  - path: "{{ nfs_server_export_root }}/kubernetes"
-    clients:
-      - "10.50.50.0/24"
-    options:
-      - rw
-      - sync
       - root_squash
       - no_subtree_check
 
-  # Dedicated PostgreSQL export.
-  # Root-squashed requests are mapped to PostgreSQL UID/GID 26.
-  - path: "{{ nfs_server_export_root }}/kubernetes/postgres"
-    clients:
-      - "10.50.50.0/24"
-    options:
-      - rw
-      - sync
-      - root_squash
-      - anonuid=26
-      - anongid=26
-      - no_subtree_check
+# Root-squashed requests are mapped to nobody:nobody.
+# This identity is used by the NFS CSI provisioner when creating
+# dynamic PVC directories.
+nfs_server_directory_owner: nobody
+nfs_server_directory_group: nobody
+nfs_server_directory_mode: "0770"
 
-# Directories created under the Kubernetes export
+# Application directories with explicit ownership and permissions.
 nfs_server_directories:
-  - postgres
-  - redis
-  - postgres-test
+  - path: "{{ nfs_server_export_root }}/postgres"
+    owner: "26"
+    group: "26"
+    mode: "0770"
 
-nfs_server_directory_owner: root
-nfs_server_directory_group: root
-nfs_server_directory_mode: "0755"
+  - path: "{{ nfs_server_export_root }}/postgres-test"
+    owner: nobody
+    group: nobody
+    mode: "0770"
 
-# PostgreSQL directory ownership and permissions.
-nfs_server_postgres_uid: 26
-nfs_server_postgres_gid: 26
-nfs_server_postgres_directory_mode: "0770"
+  - path: "{{ nfs_server_export_root }}/redis"
+    owner: nobody
+    group: nobody
+    mode: "0770"
 
 # SELinux
 nfs_server_selinux_enabled: true
+nfs_server_selinux_type: public_content_rw_t
 
 # Firewall
 nfs_server_firewall_enabled: true
 nfs_server_firewall_zone: public
-
