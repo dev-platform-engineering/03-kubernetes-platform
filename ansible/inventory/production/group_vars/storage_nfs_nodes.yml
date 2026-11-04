@@ -8,8 +8,7 @@ proxy_enabled: false
 repo_use_internal_repos: true
 common_upgrade_packages: true
 
-nfs_server_export_root: /srv/nfs
-nfs_server_export_path: /srv/nfs/kubernetes
+nfs_server_export_root: /srv/nfs/kubernetes
 
 nfs_server_enable_nfsv3: false
 nfs_server_port: 2049
