@@ -24,6 +24,17 @@ nfs_server_export_options:
   - no_subtree_check
 
 nfs_server_directories:
-  - postgres
-  - redis
-  - postgres-test
+  - path: "{{ nfs_server_export_root }}/postgres"
+    owner: "26"
+    group: "26"
+    mode: "0770"
+
+  - path: "{{ nfs_server_export_root }}/postgres-test"
+    owner: nobody
+    group: nobody
+    mode: "0770"
+
+  - path: "{{ nfs_server_export_root }}/redis"
+    owner: nobody
+    group: nobody
+    mode: "0770"
