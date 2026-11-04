@@ -11,16 +11,20 @@ spec:
     server: https://kubernetes.default.svc
     namespace: kube-system
   sources:
-    - repoURL: https://kubernetes-csi.github.io/csi-driver-nfs
-      chart: csi-driver-nfs
-      targetRevision: 4.13.6
+    # Helm chart vendored in the GitLab repository.
+    - repoURL: https://gitlab.infra.platform.internal/dev-platform-engineering/03-kubernetes-platform.git
+      targetRevision: feature/gitops
+      path: gitops/vendor/charts/csi-driver-nfs
       helm:
         releaseName: csi-driver-nfs
         valueFiles:
           - $values/gitops/resources/platform/storage/nfs/values.yaml
+
+    # Separate Git source for Helm values.
     - repoURL: https://gitlab.infra.platform.internal/dev-platform-engineering/03-kubernetes-platform.git
       targetRevision: feature/gitops
       ref: values
+
   syncPolicy:
     automated:
       prune: true
