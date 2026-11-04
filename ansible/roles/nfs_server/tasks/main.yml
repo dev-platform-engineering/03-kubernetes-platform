@@ -5,16 +5,6 @@
     name: "{{ nfs_server_packages }}"
     state: present
 
-# - name: Ensure NFS export directories exist
-#   ansible.builtin.file:
-#     path: "{{ item.path }}"
-#     state: directory
-#     owner: "{{ nfs_server_directory_owner }}"
-#     group: "{{ nfs_server_directory_group }}"
-#     mode: "{{ nfs_server_directory_mode }}"
-#   loop: "{{ nfs_server_exports }}"
-#   loop_control:
-#     label: "{{ item.path }}"
 - name: Ensure NFS export root exists
   ansible.builtin.file:
     path: "{{ nfs_server_export_root }}"
@@ -23,22 +13,6 @@
     group: "{{ nfs_server_directory_group }}"
     mode: "{{ nfs_server_directory_mode }}"
 
-- name: Configure PostgreSQL NFS directory ownership
-  ansible.builtin.file:
-    path: "{{ nfs_server_exports[2].path }}"
-    state: directory
-    owner: "{{ nfs_server_postgres_uid }}"
-    group: "{{ nfs_server_postgres_gid }}"
-    mode: "{{ nfs_server_postgres_directory_mode }}"
-
-# - name: Ensure NFS application directories exist
-#   ansible.builtin.file:
-#     path: "{{ nfs_server_exports[1].path }}/{{ item }}"
-#     state: directory
-#     owner: "{{ nfs_server_directory_owner }}"
-#     group: "{{ nfs_server_directory_group }}"
-#     mode: "{{ nfs_server_directory_mode }}"
-#   loop: "{{ nfs_server_directories }}"
 - name: Ensure NFS application directories exist
   ansible.builtin.file:
     path: "{{ item.path }}"
@@ -66,27 +40,12 @@
     owner: root
     group: root
     mode: "0644"
-    trim_blocks: false
   notify: Reload NFS exports
 
-# - name: Configure SELinux boolean for NFS exports
-#   ansible.posix.seboolean:
-#     name: nfs_export_all_rw
-#     state: true
-#     persistent: true
-#   when: nfs_server_selinux_enabled | bool
 - name: Configure SELinux context for NFS export
   community.general.sefcontext:
     target: "{{ nfs_server_export_root }}(/.*)?"
     setype: "{{ nfs_server_selinux_type }}"
-    state: present
-  notify: Restore NFS export SELinux context
-  when: nfs_server_selinux_enabled | bool
-
-- name: Configure SELinux context for NFS export
-  community.general.sefcontext:
-    target: "{{ nfs_server_export_root }}(/.*)?"
-    setype: public_content_rw_t
     state: present
   notify: Restore NFS export SELinux context
   when: nfs_server_selinux_enabled | bool
