@@ -45,7 +45,8 @@ driver:
 
 feature:
   enableFSGroupPolicy: true
-  fsGroupPolicy: File
+  #fsGroupPolicy: File
+  fsGroupPolicy: None
   enableInlineVolume: false
   propagateHostMountOptions: false
 
