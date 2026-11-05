@@ -1,0 +1,8 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redis-test
+  labels:
+    app.kubernetes.io/part-of: k8s-platform
+    environment: test

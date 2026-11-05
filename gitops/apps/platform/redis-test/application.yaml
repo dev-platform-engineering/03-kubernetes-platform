@@ -1,0 +1,22 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis-test
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://gitlab.infra.platform.internal/dev-platform-engineering/03-kubernetes-platform.git
+    targetRevision: feature/gitops
+    path: gitops/resources/workloads/redis-test
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis-test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
