@@ -49,12 +49,11 @@ spec:
             - --dir
             - /data
             - --save
-            - "60"
-            - "1"
+            - ""
             - --appendonly
             - "no"
             - --maxmemory
-            - 192mb
+            - 160mb
             - --maxmemory-policy
             - allkeys-lru
 
@@ -124,7 +123,8 @@ spec:
       volumes:
         - name: data
           emptyDir:
-            sizeLimit: 256Mi
+            medium: Memory
+            sizeLimit: 128Mi
 
         - name: redis-auth
           secret:
