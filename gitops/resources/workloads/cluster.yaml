@@ -4,7 +4,7 @@ metadata:
   name: postgres-test
   namespace: postgres-test
 spec:
-  instances: 3
+  instances: 1
 
   imageName: ghcr.io/cloudnative-pg/postgresql:16.9
 
@@ -15,19 +15,15 @@ spec:
 
   storage:
     storageClass: nfs-csi
-    size: 10Gi
+    size: 5Gi
 
   resources:
     requests:
       memory: 512Mi
       cpu: 250m
     limits:
-      memory: 1Gi
+      memory: 8i
       cpu: "1"
-
-  affinity:
-    enablePodAntiAffinity: true
-    topologyKey: kubernetes.io/hostname
 
   monitoring:
     enablePodMonitor: false
