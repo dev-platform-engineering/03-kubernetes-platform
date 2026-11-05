@@ -22,9 +22,8 @@ spec:
       memory: 512Mi
       cpu: 250m
     limits:
-      memory: 8i
+      memory: 1Gi
       cpu: "1"
 
   monitoring:
     enablePodMonitor: false
-    
