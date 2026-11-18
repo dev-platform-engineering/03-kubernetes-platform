@@ -239,3 +239,34 @@ storageClass:
 #     volumeBindingMode: Immediate
 #     mountOptions:
 #       - nfsvers=4.1
+# External Secrets Operator v0.13.0
+
+installCRDs: true
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/external-secrets/external-secrets
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: external-secrets
+  automount: true
+
+webhook:
+  create: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/external-secrets/external-secrets
+    pullPolicy: IfNotPresent
+
+certController:
+  create: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/external-secrets/external-secrets
+    pullPolicy: IfNotPresent
+
+bitwarden-sdk-server:
+  enabled: false
