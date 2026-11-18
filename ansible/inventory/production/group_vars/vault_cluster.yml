@@ -22,6 +22,10 @@ vault_tls_ca_cert_local: "{{ vault_tls_controller_pki_dir }}/ca.crt"
 
 vault_tls_enabled: true
 
+vault_tls_additional_sans:
+  - "DNS:vault.infra.platform.internal"
+  - "IP:10.50.20.20"
+
 vault_raft_enabled: true
 vault_raft_cluster_name: "vault-prod"
 

@@ -152,10 +152,14 @@
       - serverAuth
       - clientAuth
 
-    subject_alt_name:
-      - "DNS:{{ vault_fqdn }}"
-      - "DNS:{{ inventory_hostname }}"
-      - "IP:{{ ansible_host }}"
+    subject_alt_name: >-
+      {{
+        [
+          'DNS:' ~ vault_fqdn,
+          'DNS:' ~ inventory_hostname,
+          'IP:' ~ ansible_host
+        ] + (vault_tls_additional_sans | default([]))
+      }}
 
 # -----------------------------------------------------------------------------
 # 9. Check local CSR on controller
