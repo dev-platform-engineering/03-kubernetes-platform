@@ -1,0 +1,8 @@
+path "platform/data/redis" {
+  capabilities = ["read"]
+}
+
+path "platform/metadata/redis" {
+  capabilities = ["read"]
+}
+
