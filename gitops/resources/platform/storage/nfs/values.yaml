@@ -1,5 +1,12 @@
-parameters:
-  server: nfs-01.infra.platform.internal
-  share: /
-  subDir: "${pvc.metadata.namespace}/${pvc.metadata.name}"
-  mountPermissions: "0770"
+storageClass:
+  create: true
+  name: nfs-csi
+  reclaimPolicy: Delete
+  allowVolumeExpansion: true
+  volumeBindingMode: Immediate
+
+  parameters:
+    server: nfs-01.infra.platform.internal
+    share: /
+    subDir: "${pvc.metadata.namespace}/${pvc.metadata.name}"
+    mountPermissions: "0770"
