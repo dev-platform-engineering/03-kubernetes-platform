@@ -7,6 +7,6 @@ storageClass:
 
   parameters:
     server: nfs-01.infra.platform.internal
-    share: /
+    share: /kubernetes
     subDir: "${pvc.metadata.namespace}/${pvc.metadata.name}"
     mountPermissions: "0770"
