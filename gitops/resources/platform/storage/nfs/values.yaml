@@ -1,6 +1,6 @@
 storageClass:
   create: true
-  name: nfs-csi
+  name: nfs-csi-v2
   reclaimPolicy: Retain
   volumeBindingMode: Immediate
   allowVolumeExpansion: true
