@@ -1,21 +1,28 @@
+# feature:
+#   enableFSGroupPolicy: true
+#   fsGroupPolicy: None
+#   enableInlineVolume: false
+#   propagateHostMountOptions: false
+  
+# storageClass:
+#   create: true
+#   name: nfs-csi-v2
+#   reclaimPolicy: Retain
+#   volumeBindingMode: Immediate
+#   allowVolumeExpansion: true
+#   mountOptions:
+#     - nfsvers=4.1
+
+#   parameters:
+#     server: nfs-01.infra.platform.internal
+#     share: /
+#     subDir: "${pvc.metadata.namespace}/${pvc.metadata.name}"
+#     mountPermissions: "0"
 feature:
   enableFSGroupPolicy: true
   fsGroupPolicy: None
   enableInlineVolume: false
   propagateHostMountOptions: false
-  
-storageClass:
-  create: true
-  name: nfs-csi-v2
-  reclaimPolicy: Retain
-  volumeBindingMode: Immediate
-  allowVolumeExpansion: true
-  mountOptions:
-    - nfsvers=4.1
 
-  parameters:
-    server: nfs-01.infra.platform.internal
-    share: /
-    subDir: "${pvc.metadata.namespace}/${pvc.metadata.name}"
-    #mountPermissions: "0770"
-    mountPermissions: "0"
+storageClass:
+  create: false
