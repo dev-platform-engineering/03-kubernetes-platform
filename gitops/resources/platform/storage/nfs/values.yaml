@@ -1,3 +1,9 @@
+feature:
+  enableFSGroupPolicy: true
+  fsGroupPolicy: None
+  enableInlineVolume: false
+  propagateHostMountOptions: false
+  
 storageClass:
   create: true
   name: nfs-csi-v2
