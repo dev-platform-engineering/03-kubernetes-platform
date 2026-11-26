@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - vault-ca-configmap.yaml
   - secret-store.yaml
-  - cluster-secret-store.yaml
+  # do not add this. cluster-secret-store.yaml contains the provider configuration, not a Kubernetes resource.
+  #- cluster-secret-store.yaml
   - redis-external-secret.yaml
   - postgres-external-secret.yaml
