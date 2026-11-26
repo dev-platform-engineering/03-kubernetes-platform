@@ -13,6 +13,19 @@ spec:
       database: app
       owner: app
 
+  managed:
+    roles:
+      - name: app
+        ensure: present
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        replication: false
+        bypassrls: false
+        passwordSecret:
+          name: postgres-app-credentials
+
   storage:
     storageClass: nfs-csi
     size: 5Gi
