@@ -4,4 +4,6 @@ kind: Kustomization
 resources:
   - vault-ca-configmap.yaml
   - secret-store.yaml
+  - cluster-secret-store.yaml
   - redis-external-secret.yaml
+  - postgres-external-secret.yaml
